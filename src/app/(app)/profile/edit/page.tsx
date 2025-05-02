@@ -11,8 +11,9 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import { onAuthStateChanged, updateProfile, type User } from "firebase/auth";
 import { doc, setDoc, Timestamp } from "firebase/firestore";
-import { getStorage, ref as storageRef, uploadBytes, getDownloadURL } from "@firebase/storage"; // Import Storage functions
-import { auth, db, storage } from "@/lib/firebase/client"; // Import storage
+import { getStorage, ref as storageRef, uploadBytes, getDownloadURL } from "@firebase/storage";
+import { auth, db, storage } from "@/lib/firebase/client";
+import imageCompression from 'browser-image-compression'; // Import compression library
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -24,20 +25,19 @@ import { Calendar } from "@/components/ui/calendar";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
 import { cn } from "@/lib/utils";
-import { ArrowLeft, CalendarIcon, Save, Camera, Trash2, Loader2 } from "lucide-react"; // Added Camera, Trash2, Loader2
+import { ArrowLeft, CalendarIcon, Save, Camera, Trash2, Loader2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { getUserProfileData, type UserProfile } from "@/app/(app)/profile/page";
 import { Skeleton } from "@/components/ui/skeleton";
 
-// Schema for the edit form (similar to registration, but password is not included)
+// Schema remains the same
 const formSchema = z.object({
   fullName: z.string().min(1, { message: "El nombre completo es requerido." }),
   address: z.string().min(1, { message: "La dirección es requerida." }),
   phoneNumber: z.string().min(1, { message: "El número de teléfono es requerido." }),
   gender: z.enum(['masculino', 'femenino', 'otro'], { required_error: "Selecciona un género." }),
   dob: z.date({ required_error: "La fecha de nacimiento es requerida." }),
-  email: z.string().email().readonly(), // Email is read-only
-  // photoURL is not part of the form schema, handled separately
+  email: z.string().email().readonly(),
 });
 
 type FormData = z.infer<typeof formSchema>;
@@ -45,48 +45,46 @@ type FormData = z.infer<typeof formSchema>;
 const EditProfilePage: FC = () => {
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
-  const [isDataLoading, setIsDataLoading] = useState(true); // Separate loading state for initial data fetch
-  const [isUploading, setIsUploading] = useState(false); // State for image upload loading
+  const [isDataLoading, setIsDataLoading] = useState(true);
+  const [isUploading, setIsUploading] = useState(false);
+  const [isCompressing, setIsCompressing] = useState(false); // State for compression loading
   const [user, setUser] = useState<User | null>(null);
   const { toast } = useToast();
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const [selectedFile, setSelectedFile] = useState<File | null>(null);
-  const [previewUrl, setPreviewUrl] = useState<string | null>(null); // For image preview
+  const [selectedFile, setSelectedFile] = useState<File | null>(null); // Will hold the compressed file
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
 
   const form = useForm<FormData>({
     resolver: zodResolver(formSchema),
-    // Use synchronous default values to prevent uncontrolled input errors
     defaultValues: {
         fullName: "",
         address: "",
         phoneNumber: "",
-        gender: undefined, // Use undefined for Select placeholder
-        dob: undefined,    // Use undefined for Calendar placeholder
-        email: "",         // Initial email is empty, will be set by useEffect
+        gender: undefined,
+        dob: undefined,
+        email: "",
     },
   });
 
-  // Effect to handle authentication state changes and populate form data
+  // Effect to handle authentication state changes and populate form data (remains the same)
   useEffect(() => {
-    setIsDataLoading(true); // Set loading true initially
+    setIsDataLoading(true);
     const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
       if (!currentUser) {
-        router.replace("/login"); // Redirect if not logged in
-        setIsDataLoading(false); // Stop loading if redirecting
+        router.replace("/login");
+        setIsDataLoading(false);
       } else {
         setUser(currentUser);
-        setPreviewUrl(currentUser.photoURL); // Initialize preview with existing photoURL
-        // Fetch profile data and reset the form once authenticated
+        setPreviewUrl(currentUser.photoURL);
         try {
           const profileData = await getUserProfileData(currentUser.uid);
-          // Reset the form with fetched data or defaults
           form.reset({
             fullName: profileData?.fullName || "",
             address: profileData?.address || "",
             phoneNumber: profileData?.phoneNumber || "",
-            gender: profileData?.gender || undefined, // Use undefined for Select placeholder if no data
-            dob: profileData?.dob || undefined, // Use undefined for Calendar placeholder if no data
-            email: currentUser.email || "", // Set email from auth
+            gender: profileData?.gender || undefined,
+            dob: profileData?.dob || undefined,
+            email: currentUser.email || "",
           });
         } catch (error) {
           console.error("Error fetching/resetting profile data:", error);
@@ -95,7 +93,6 @@ const EditProfilePage: FC = () => {
             title: "Error",
             description: "No se pudo cargar la información del perfil.",
           });
-          // Reset with defaults + email from auth on error.
           form.reset({
               fullName: "",
               address: "",
@@ -105,65 +102,97 @@ const EditProfilePage: FC = () => {
               email: currentUser.email || "",
           });
         } finally {
-          setIsDataLoading(false); // Stop loading after successful reset or error handling
+          setIsDataLoading(false);
         }
       }
     });
     return () => unsubscribe();
-    // Dependencies: Re-run when auth state changes or router/toast instances change.
-    // form.reset is stable and doesn't need to be a dependency.
-  }, [router, toast, form]); // Include form in dependencies as we call form.reset
+  }, [router, toast, form]);
 
-   // Handle file selection
-  const handleFileChange = (event: ChangeEvent<HTMLInputElement>) => {
+   // Handle file selection and COMPRESSION
+  const handleFileChange = async (event: ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
-    if (file) {
-      if (file.size > 2 * 1024 * 1024) { // Limit file size (e.g., 2MB)
+    if (!file) return;
+
+    // Basic validation (type)
+    if (!file.type.startsWith("image/")) {
+      toast({
+        variant: "destructive",
+        title: "Archivo Inválido",
+        description: "Por favor selecciona un archivo de imagen (jpg, png, gif, etc.).",
+      });
+      return;
+    }
+
+    setIsCompressing(true); // Start compression loading
+    setPreviewUrl(null); // Clear previous preview
+    setSelectedFile(null); // Clear previous file selection
+
+    const options = {
+        maxSizeMB: 1, // Target size 1MB (adjust as needed)
+        maxWidthOrHeight: 1024, // Resize the largest dimension to 1024px (adjust as needed)
+        useWebWorker: true, // Use web worker for better performance
+        initialQuality: 0.7, // Initial quality for compression
+    }
+
+    try {
+        console.log(`Original file size: ${(file.size / 1024 / 1024).toFixed(2)} MB`);
+        const compressedFile = await imageCompression(file, options);
+        console.log(`Compressed file size: ${(compressedFile.size / 1024 / 1024).toFixed(2)} MB`);
+
+        setSelectedFile(compressedFile); // Set the compressed file
+
+        // Create a preview URL from the compressed file
+        const reader = new FileReader();
+        reader.onloadend = () => {
+            setPreviewUrl(reader.result as string);
+        };
+        reader.readAsDataURL(compressedFile);
+
+        form.trigger(); // Trigger validation after setting the file
+
         toast({
-          variant: "destructive",
-          title: "Archivo Demasiado Grande",
-          description: "Por favor selecciona una imagen de menos de 2MB.",
+            title: "Imagen Lista",
+            description: `Imagen comprimida a ${(compressedFile.size / 1024 / 1024).toFixed(2)} MB.`,
         });
-        return;
-      }
-      if (!file.type.startsWith("image/")) {
+
+    } catch (error) {
+        console.error('Error compressing image:', error);
         toast({
-          variant: "destructive",
-          title: "Archivo Inválido",
-          description: "Por favor selecciona un archivo de imagen (jpg, png, gif, etc.).",
+            variant: "destructive",
+            title: "Error de Compresión",
+            description: "No se pudo procesar la imagen. Intenta con otra imagen.",
         });
-        return;
-      }
-      setSelectedFile(file);
-      // Create a preview URL
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setPreviewUrl(reader.result as string);
-      };
-      reader.readAsDataURL(file);
-      form.trigger(); // Trigger validation to enable save button if other fields are valid
+        setPreviewUrl(user?.photoURL || null); // Revert preview if compression fails
+    } finally {
+        setIsCompressing(false); // Stop compression loading
+        // Reset the file input value so the same file can be selected again if needed
+        if (fileInputRef.current) {
+            fileInputRef.current.value = "";
+        }
     }
   };
 
   // Trigger hidden file input click
   const handleAvatarClick = () => {
-    fileInputRef.current?.click();
+    if (!isCompressing && !isUploading && !isLoading) { // Prevent clicking while busy
+        fileInputRef.current?.click();
+    }
   };
 
-   // Remove selected/current image
+   // Remove selected/current image (remains the same)
    const handleRemoveImage = () => {
+       if (isCompressing || isUploading || isLoading) return; // Prevent action while busy
        setSelectedFile(null);
-       setPreviewUrl(null); // Clear preview
+       setPreviewUrl(null);
        form.trigger();
-       // Note: This only removes the preview/selection.
-       // Actual removal from storage/auth happens on save if needed (or implement separately).
-       // For now, saving with no previewUrl will update the profile photoURL to null/empty.
    };
 
 
+  // onSubmit remains largely the same, but now uploads the compressed file if selectedFile is set
   const onSubmit = async (values: FormData) => {
     setIsLoading(true);
-    setIsUploading(false); // Reset upload status
+    setIsUploading(false);
 
     if (!user) {
         toast({ variant: "destructive", title: "Error", description: "Usuario no autenticado." });
@@ -172,17 +201,18 @@ const EditProfilePage: FC = () => {
     }
 
     console.log("Updating profile data:", values);
-    let photoDownloadURL = user.photoURL; // Start with existing URL
+    let photoDownloadURL: string | null = user.photoURL; // Start with existing URL
 
-    // --- Upload Image if selected ---
+    // Upload the COMPRESSED Image if selectedFile is present
     if (selectedFile) {
       setIsUploading(true);
-      const imageRef = storageRef(storage, `profilePictures/${user.uid}/${selectedFile.name}`);
+      // Use a consistent naming convention or the user UID for the file name in storage
+      const imageRef = storageRef(storage, `profilePictures/${user.uid}/profileImage.jpg`); // Example: always save as profileImage.jpg
       try {
-        await uploadBytes(imageRef, selectedFile);
+        await uploadBytes(imageRef, selectedFile); // Upload the compressed file
         photoDownloadURL = await getDownloadURL(imageRef);
-        console.log("Image uploaded successfully:", photoDownloadURL);
-        toast({ title: "Imagen Cargada", description: "La nueva imagen de perfil se ha cargado." });
+        console.log("Compressed image uploaded successfully:", photoDownloadURL);
+        toast({ title: "Imagen Cargada", description: "La nueva imagen de perfil se ha guardado." });
       } catch (uploadError) {
         console.error("Error uploading image:", uploadError);
         toast({
@@ -190,51 +220,42 @@ const EditProfilePage: FC = () => {
           title: "Error al Cargar Imagen",
           description: "No se pudo guardar la imagen. La información del perfil se guardará sin la nueva imagen.",
         });
-        // Continue saving other data even if image upload fails, but don't update photoURL
-        photoDownloadURL = user.photoURL; // Revert to existing URL
+        photoDownloadURL = user.photoURL;
       } finally {
         setIsUploading(false);
       }
     } else if (previewUrl === null && user.photoURL !== null) {
-        // Handle case where user explicitly removed the image
-        photoDownloadURL = null; // Set to null to remove the photoURL
+        photoDownloadURL = null;
         console.log("Removing profile picture.");
     }
-    // --- End Image Upload ---
 
 
     try {
-      // --- Update Firestore ---
       const userDocRef = doc(db, "users", user.uid);
       const profileDataToUpdate = {
         fullName: values.fullName,
         address: values.address,
         phoneNumber: values.phoneNumber,
         gender: values.gender,
-        dob: Timestamp.fromDate(values.dob), // Convert date to timestamp
-        photoURL: photoDownloadURL, // Save the new or existing URL (or null if removed)
+        dob: Timestamp.fromDate(values.dob),
+        photoURL: photoDownloadURL,
         lastUpdatedAt: Timestamp.now(),
       };
 
       await setDoc(userDocRef, profileDataToUpdate, { merge: true });
       console.log("Profile data upserted successfully for user:", user.uid);
-      // --- End Firestore Update ---
 
-      // --- Update Firebase Auth Profile ---
-      // Update display name and photo URL in Firebase Auth profile
       await updateProfile(user, {
-          displayName: values.fullName, // Update display name as well
+          displayName: values.fullName,
           photoURL: photoDownloadURL,
       });
        console.log("Firebase Auth profile updated.");
-      // --- End Firebase Auth Profile Update ---
-
 
       toast({
         title: "Perfil Actualizado",
         description: "Tu información ha sido guardada.",
       });
-      router.push("/profile"); // Redirect back to profile view page
+      router.push("/profile");
     } catch (error) {
       console.error("Error saving profile:", error);
       toast({
@@ -247,7 +268,7 @@ const EditProfilePage: FC = () => {
     }
   };
 
-  // Get initials for Avatar Fallback
+  // Get initials for Avatar Fallback (remains the same)
   const getInitials = (name?: string | null): string => {
       if (!name) return "?";
       const names = name.trim().split(' ');
@@ -255,6 +276,7 @@ const EditProfilePage: FC = () => {
       return (names[0][0]?.toUpperCase() || "") + (names[names.length - 1][0]?.toUpperCase() || "");
   };
 
+  // Loading state skeleton (remains the same)
   if (isDataLoading) {
      return (
       <main className="flex min-h-screen flex-col items-center justify-center py-8 px-4 sm:px-8 bg-secondary">
@@ -290,37 +312,48 @@ const EditProfilePage: FC = () => {
              variant="ghost"
              size="icon"
              className="absolute left-4 top-6 text-muted-foreground hover:text-primary rounded-full"
-             onClick={() => router.back()} // Go back to previous page (profile view)
+             onClick={() => router.back()}
              aria-label="Volver al Perfil"
              type="button"
-             disabled={isLoading}
+             disabled={isLoading || isUploading || isCompressing} // Disable during compression
            >
              <ArrowLeft className="h-5 w-5" />
            </Button>
 
-           {/* Avatar Upload */}
+           {/* Avatar Upload Section */}
            <div className="relative group mb-4">
-                <Avatar className="w-24 h-24 border-2 border-primary cursor-pointer" onClick={handleAvatarClick}>
+                <Avatar
+                  className={cn(
+                    "w-24 h-24 border-2 border-primary",
+                    (isLoading || isUploading || isCompressing) ? "cursor-not-allowed opacity-70" : "cursor-pointer"
+                  )}
+                  onClick={handleAvatarClick}
+                >
                     <AvatarImage src={previewUrl || undefined} alt="Foto de perfil" data-ai-hint="user profile avatar"/>
                     <AvatarFallback className="text-2xl bg-muted text-muted-foreground">
-                        {/* Show initials based on form value or user's name */}
                         {getInitials(form.getValues('fullName') || user?.displayName || user?.email)}
                     </AvatarFallback>
                 </Avatar>
                  {/* Edit Icon Overlay */}
-                <div className="absolute inset-0 flex items-center justify-center bg-black/40 rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-200 cursor-pointer" onClick={handleAvatarClick}>
-                   <Camera className="h-6 w-6 text-white" />
+                <div
+                    className={cn(
+                        "absolute inset-0 flex items-center justify-center bg-black/40 rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-200",
+                        (isLoading || isUploading || isCompressing) ? "cursor-not-allowed" : "cursor-pointer"
+                    )}
+                    onClick={handleAvatarClick}
+                 >
+                   {!(isLoading || isUploading || isCompressing) && <Camera className="h-6 w-6 text-white" />}
                 </div>
                  {/* Hidden File Input */}
                 <input
                     type="file"
                     ref={fileInputRef}
                     onChange={handleFileChange}
-                    accept="image/*" // Accept only image files
+                    accept="image/*"
                     className="hidden"
-                    disabled={isLoading || isUploading}
+                    disabled={isLoading || isUploading || isCompressing} // Disable during compression
                  />
-                  {/* Remove Image Button (only show if there's an image) */}
+                  {/* Remove Image Button */}
                  {previewUrl && (
                      <Button
                          type="button"
@@ -328,16 +361,17 @@ const EditProfilePage: FC = () => {
                          size="icon"
                          className="absolute -bottom-1 -right-1 h-7 w-7 rounded-full shadow-md"
                          onClick={handleRemoveImage}
-                         disabled={isLoading || isUploading}
+                         disabled={isLoading || isUploading || isCompressing} // Disable during compression
                          aria-label="Eliminar imagen"
                      >
                          <Trash2 className="h-4 w-4" />
                      </Button>
                   )}
-                 {/* Uploading Indicator */}
-                 {isUploading && (
+                 {/* Loading Indicator (Uploading or Compressing) */}
+                 {(isUploading || isCompressing) && (
                     <div className="absolute inset-0 flex items-center justify-center bg-black/60 rounded-full">
                         <Loader2 className="h-8 w-8 text-white animate-spin" />
+                        <span className="sr-only">{isCompressing ? "Comprimiendo..." : "Cargando..."}</span>
                     </div>
                  )}
            </div>
@@ -361,9 +395,9 @@ const EditProfilePage: FC = () => {
                       <Input
                         placeholder="Tu correo electrónico"
                         {...field}
-                        value={field.value || ""} // Ensure value is always a string
-                        readOnly // Make input read-only
-                        disabled // Visually indicate it's disabled
+                        value={field.value || ""}
+                        readOnly
+                        disabled
                         className="h-11 bg-muted/50 cursor-not-allowed"
                       />
                     </FormControl>
@@ -384,8 +418,8 @@ const EditProfilePage: FC = () => {
                       <Input
                         placeholder="Tu nombre completo"
                         {...field}
-                        value={field.value || ""} // Ensure value is always a string
-                        disabled={isLoading || isUploading}
+                        value={field.value || ""}
+                        disabled={isLoading || isUploading || isCompressing} // Disable during compression
                         aria-required="true"
                         className="h-11"
                       />
@@ -406,8 +440,8 @@ const EditProfilePage: FC = () => {
                       <Input
                         placeholder="Tu dirección"
                         {...field}
-                        value={field.value || ""} // Ensure value is always a string
-                        disabled={isLoading || isUploading}
+                        value={field.value || ""}
+                        disabled={isLoading || isUploading || isCompressing} // Disable during compression
                         aria-required="true"
                         className="h-11"
                       />
@@ -429,8 +463,8 @@ const EditProfilePage: FC = () => {
                         type="tel"
                         placeholder="Ej: +56 9 1234 5678"
                         {...field}
-                        value={field.value || ""} // Ensure value is always a string
-                        disabled={isLoading || isUploading}
+                        value={field.value || ""}
+                        disabled={isLoading || isUploading || isCompressing} // Disable during compression
                         aria-required="true"
                         className="h-11"
                       />
@@ -447,8 +481,7 @@ const EditProfilePage: FC = () => {
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Género</FormLabel>
-                     {/* Ensure value is passed to Select */}
-                     <Select onValueChange={field.onChange} value={field.value} disabled={isLoading || isUploading}>
+                     <Select onValueChange={field.onChange} value={field.value} disabled={isLoading || isUploading || isCompressing}> {/* Disable during compression */}
                       <FormControl>
                         <SelectTrigger className="h-11">
                            <SelectValue placeholder="Selecciona tu género" />
@@ -481,7 +514,7 @@ const EditProfilePage: FC = () => {
                                "w-full pl-3 text-left font-normal h-11",
                                !field.value && "text-muted-foreground"
                              )}
-                             disabled={isLoading || isUploading}
+                             disabled={isLoading || isUploading || isCompressing} // Disable during compression
                            >
                              {field.value ? (
                                format(field.value, "PPP", { locale: es })
@@ -498,7 +531,7 @@ const EditProfilePage: FC = () => {
                            selected={field.value}
                            onSelect={field.onChange}
                            disabled={(date) =>
-                             date > new Date() || date < new Date("1900-01-01") || isLoading || isUploading
+                             date > new Date() || date < new Date("1900-01-01") || isLoading || isUploading || isCompressing // Disable during compression
                            }
                            initialFocus
                            locale={es}
@@ -518,22 +551,23 @@ const EditProfilePage: FC = () => {
                 disabled={
                     isLoading ||
                     isUploading ||
-                    (!form.formState.isDirty && !selectedFile && previewUrl === user?.photoURL) || // Disable if nothing changed (form data, file selection, image removal)
-                    !form.formState.isValid // Disable if form is invalid
+                    isCompressing || // Disable during compression
+                    (!form.formState.isDirty && !selectedFile && previewUrl === user?.photoURL) ||
+                    !form.formState.isValid
                  }
               >
-                 {isLoading || isUploading ? (
+                 {isLoading || isUploading || isCompressing ? ( // Check all loading states
                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                  ) : (
                     <Save className="mr-2 h-4 w-4" />
                  )}
-                {isLoading ? "Guardando..." : isUploading ? "Cargando Imagen..." : "Guardar Cambios"}
+                {isLoading ? "Guardando..." : isUploading ? "Cargando..." : isCompressing ? "Procesando..." : "Guardar Cambios"}
               </Button>
             </form>
           </Form>
         </CardContent>
          <CardFooter className="text-center text-sm text-muted-foreground justify-center pt-2 pb-8">
-           <Link href="/profile" className={cn("text-accent hover:text-accent/90 font-medium underline", (isLoading || isUploading) && "pointer-events-none opacity-50")}>
+           <Link href="/profile" className={cn("text-accent hover:text-accent/90 font-medium underline", (isLoading || isUploading || isCompressing) && "pointer-events-none opacity-50")}>
              Cancelar y Volver al Perfil
            </Link>
          </CardFooter>
@@ -543,3 +577,4 @@ const EditProfilePage: FC = () => {
 };
 
 export default EditProfilePage;
+
