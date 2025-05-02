@@ -7,7 +7,7 @@ import { useRouter, useParams } from 'next/navigation';
 import Link from 'next/link';
 import Image from 'next/image'; // Import next/image
 import dynamic from 'next/dynamic'; // Import dynamic
-import { onAuthStateChanged } from 'firebase/auth';
+import { onAuthStateChanged, type User } from 'firebase/auth'; // Import User type
 import { auth } from '@/lib/firebase/client';
 // Updated import path due to moving welcome page
 import { getReportById, type Report } from '@/app/(app)/welcome/page';
@@ -17,7 +17,7 @@ import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
 // Removed ArrowLeft as back nav is handled by bottom bar
 import { CalendarDays, MapPin, Tag, UserCog, TriangleAlert, Image as ImageIcon, Map, Video } from 'lucide-react';
-import 'leaflet/dist/leaflet.css'; // Import Leaflet CSS for map preview
+// Removed: import 'leaflet/dist/leaflet.css'; // Leaflet CSS will be imported globally
 
 // Dynamically import the Map Preview component
 const MapPreview = dynamic(() => import('@/components/map-preview'), {
@@ -37,7 +37,7 @@ const ReportDetailPage: FC = () => {
     const reportId = params?.reportId as string; // Get reportId from URL
     const [report, setReport] = useState<Report | null | undefined>(undefined); // Initial state undefined for loading
     const [isAuthLoading, setIsAuthLoading] = useState(true);
-    const [user, setUser] = useState(null); // To check if user is logged in
+    const [user, setUser] = useState<User | null>(null); // Use User type
 
     useEffect(() => {
         const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
@@ -46,14 +46,18 @@ const ReportDetailPage: FC = () => {
             } else {
                 setUser(currentUser); // Set user if logged in
                  // Fetch report data after confirming authentication
-                 // TODO: Fetch real report data including coordinates
-                 const foundReport = getReportById(reportId);
+                 // TODO: Fetch real report data including coordinates from Firestore/backend
+                 const foundReport = getReportById(reportId); // Using placeholder fetcher
+
+                 // Ensure foundReport is treated as Report | null
+                 const typedFoundReport = foundReport ? foundReport as Report : null;
+
                  // Mock coordinates if not present in placeholder data
-                 const reportWithCoords = foundReport
+                 const reportWithCoords = typedFoundReport
                    ? {
-                       ...foundReport,
-                       latitude: foundReport.latitude ?? 19.4326, // Example default coords
-                       longitude: foundReport.longitude ?? -99.1332,
+                       ...typedFoundReport,
+                       latitude: typedFoundReport.latitude ?? 19.4326, // Example default coords
+                       longitude: typedFoundReport.longitude ?? -99.1332,
                      }
                    : null;
                  setReport(reportWithCoords); // Set report data or null if not found
@@ -219,10 +223,11 @@ const ReportDetailPage: FC = () => {
                                  <Image
                                      src={report.mediaUrl}
                                      alt={`Evidencia para reporte ${report.id}`}
-                                     layout="fill" // Changed from fill to responsive for potentially better handling
-                                     objectFit="contain" // Changed from cover to contain to see whole image/video frame
+                                     fill // Use fill for responsive images within a relative container
+                                     style={{ objectFit: 'contain' }} // Use style prop for object-fit
                                      data-ai-hint="report evidence media"
                                      unoptimized // Consider adding if media is externally hosted and optimization isn't needed/possible
+                                     className="bg-muted" // Add a background color for letterboxing
                                  />
                                  {/* TODO: Add video player logic if needed */}
                                  {/* Example check for video based on common extensions */}
