@@ -1,4 +1,3 @@
-
 "use client";
 
 import type { FC } from "react";
@@ -12,11 +11,12 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
-import { LogOut, Search, UserCog, TriangleAlert, MapPin, User as UserIcon } from "lucide-react"; // Added UserIcon for profile link
+// Updated icons, added Plus for the new button
+import { LogOut, Search, UserCog, TriangleAlert, MapPin, User as UserIcon, Plus } from "lucide-react";
 import Image from "next/image"; // Import Image
 
 // Define the report type
-interface Report {
+export interface Report { // Export Report type
   id: string;
   type: 'funcionario' | 'incidente';
   title: string;
@@ -25,6 +25,8 @@ interface Report {
   location: string;
   status: 'Pendiente' | 'En proceso' | 'Resuelto';
   mediaUrl?: string; // Optional: URL for image or video evidence
+  latitude?: number; // Added latitude
+  longitude?: number; // Added longitude
 }
 
 // Placeholder data (replace with actual data fetching later)
@@ -38,6 +40,8 @@ const placeholderReports: Report[] = [
     location: 'Col. Centro',
     status: 'Pendiente',
     mediaUrl: 'https://picsum.photos/600/400', // Example media URL
+    latitude: 19.4326,
+    longitude: -99.1332,
   },
   {
     id: '2',
@@ -47,6 +51,8 @@ const placeholderReports: Report[] = [
     date: '2025-04-21',
     location: 'Av. Principal',
     status: 'En proceso',
+    latitude: 19.4300,
+    longitude: -99.1400,
     // No media URL for this one
   },
     {
@@ -58,6 +64,8 @@ const placeholderReports: Report[] = [
     location: 'Parque Morelos',
     status: 'Resuelto',
     mediaUrl: 'https://picsum.photos/600/401', // Example media URL (different size for variety)
+    latitude: 19.4250,
+    longitude: -99.1500,
   },
    {
     id: '4',
@@ -68,6 +76,8 @@ const placeholderReports: Report[] = [
     location: 'Blvd. Insurgentes',
     status: 'Pendiente',
      mediaUrl: 'https://picsum.photos/600/402', // Example media URL
+     latitude: 19.4100,
+     longitude: -99.1600,
   },
 ];
 
@@ -90,6 +100,7 @@ const WelcomePage: FC = () => {
       if (currentUser) {
         setUser(currentUser);
         // Simulate fetching reports after authentication
+        // TODO: Fetch actual reports from Firestore/backend
         setReports(placeholderReports);
       } else {
         router.replace("/login"); // Redirect to login if not authenticated
@@ -152,9 +163,11 @@ const WelcomePage: FC = () => {
         <div className="w-full max-w-2xl space-y-4">
            {/* Header Skeleton */}
            <div className="flex justify-between items-center mb-4">
-             <Skeleton className="h-10 w-1/2" />
-              {/* Placeholder for profile/logout button */}
-              <Skeleton className="h-8 w-8 rounded-full" />
+              <div className="flex-1">
+                <Skeleton className="h-10 w-1/2" />
+              </div>
+              <Skeleton className="h-9 w-9 rounded-full ml-4 flex-shrink-0" />
+              <Skeleton className="h-9 w-9 rounded-full ml-2 flex-shrink-0" />
            </div>
            <Skeleton className="h-10 w-full mb-4" />
            <div className="flex space-x-3 mb-6">
@@ -191,20 +204,35 @@ const WelcomePage: FC = () => {
     <main className="flex flex-col items-center p-4 sm:p-6 bg-secondary">
       <div className="w-full max-w-2xl">
         {/* Header */}
-        <header className="flex justify-between items-center mb-4">
-          <h1 className="text-2xl font-semibold text-primary">Reportes</h1>
-           {/* Replaced Logout button with a link to profile - Logout is now on profile page */}
-           <Button
-                asChild
-                variant="ghost"
-                size="icon"
-                className="text-muted-foreground hover:text-primary hover:bg-primary/10 rounded-full"
-                aria-label="Ver Perfil"
-            >
-              <Link href="/profile">
-                <UserIcon className="h-5 w-5" />
-              </Link>
-          </Button>
+        <header className="flex justify-between items-center mb-4 gap-4"> {/* Added gap */}
+          <h1 className="text-2xl font-semibold text-primary flex-1">Reportes</h1>
+          <div className="flex items-center space-x-2"> {/* Container for right-side buttons */}
+                {/* Add New Report Button */}
+                <Button
+                    asChild
+                    variant="default" // Primary button style
+                    size="icon" // Icon button size
+                    className="rounded-full shadow-md" // Circular style
+                    aria-label="Crear Nuevo Reporte"
+                >
+                    <Link href="/reports/new"> {/* Link to the new report page */}
+                        <Plus className="h-5 w-5" />
+                    </Link>
+                </Button>
+
+               {/* Profile Link Button */}
+               <Button
+                    asChild
+                    variant="ghost"
+                    size="icon"
+                    className="text-muted-foreground hover:text-primary hover:bg-primary/10 rounded-full"
+                    aria-label="Ver Perfil"
+                >
+                  <Link href="/profile">
+                    <UserIcon className="h-5 w-5" />
+                  </Link>
+              </Button>
+          </div>
         </header>
 
         {/* Search Input */}
@@ -290,4 +318,4 @@ const WelcomePage: FC = () => {
 };
 
 export default WelcomePage;
-export type { Report }; // Export Report type for use in details page
+// Removed export type { Report }; - It's already exported inline
