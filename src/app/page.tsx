@@ -146,7 +146,7 @@ const HomePage: FC = () => {
                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                   <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
                       <Button
-                        onClick={() => router.push('/login')}
+                        onClick={() => router.push('/auth')}
                         variant="outline"
                         className="w-full transition-all border-2 border-primary text-primary hover:bg-primary/10 h-11 rounded-full"
                         size="lg"
@@ -682,4 +682,3 @@ const HomePage: FC = () => {
 
 export default HomePage;
 
-    
