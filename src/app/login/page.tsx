@@ -8,20 +8,21 @@ import Link from "next/link";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
-import { signInWithEmailAndPassword, type AuthError } from "firebase/auth";
+import { signInWithEmailAndPassword, setPersistence, browserLocalPersistence, browserSessionPersistence, type AuthError } from "firebase/auth";
 import { auth } from "@/lib/firebase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
+import { Checkbox } from "@/components/ui/checkbox"; // Import Checkbox
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { Terminal, ArrowLeft } from "lucide-react";
-import { useToast } from "@/hooks/use-toast"; // Corrected import path
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage, FormDescription } from "@/components/ui/form";
+import { ArrowLeft, LogIn } from "lucide-react"; // Use LogIn icon
+import { useToast } from "@/hooks/use-toast";
 
+// Updated schema to include rememberMe
 const formSchema = z.object({
   email: z.string().email({ message: "Dirección de correo inválida." }),
-  password: z.string().min(1, { message: "La contraseña es requerida." }), // Min 1 for login
+  password: z.string().min(1, { message: "La contraseña es requerida." }),
+  rememberMe: z.boolean().optional().default(false), // Add rememberMe field
 });
 
 type FormData = z.infer<typeof formSchema>;
@@ -29,8 +30,6 @@ type FormData = z.infer<typeof formSchema>;
 const LoginPage: FC = () => {
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
-  // Error state removed, using toast instead
-  // const [error, setError] = useState<string | null>(null);
   const { toast } = useToast();
 
   const form = useForm<FormData>({
@@ -38,77 +37,75 @@ const LoginPage: FC = () => {
     defaultValues: {
       email: "",
       password: "",
+      rememberMe: false, // Default to false
     },
   });
 
   const onSubmit = async (values: FormData) => {
     setIsLoading(true);
-    // setError(null); // No longer needed
     try {
+       // Set persistence based on rememberMe checkbox
+       const persistence = values.rememberMe ? browserLocalPersistence : browserSessionPersistence;
+       await setPersistence(auth, persistence);
+       console.log(`Auth persistence set to: ${values.rememberMe ? 'local' : 'session'}`);
+
+
       await signInWithEmailAndPassword(auth, values.email, values.password);
       toast({
-        title: "Inicio de Sesión Exitoso", // Consistent capitalization
-        description: "Redirigiendo a la página de bienvenida...",
+        title: "Inicio de Sesión Exitoso",
+        description: "Redirigiendo...", // Shorter message
       });
-      // Add a slight delay for the toast message
       setTimeout(() => {
-        router.push("/welcome");
-      }, 1500);
+        router.push("/welcome"); // Redirect to welcome page
+      }, 1000); // Slightly shorter delay
     } catch (err) {
       const authError = err as AuthError;
-      let friendlyError = "Ocurrió un problema al iniciar sesión. Por favor, inténtalo de nuevo."; // Default friendly message
+      let friendlyError = "Ocurrió un problema. Verifica tus credenciales e intenta de nuevo."; // More concise default
 
-      // More specific error messages based on Firebase error codes
       if (authError.code === 'auth/user-not-found' || authError.code === 'auth/wrong-password' || authError.code === 'auth/invalid-credential') {
-        // Combined message for invalid login attempts
-        friendlyError = 'El correo electrónico o la contraseña no son correctos. Verifica tus datos e intenta de nuevo.';
+        friendlyError = 'Correo o contraseña incorrectos. Verifica tus datos.'; // More direct message
       } else if (authError.code === 'auth/invalid-email') {
-         friendlyError = 'El formato del correo electrónico no es válido. Por favor, revisa que esté bien escrito.';
+         friendlyError = 'El formato del correo no es válido.';
       } else if (authError.code === 'auth/user-disabled') {
-         friendlyError = 'Esta cuenta ha sido deshabilitada. Contacta al soporte si crees que es un error.';
+         friendlyError = 'Esta cuenta ha sido deshabilitada.';
+      } else if (authError.code === 'auth/too-many-requests') {
+          friendlyError = 'Demasiados intentos fallidos. Intenta más tarde.';
       }
       console.error("Firebase Login Error:", authError);
-      // Use toast to display the error
       toast({
         variant: "destructive",
-        title: "Problema al Iniciar Sesión",
+        title: "Error al Iniciar Sesión", // Keep title consistent
         description: friendlyError,
       });
-      // setError(friendlyError); // No longer needed
-      setIsLoading(false); // Stop loading on error
+      setIsLoading(false);
     }
-    // Keep loading true until redirect or explicit stop on error
   };
 
   return (
     <main className="flex min-h-screen flex-col items-center justify-center p-4 sm:p-8 bg-secondary">
-      <Card className="w-full max-w-md shadow-lg border-none rounded-xl">
-         <CardHeader className="text-center relative pb-4 pt-8"> {/* Added pt-8 for more space */}
+      {/* Increased shadow, consistent rounded corners */}
+      <Card className="w-full max-w-md shadow-xl border-none rounded-xl bg-card">
+         <CardHeader className="text-center relative pb-4 pt-8">
            {/* Back Button */}
             <Button
               variant="ghost"
               size="icon"
-              className="absolute left-4 top-6 text-muted-foreground hover:text-primary rounded-full" // Consistent position & styling
-              onClick={() => router.push('/')} // Navigate back to home/auth screen
+              className="absolute left-4 top-6 text-muted-foreground hover:text-primary rounded-full"
+              onClick={() => router.push('/')}
               aria-label="Volver"
-              type="button" // Ensure it doesn't submit the form
+              type="button"
+              disabled={isLoading}
             >
               <ArrowLeft className="h-5 w-5" />
             </Button>
-          <CardTitle className="text-2xl font-bold text-primary pt-2">Iniciar Sesión</CardTitle>
-          <CardDescription className="text-muted-foreground">Ingresa con tu correo electrónico.</CardDescription> {/* Adjusted text */}
+           {/* More spacing below title */}
+           <CardTitle className="text-2xl font-bold text-primary pt-2 mb-1">Iniciar Sesión</CardTitle>
+          <CardDescription className="text-muted-foreground">Ingresa tus credenciales para acceder.</CardDescription>
         </CardHeader>
-        <CardContent className="px-6 sm:px-8 pt-2 pb-6"> {/* Adjusted padding */}
+        <CardContent className="px-6 sm:px-8 pt-4 pb-6"> {/* Increased top padding */}
           <Form {...form}>
-            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-5"> {/* Adjusted spacing */}
-              {/* Removed Alert component */}
-              {/* {error && (
-                 <Alert variant="destructive" className="mb-4">
-                   <Terminal className="h-4 w-4" />
-                   <AlertTitle>Problema al Iniciar Sesión</AlertTitle>
-                   <AlertDescription>{error}</AlertDescription>
-                 </Alert>
-              )} */}
+            {/* Increased spacing between form elements */}
+            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
               <FormField
                 control={form.control}
                 name="email"
@@ -123,7 +120,7 @@ const LoginPage: FC = () => {
                         disabled={isLoading}
                         aria-required="true"
                         aria-invalid={!!form.formState.errors.email}
-                        className="h-11" // Consistent height
+                        className="h-11"
                       />
                     </FormControl>
                     <FormMessage />
@@ -144,32 +141,59 @@ const LoginPage: FC = () => {
                         disabled={isLoading}
                         aria-required="true"
                         aria-invalid={!!form.formState.errors.password}
-                        className="h-11" // Consistent height
+                        className="h-11"
                        />
                     </FormControl>
                     <FormMessage />
-                     {/* Forgot password link */}
-                     <div className="text-right">
-                        <Link href="/forgot-password"
-                          className="text-sm text-accent hover:text-accent/90 underline">
-                            ¿Olvidaste tu contraseña?
-                        </Link>
-                     </div>
                   </FormItem>
                 )}
               />
+
+              {/* Remember Me Checkbox and Forgot Password Link */}
+              <div className="flex items-center justify-between space-x-4 pt-1">
+                 <FormField
+                   control={form.control}
+                   name="rememberMe"
+                   render={({ field }) => (
+                     <FormItem className="flex flex-row items-center space-x-2 space-y-0">
+                       <FormControl>
+                         <Checkbox
+                           checked={field.value}
+                           onCheckedChange={field.onChange}
+                           disabled={isLoading}
+                           id="remember-me" // Add id for label association
+                         />
+                       </FormControl>
+                       {/* Link the label to the checkbox */}
+                       <FormLabel
+                           htmlFor="remember-me"
+                           className="text-sm font-normal text-muted-foreground cursor-pointer" // Style label
+                       >
+                         Recordar usuario
+                       </FormLabel>
+                     </FormItem>
+                   )}
+                 />
+                 <Link href="/forgot-password"
+                   className="text-sm text-accent hover:text-accent/90 underline whitespace-nowrap">
+                     ¿Olvidaste tu contraseña?
+                 </Link>
+              </div>
+
+
               <Button
                 type="submit"
-                size="lg" // Make button larger
-                className="w-full bg-primary hover:bg-primary/90 text-primary-foreground h-12 rounded-full text-base font-medium mt-6" // Added margin-top
+                size="lg"
+                className="w-full bg-primary hover:bg-primary/90 text-primary-foreground h-12 rounded-full text-base font-medium mt-8" // Increased margin-top
                 disabled={isLoading}
               >
+                 <LogIn className="mr-2 h-4 w-4" /> {/* Use LogIn icon */}
                 {isLoading ? "Iniciando sesión..." : "Iniciar Sesión"}
               </Button>
             </form>
           </Form>
         </CardContent>
-         <CardFooter className="text-center text-sm text-muted-foreground justify-center pt-2 pb-8"> {/* Adjusted padding */}
+         <CardFooter className="text-center text-sm text-muted-foreground justify-center pt-4 pb-8"> {/* Adjusted padding */}
            <p>¿No tienes cuenta?{' '}
              <Link href="/register" className="text-accent hover:text-accent/90 font-medium underline">
                Regístrate aquí
@@ -182,3 +206,6 @@ const LoginPage: FC = () => {
 };
 
 export default LoginPage;
+
+
+    
