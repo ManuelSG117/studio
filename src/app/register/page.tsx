@@ -10,35 +10,39 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import { createUserWithEmailAndPassword, type AuthError } from "firebase/auth";
 import { auth } from "@/lib/firebase/client";
-import { format } from "date-fns";
-import { es } from 'date-fns/locale'; // Import Spanish locale
+// Removed unused date-fns imports
+// import { format } from "date-fns";
+// import { es } from 'date-fns/locale';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
+// Removed unused Label import
+// import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { Calendar } from "@/components/ui/calendar";
+// Removed unused RadioGroup imports
+// import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+// Removed unused Popover/Calendar imports
+// import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+// import { Calendar } from "@/components/ui/calendar";
 import { cn } from "@/lib/utils";
-import { Terminal, ArrowLeft, CalendarIcon } from "lucide-react"; // Import ArrowLeft & CalendarIcon
+// Removed unused CalendarIcon
+import { Terminal, ArrowLeft } from "lucide-react"; // Import ArrowLeft
 import { useToast } from "@/hooks/use-toast";
 
-// Schema definition remains the same
+// Updated Schema: Only email, password, confirmPassword. Added password complexity and confirmation validation.
 const formSchema = z.object({
-  fullName: z.string().min(2, { message: "El nombre completo debe tener al menos 2 caracteres." }),
   email: z.string().email({ message: "Dirección de correo inválida." }),
-  password: z.string().min(6, { message: "La contraseña debe tener al menos 6 caracteres." }),
-  address: z.string().min(5, { message: "La dirección debe tener al menos 5 caracteres." }),
-  phoneNumber: z.string().regex(/^\+?[0-9\s\-()]{7,20}$/, { message: "Número de teléfono inválido." }),
-  gender: z.enum(["masculino", "femenino", "otro"], {
-    required_error: "Por favor selecciona un género.",
-  }),
-  dob: z.date({
-    required_error: "Por favor selecciona tu fecha de nacimiento.",
-  }),
+  password: z.string()
+    .min(8, { message: "La contraseña debe tener al menos 8 caracteres." })
+    .regex(/[A-Z]/, { message: "La contraseña debe contener al menos una letra mayúscula." })
+    .regex(/[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/, { message: "La contraseña debe contener al menos un caracter especial." }),
+  confirmPassword: z.string().min(1, { message: "Por favor confirma tu contraseña." }),
+}).refine((data) => data.password === data.confirmPassword, {
+  message: "Las contraseñas no coinciden.",
+  path: ["confirmPassword"], // Set the error path to the confirmPassword field
 });
+
 
 type FormData = z.infer<typeof formSchema>;
 
@@ -51,42 +55,27 @@ const RegisterPage: FC = () => {
   const form = useForm<FormData>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      fullName: "",
       email: "",
       password: "",
-      address: "",
-      phoneNumber: "",
-      gender: undefined, // Let zod handle required error
-      dob: undefined, // Let zod handle required error
+      confirmPassword: "", // Added default value
+      // Removed unused fields
+      // fullName: "",
+      // address: "",
+      // phoneNumber: "",
+      // gender: undefined,
+      // dob: undefined,
     },
   });
 
   const onSubmit = async (values: FormData) => {
     setIsLoading(true);
     setError(null);
-    console.log("Registration Data:", values); // Log all form data
+    console.log("Registration Data (Email/Password only):", { email: values.email }); // Log only necessary data
     try {
-      // Create user with email and password
+      // Create user with email and password - No need for other fields here
       await createUserWithEmailAndPassword(auth, values.email, values.password);
 
-      // --- TODO: Save additional user data (values.fullName, values.address, etc.) ---
-      // This typically involves:
-      // 1. Getting the user ID (userCredential.user.uid)
-      // 2. Setting up Firestore (if not already done)
-      // 3. Creating a user profile document in Firestore with the additional data
-      // Example (needs Firestore setup):
-      // const user = userCredential.user;
-      // const userRef = doc(db, "users", user.uid); // Assuming 'db' is your Firestore instance
-      // await setDoc(userRef, {
-      //   fullName: values.fullName,
-      //   address: values.address,
-      //   phoneNumber: values.phoneNumber,
-      //   gender: values.gender,
-      //   dob: values.dob,
-      //   email: values.email, // Store email too if needed
-      // });
-      // --- End TODO ---
-
+      // --- Removed TODO for saving additional data ---
 
       toast({
         title: "Registro Exitoso!",
@@ -102,7 +91,8 @@ const RegisterPage: FC = () => {
       if (authError.code === "auth/email-already-in-use") {
         friendlyError = "Esta dirección de correo electrónico ya está en uso.";
       } else if (authError.code === "auth/weak-password") {
-        friendlyError = "La contraseña es demasiado débil. Por favor, elige una contraseña más segura.";
+         // Although we have frontend validation, Firebase might still reject if rules are stricter
+        friendlyError = "La contraseña es demasiado débil según las reglas del servidor.";
       } else if (authError.code === 'auth/invalid-email') {
         friendlyError = 'El formato del correo electrónico no es válido.';
       } else if (authError.code === 'auth/operation-not-allowed') {
@@ -116,57 +106,31 @@ const RegisterPage: FC = () => {
   };
 
   return (
-    // Use secondary background for consistency
     <main className="flex min-h-screen flex-col items-center justify-center py-8 px-4 sm:px-8 bg-secondary">
-       {/* Increased max-width for better spacing */}
-      <Card className="w-full max-w-lg shadow-lg border-none rounded-xl">
+      <Card className="w-full max-w-md shadow-lg border-none rounded-xl"> {/* Reduced max-width */}
         <CardHeader className="text-center relative pb-4 pt-8">
-           {/* Back Button Styling */}
            <Button
              variant="ghost"
              size="icon"
-             className="absolute left-4 top-6 text-muted-foreground hover:text-primary rounded-full" // Rounded
+             className="absolute left-4 top-6 text-muted-foreground hover:text-primary rounded-full"
              onClick={() => router.push('/')}
              aria-label="Volver"
            >
              <ArrowLeft className="h-5 w-5" />
            </Button>
           <CardTitle className="text-2xl font-bold text-primary">Crear Cuenta</CardTitle>
-          <CardDescription className="text-muted-foreground">Ingresa tus datos para registrarte.</CardDescription>
+          <CardDescription className="text-muted-foreground">Solo necesitas tu correo y una contraseña.</CardDescription> {/* Simplified description */}
         </CardHeader>
         <CardContent className="px-6 sm:px-8 pt-2 pb-6">
           <Form {...form}>
-             {/* Increased spacing between form elements */}
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-5">
               {error && (
-                 <Alert variant="destructive" className="mb-4"> {/* Added margin bottom */}
+                 <Alert variant="destructive" className="mb-4">
                    <Terminal className="h-4 w-4" />
                    <AlertTitle>Error de Registro</AlertTitle>
                    <AlertDescription>{error}</AlertDescription>
                  </Alert>
               )}
-
-              {/* Full Name */}
-              <FormField
-                control={form.control}
-                name="fullName"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Nombre Completo</FormLabel>
-                    <FormControl>
-                      <Input
-                        placeholder="Escribe tu nombre completo"
-                        {...field}
-                        disabled={isLoading}
-                        aria-required="true"
-                        aria-invalid={!!form.formState.errors.fullName}
-                        className="h-11" // Consistent height
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
 
               {/* Email */}
               <FormField
@@ -183,7 +147,7 @@ const RegisterPage: FC = () => {
                         disabled={isLoading}
                         aria-required="true"
                         aria-invalid={!!form.formState.errors.email}
-                         className="h-11" // Consistent height
+                         className="h-11"
                       />
                     </FormControl>
                     <FormMessage />
@@ -206,29 +170,34 @@ const RegisterPage: FC = () => {
                         disabled={isLoading}
                         aria-required="true"
                         aria-invalid={!!form.formState.errors.password}
-                        className="h-11" // Consistent height
+                        className="h-11"
                        />
                     </FormControl>
+                    {/* Clarify password requirements */}
+                    <FormDescription className="text-xs pt-1">
+                       Mínimo 8 caracteres, 1 mayúscula, 1 caracter especial (!@#...).
+                    </FormDescription>
                     <FormMessage />
                   </FormItem>
                 )}
               />
 
-               {/* Address */}
+              {/* Confirm Password */}
                <FormField
                  control={form.control}
-                 name="address"
+                 name="confirmPassword"
                  render={({ field }) => (
                    <FormItem>
-                     <FormLabel>Dirección</FormLabel>
+                     <FormLabel>Confirmar Contraseña</FormLabel>
                      <FormControl>
                        <Input
-                         placeholder="Escribe tu dirección"
+                         type="password"
+                         placeholder="Vuelve a escribir tu contraseña"
                          {...field}
                          disabled={isLoading}
                          aria-required="true"
-                         aria-invalid={!!form.formState.errors.address}
-                         className="h-11" // Consistent height
+                         aria-invalid={!!form.formState.errors.confirmPassword}
+                         className="h-11"
                        />
                      </FormControl>
                      <FormMessage />
@@ -236,122 +205,14 @@ const RegisterPage: FC = () => {
                  )}
                />
 
-               {/* Phone Number */}
-               <FormField
-                 control={form.control}
-                 name="phoneNumber"
-                 render={({ field }) => (
-                   <FormItem>
-                     <FormLabel>Número de Teléfono</FormLabel>
-                     <FormControl>
-                       <Input
-                         type="tel"
-                         placeholder="Ej: +56 9 1234 5678"
-                         {...field}
-                         disabled={isLoading}
-                         aria-required="true"
-                         aria-invalid={!!form.formState.errors.phoneNumber}
-                         className="h-11" // Consistent height
-                       />
-                     </FormControl>
-                     <FormMessage />
-                   </FormItem>
-                 )}
-               />
+              {/* Removed Full Name, Address, Phone, Gender, DOB Fields */}
 
-                {/* Gender */}
-                <FormField
-                  control={form.control}
-                  name="gender"
-                  render={({ field }) => (
-                     // Reduced bottom margin
-                    <FormItem className="space-y-2 pb-1">
-                      <FormLabel>Género</FormLabel>
-                      <FormControl>
-                        <RadioGroup
-                          onValueChange={field.onChange}
-                          defaultValue={field.value}
-                          // Consistent horizontal layout, tight spacing
-                          className="flex flex-row space-x-4 pt-1"
-                          disabled={isLoading}
-                          aria-required="true"
-                        >
-                          <FormItem className="flex items-center space-x-2 space-y-0">
-                            <FormControl>
-                              <RadioGroupItem value="masculino" />
-                            </FormControl>
-                            <FormLabel className="font-normal text-sm">Masculino</FormLabel>
-                          </FormItem>
-                          <FormItem className="flex items-center space-x-2 space-y-0">
-                            <FormControl>
-                              <RadioGroupItem value="femenino" />
-                            </FormControl>
-                            <FormLabel className="font-normal text-sm">Femenino</FormLabel>
-                          </FormItem>
-                          <FormItem className="flex items-center space-x-2 space-y-0">
-                            <FormControl>
-                              <RadioGroupItem value="otro" />
-                            </FormControl>
-                            <FormLabel className="font-normal text-sm">Otro</FormLabel>
-                          </FormItem>
-                        </RadioGroup>
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                {/* Date of Birth */}
-                <FormField
-                  control={form.control}
-                  name="dob"
-                  render={({ field }) => (
-                    <FormItem className="flex flex-col pt-1"> {/* Added slight top padding */}
-                      <FormLabel>Fecha de Nacimiento</FormLabel>
-                      <Popover>
-                        <PopoverTrigger asChild>
-                          <FormControl>
-                            <Button
-                              variant={"outline"}
-                              className={cn(
-                                "w-full justify-start text-left font-normal h-11", // Consistent height
-                                !field.value && "text-muted-foreground"
-                              )}
-                              disabled={isLoading}
-                              aria-required="true"
-                            >
-                              <CalendarIcon className="mr-2 h-4 w-4 opacity-50" />
-                              {field.value ? (
-                                format(field.value, "PPP", { locale: es }) // Use Spanish locale
-                              ) : (
-                                <span>Selecciona tu fecha</span>
-                              )}
-                            </Button>
-                          </FormControl>
-                        </PopoverTrigger>
-                        <PopoverContent className="w-auto p-0" align="start">
-                          <Calendar
-                            mode="single"
-                            selected={field.value}
-                            onSelect={field.onChange}
-                            disabled={(date) =>
-                              date > new Date() || date < new Date("1900-01-01")
-                            }
-                            initialFocus
-                            locale={es} // Use Spanish locale in Calendar
-                          />
-                        </PopoverContent>
-                      </Popover>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
 
               {/* Submit Button */}
               <Button
                 type="submit"
-                size="lg" // Make button larger
-                className="w-full bg-primary hover:bg-primary/90 text-primary-foreground h-12 rounded-full text-base font-medium mt-6" // Increased margin-top, rounded-full
+                size="lg"
+                className="w-full bg-primary hover:bg-primary/90 text-primary-foreground h-12 rounded-full text-base font-medium mt-6"
                 disabled={isLoading}
               >
                 {isLoading ? "Registrando..." : "Registrarme"}
@@ -359,7 +220,7 @@ const RegisterPage: FC = () => {
             </form>
           </Form>
         </CardContent>
-         <CardFooter className="text-center text-sm text-muted-foreground justify-center pt-2 pb-8"> {/* Adjusted padding */}
+         <CardFooter className="text-center text-sm text-muted-foreground justify-center pt-2 pb-8">
            <p>¿Ya tienes cuenta?{' '}
              <Link href="/login" className="text-accent hover:text-accent/90 font-medium underline">
                Inicia sesión aquí
