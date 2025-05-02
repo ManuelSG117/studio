@@ -15,8 +15,6 @@ import { Input } from "@/components/ui/input";
 // Import CardFooter along with other Card components
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"; // Import Tabs components
-import { Separator } from "@/components/ui/separator"; // Import Separator
 import { GoogleIcon } from '@/components/icons/google-icon'; // Import Google Icon
 import { LogIn, Loader2 } from "lucide-react"; // Use LogIn icon, keep Loader2
 import { useToast } from "@/hooks/use-toast";
@@ -100,12 +98,9 @@ const LoginPage: FC = () => {
       // No immediate redirect here to allow AuthProvider to work
     } catch (err) {
       const authError = err as AuthError;
-      let friendlyError = "Ocurrió un problema. Verifica tus credenciales e intenta de nuevo.";
+      let friendlyError = "Credenciales incorrectas. Verifica tu correo y contraseña."; // Updated message
 
-      if (authError.code === 'auth/user-not-found' || authError.code === 'auth/wrong-password' || authError.code === 'auth/invalid-credential') {
-        // friendlyError = 'Correo electrónico o contraseña incorrectos. Por favor, verifica tus datos e inténtalo de nuevo.';
-         friendlyError = 'Credenciales incorrectas. Verifica tu correo y contraseña.'; // Improved message
-      } else if (authError.code === 'auth/invalid-email') {
+      if (authError.code === 'auth/invalid-email') {
          friendlyError = 'El formato del correo electrónico no es válido.';
       } else if (authError.code === 'auth/user-disabled') {
          friendlyError = 'Esta cuenta ha sido deshabilitada.';
@@ -120,37 +115,27 @@ const LoginPage: FC = () => {
 
   return (
     <main className="flex min-h-screen flex-col items-center justify-center p-4 sm:p-8 bg-secondary">
-      <Card className="w-full max-w-md shadow-lg border-none rounded-xl bg-card overflow-hidden"> {/* Added overflow-hidden */}
-         <CardHeader className="text-center pb-4 pt-8 bg-card"> {/* Ensure header bg matches card */}
+      <Card className="w-full max-w-md shadow-lg border-none rounded-xl bg-card">
+         <CardHeader className="text-center pb-4 pt-8">
            {/* Use the Image component for the logo */}
             <Image
                src="/icon.png" // Path to your logo in the public folder
                alt="App Logo"
                width={80} // Adjust size as needed
                height={80}
-               className="mx-auto mb-3"
+               className="mx-auto mb-3 rounded-lg" // Removed rounded-full
                priority
                data-ai-hint="app logo"
              />
-           <CardTitle className="text-2xl font-bold text-primary">+Seguro</CardTitle> {/* Updated title */}
-           <CardDescription className="text-muted-foreground text-sm">Plataforma para reportes ciudadanos</CardDescription>
+           <CardTitle className="text-2xl font-bold text-primary">+Seguro</CardTitle>
+           <CardDescription className="text-muted-foreground text-sm">Ingresa tus credenciales para continuar</CardDescription>
         </CardHeader>
-
-        {/* Tabs for Login and Register */}
-        <Tabs defaultValue="login" className="w-full">
-           <TabsList className="grid w-full grid-cols-2 h-auto rounded-none bg-muted/50 p-1"> {/* Adjusted styling */}
-             <TabsTrigger value="login" className="py-2.5 data-[state=active]:bg-background data-[state=active]:shadow-sm data-[state=inactive]:bg-transparent data-[state=inactive]:shadow-none">Iniciar Sesión</TabsTrigger>
-             <TabsTrigger value="register" className="py-2.5 data-[state=active]:bg-background data-[state=active]:shadow-sm data-[state=inactive]:bg-transparent data-[state=inactive]:shadow-none" onClick={() => router.push('/register')}>Registrarse</TabsTrigger>
-           </TabsList>
-
-           {/* Login Tab Content */}
-           <TabsContent value="login">
              <CardContent className="px-6 sm:px-8 pt-6 pb-6">
                 {/* Error Alert */}
                 {authError && (
                    <Alert variant="destructive" className="mb-6 bg-destructive/10 border-destructive/20 text-destructive">
                      <Terminal className="h-4 w-4" />
-                     <AlertTitle className="font-semibold">Error de Autenticación</AlertTitle>
+                     <AlertTitle className="font-semibold">Error de Inicio de Sesión</AlertTitle>
                      <AlertDescription className="text-xs">
                        {authError}
                      </AlertDescription>
@@ -167,7 +152,7 @@ const LoginPage: FC = () => {
                           <FormControl>
                             <Input
                               type="email"
-                              placeholder="tu@correo.com" // Updated placeholder
+                              placeholder="tu@correo.com"
                               {...field}
                               value={field.value || ""}
                               disabled={isLoading || isGoogleLoading}
@@ -187,10 +172,10 @@ const LoginPage: FC = () => {
                         <FormItem>
                            <div className="flex justify-between items-center">
                                <FormLabel>Contraseña</FormLabel>
-                               {/* Forgot Password Link moved here */}
+                               {/* Forgot Password Link */}
                                <Link href="/forgot-password"
                                     className="text-xs text-accent hover:text-accent/90 underline">
-                                    ¿Olvidaste?
+                                    ¿Olvidaste tu contraseña?
                                </Link>
                            </div>
                           <FormControl>
@@ -216,7 +201,7 @@ const LoginPage: FC = () => {
                     <Button
                       type="submit"
                       size="lg"
-                      className="w-full bg-primary hover:bg-primary/90 text-primary-foreground h-12 rounded-md text-base font-medium" // Adjusted: removed rounded-full
+                      className="w-full bg-primary hover:bg-primary/90 text-primary-foreground h-12 rounded-full text-base font-medium" // Back to rounded-full
                       disabled={isLoading || isGoogleLoading}
                     >
                        {isLoading && !isGoogleLoading ? (
@@ -227,18 +212,11 @@ const LoginPage: FC = () => {
                       {isLoading && !isGoogleLoading ? "Iniciando sesión..." : "Iniciar Sesión"}
                     </Button>
 
-                    {/* Separator */}
-                    <div className="flex items-center my-6">
-                       <Separator className="flex-1" />
-                       <span className="mx-4 text-xs text-muted-foreground uppercase">O continúa con</span>
-                       <Separator className="flex-1" />
-                    </div>
-
                      {/* Google Sign-In Button */}
                     <Button
                        onClick={handleGoogleSignIn}
                        variant="outline"
-                       className="w-full h-12 rounded-md text-base font-medium border-input hover:bg-accent/10" // Adjusted: removed rounded-full
+                       className="w-full h-12 rounded-full text-base font-medium border-input hover:bg-accent/10" // Back to rounded-full
                        size="lg"
                        disabled={isLoading || isGoogleLoading}
                        type="button" // Ensure it's not treated as submit
@@ -253,21 +231,15 @@ const LoginPage: FC = () => {
                   </form>
                 </Form>
              </CardContent>
-              {/* Terms Footer */}
-              <CardFooter className="text-center text-xs text-muted-foreground justify-center pt-0 pb-6 px-6">
-                 Al iniciar sesión, aceptas nuestros{' '}
-                 <Link href="/terms" className="text-accent hover:text-accent/90 underline ml-1">
-                   Términos y Condiciones
-                 </Link>
-                 .
+              {/* Register Footer */}
+              <CardFooter className="text-center text-sm text-muted-foreground justify-center pt-0 pb-8">
+                 <p>¿No tienes cuenta?{' '}
+                   <Link href="/register" className="text-accent hover:text-accent/90 font-medium underline">
+                     Regístrate aquí
+                   </Link>
+                 </p>
               </CardFooter>
-           </TabsContent>
 
-           {/* Register Tab Content (Empty or could redirect) */}
-           <TabsContent value="register">
-             {/* No content needed here as onClick redirects */}
-           </TabsContent>
-        </Tabs>
       </Card>
     </main>
   );
