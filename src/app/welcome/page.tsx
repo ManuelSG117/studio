@@ -1,7 +1,9 @@
+
 "use client";
 
 import type { FC } from "react";
 import { useEffect, useState, useMemo } from "react";
+import Link from "next/link"; // Import Link
 import { useRouter } from "next/navigation";
 import { onAuthStateChanged, type User } from "firebase/auth";
 import { auth } from "@/lib/firebase/client";
@@ -62,6 +64,12 @@ const placeholderReports: Report[] = [
     status: 'Pendiente',
   },
 ];
+
+// Make placeholder data accessible outside the component for the details page
+export const getReportById = (id: string): Report | undefined => {
+    return placeholderReports.find(report => report.id === id);
+}
+
 
 const WelcomePage: FC = () => {
   const router = useRouter();
@@ -126,6 +134,21 @@ const WelcomePage: FC = () => {
               return 'default';
       }
   }
+
+   // Function to get status badge colors (Tailwind classes)
+   const getStatusClasses = (status: Report['status']): string => {
+       switch (status) {
+           case 'Pendiente':
+               return 'bg-yellow-100 text-yellow-800 border-yellow-200';
+           case 'En proceso':
+               return 'bg-blue-100 text-blue-800 border-blue-200';
+           case 'Resuelto':
+               return 'bg-green-100 text-green-800 border-green-200';
+           default:
+               return 'bg-gray-100 text-gray-800 border-gray-200'; // Fallback
+       }
+   }
+
 
   if (isLoading) {
     return (
@@ -219,39 +242,37 @@ const WelcomePage: FC = () => {
         <div className="space-y-4">
           {filteredReports.length > 0 ? (
             filteredReports.map((report) => (
-              <Card key={report.id} className="w-full shadow-sm rounded-lg overflow-hidden border border-border">
-                 {/* Use CardHeader for better structure */}
-                 <CardHeader className="flex flex-row items-start justify-between pb-2 space-y-0 pt-4 px-4 sm:px-5">
-                    <div className="flex items-center space-x-2">
-                       {report.type === 'funcionario' ? (
-                         <UserCog className="h-5 w-5 text-blue-600" /> // Icon color can be customized
-                       ) : (
-                         <TriangleAlert className="h-5 w-5 text-red-600" /> // Icon color can be customized
-                       )}
-                      <CardTitle className="text-base font-semibold text-foreground">{report.title}</CardTitle>
+              <Link key={report.id} href={`/reports/${report.id}`} className="block hover:bg-card/50 rounded-lg transition-colors duration-150">
+                <Card className="w-full shadow-sm rounded-lg overflow-hidden border border-border cursor-pointer">
+                  {/* Use CardHeader for better structure */}
+                  <CardHeader className="flex flex-row items-start justify-between pb-2 space-y-0 pt-4 px-4 sm:px-5">
+                      <div className="flex items-center space-x-2">
+                         {report.type === 'funcionario' ? (
+                           <UserCog className="h-5 w-5 text-blue-600" /> // Icon color can be customized
+                         ) : (
+                           <TriangleAlert className="h-5 w-5 text-red-600" /> // Icon color can be customized
+                         )}
+                        <CardTitle className="text-base font-semibold text-foreground">{report.title}</CardTitle>
+                      </div>
+                     <p className="text-xs text-muted-foreground pt-1">{report.date}</p>
+                  </CardHeader>
+                  <CardContent className="space-y-2 pt-1 pb-4 px-4 sm:px-5">
+                    <CardDescription className="text-sm text-foreground/90 leading-relaxed line-clamp-2">{report.description}</CardDescription> {/* Added line-clamp */}
+                    <div className="flex justify-between items-center text-sm text-muted-foreground pt-2">
+                      <div className="flex items-center">
+                          <MapPin className="h-4 w-4 mr-1.5"/>
+                          {report.location}
+                      </div>
+                       <Badge
+                           variant={getStatusVariant(report.status)}
+                           className={`capitalize rounded-full px-2.5 py-0.5 text-xs font-medium border ${getStatusClasses(report.status)}`}
+                       >
+                        {report.status}
+                      </Badge>
                     </div>
-                   <p className="text-xs text-muted-foreground pt-1">{report.date}</p>
-                 </CardHeader>
-                <CardContent className="space-y-2 pt-1 pb-4 px-4 sm:px-5">
-                  <CardDescription className="text-sm text-foreground/90 leading-relaxed">{report.description}</CardDescription>
-                  <div className="flex justify-between items-center text-sm text-muted-foreground pt-2">
-                    <div className="flex items-center">
-                        <MapPin className="h-4 w-4 mr-1.5"/>
-                        {report.location}
-                    </div>
-                     <Badge
-                        variant={getStatusVariant(report.status)}
-                        className={`capitalize rounded-full px-2.5 py-0.5 text-xs font-medium ${
-                            report.status === 'Pendiente' ? 'bg-yellow-100 text-yellow-800 border-yellow-200' :
-                            report.status === 'En proceso' ? 'bg-blue-100 text-blue-800 border-blue-200' :
-                            report.status === 'Resuelto' ? 'bg-green-100 text-green-800 border-green-200' : ''
-                        }`}
-                    >
-                      {report.status}
-                    </Badge>
-                  </div>
-                </CardContent>
-              </Card>
+                  </CardContent>
+                </Card>
+              </Link>
             ))
           ) : (
             <Card className="w-full shadow-sm rounded-lg border border-border">
@@ -269,3 +290,5 @@ const WelcomePage: FC = () => {
 };
 
 export default WelcomePage;
+export type { Report }; // Export Report type for use in details page
+
