@@ -13,6 +13,7 @@ import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { LogOut, Search, UserCog, TriangleAlert, MapPin } from "lucide-react";
+import Image from "next/image"; // Import Image
 
 // Define the report type
 interface Report {
@@ -23,6 +24,7 @@ interface Report {
   date: string; // Keep as string for simplicity, format as needed
   location: string;
   status: 'Pendiente' | 'En proceso' | 'Resuelto';
+  mediaUrl?: string; // Optional: URL for image or video evidence
 }
 
 // Placeholder data (replace with actual data fetching later)
@@ -35,6 +37,7 @@ const placeholderReports: Report[] = [
     date: '2025-04-22',
     location: 'Col. Centro',
     status: 'Pendiente',
+    mediaUrl: 'https://picsum.photos/600/400', // Example media URL
   },
   {
     id: '2',
@@ -44,6 +47,7 @@ const placeholderReports: Report[] = [
     date: '2025-04-21',
     location: 'Av. Principal',
     status: 'En proceso',
+    // No media URL for this one
   },
     {
     id: '3',
@@ -53,6 +57,7 @@ const placeholderReports: Report[] = [
     date: '2025-04-20',
     location: 'Parque Morelos',
     status: 'Resuelto',
+    mediaUrl: 'https://picsum.photos/600/401', // Example media URL (different size for variety)
   },
    {
     id: '4',
@@ -62,6 +67,7 @@ const placeholderReports: Report[] = [
     date: '2025-04-19',
     location: 'Blvd. Insurgentes',
     status: 'Pendiente',
+     mediaUrl: 'https://picsum.photos/600/402', // Example media URL
   },
 ];
 
@@ -139,13 +145,13 @@ const WelcomePage: FC = () => {
    const getStatusClasses = (status: Report['status']): string => {
        switch (status) {
            case 'Pendiente':
-               return 'bg-yellow-100 text-yellow-800 border-yellow-200';
+               return 'bg-yellow-100 text-yellow-800 border-yellow-200 dark:bg-yellow-900/30 dark:text-yellow-300 dark:border-yellow-700/50';
            case 'En proceso':
-               return 'bg-blue-100 text-blue-800 border-blue-200';
+               return 'bg-blue-100 text-blue-800 border-blue-200 dark:bg-blue-900/30 dark:text-blue-300 dark:border-blue-700/50';
            case 'Resuelto':
-               return 'bg-green-100 text-green-800 border-green-200';
+               return 'bg-green-100 text-green-800 border-green-200 dark:bg-green-900/30 dark:text-green-300 dark:border-green-700/50';
            default:
-               return 'bg-gray-100 text-gray-800 border-gray-200'; // Fallback
+               return 'bg-gray-100 text-gray-800 border-gray-200 dark:bg-gray-700 dark:text-gray-300 dark:border-gray-600'; // Fallback
        }
    }
 
@@ -167,7 +173,7 @@ const WelcomePage: FC = () => {
            </div>
            {/* Report Card Skeletons */}
            {[1, 2, 3].map((i) => (
-             <Card key={i} className="w-full shadow-sm mb-4">
+             <Card key={i} className="w-full shadow-sm mb-4 bg-card">
                <CardHeader className="flex flex-row items-start justify-between pb-2 space-y-0">
                   <div className="space-y-1">
                     <Skeleton className="h-5 w-3/5" />
@@ -228,7 +234,7 @@ const WelcomePage: FC = () => {
               size="sm" // Smaller buttons
               className={`rounded-full px-5 h-9 shrink-0 ${
                 filter === filterType
-                  ? 'bg-primary text-primary-foreground shadow' // Active style
+                  ? 'bg-primary text-primary-foreground shadow hover:bg-primary/90' // Active style
                   : 'bg-card border border-border text-foreground hover:bg-muted' // Inactive style
               }`}
               onClick={() => setFilter(filterType)}
@@ -243,14 +249,14 @@ const WelcomePage: FC = () => {
           {filteredReports.length > 0 ? (
             filteredReports.map((report) => (
               <Link key={report.id} href={`/reports/${report.id}`} className="block hover:bg-card/50 rounded-lg transition-colors duration-150">
-                <Card className="w-full shadow-sm rounded-lg overflow-hidden border border-border cursor-pointer">
+                <Card className="w-full shadow-sm rounded-lg overflow-hidden border border-border cursor-pointer bg-card">
                   {/* Use CardHeader for better structure */}
                   <CardHeader className="flex flex-row items-start justify-between pb-2 space-y-0 pt-4 px-4 sm:px-5">
                       <div className="flex items-center space-x-2">
                          {report.type === 'funcionario' ? (
-                           <UserCog className="h-5 w-5 text-blue-600" /> // Icon color can be customized
+                           <UserCog className="h-5 w-5 text-blue-600 flex-shrink-0" /> // Icon color can be customized
                          ) : (
-                           <TriangleAlert className="h-5 w-5 text-red-600" /> // Icon color can be customized
+                           <TriangleAlert className="h-5 w-5 text-red-600 flex-shrink-0" /> // Icon color can be customized
                          )}
                         <CardTitle className="text-base font-semibold text-foreground">{report.title}</CardTitle>
                       </div>
@@ -275,7 +281,7 @@ const WelcomePage: FC = () => {
               </Link>
             ))
           ) : (
-            <Card className="w-full shadow-sm rounded-lg border border-border">
+            <Card className="w-full shadow-sm rounded-lg border border-border bg-card">
                <CardContent className="p-6 text-center text-muted-foreground">
                  No se encontraron reportes {searchTerm ? `que coincidan con "${searchTerm}"` : ''}
                  {filter !== 'Todos' ? ` en la categoría "${filter}"` : ''}.
@@ -291,4 +297,3 @@ const WelcomePage: FC = () => {
 
 export default WelcomePage;
 export type { Report }; // Export Report type for use in details page
-
