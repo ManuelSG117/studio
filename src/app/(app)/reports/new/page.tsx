@@ -373,66 +373,48 @@ const NewReportPage: FC = () => {
                         <Card
                              className={cn(
                                 "cursor-pointer border-2 p-4 flex flex-col items-center justify-between transition-all hover:shadow-md",
-                                selectedReportType === 'funcionario' ? 'border-primary bg-primary/5' : 'border-border bg-card hover:border-primary/50',
+                                selectedReportType === 'funcionario' ? 'border-primary bg-primary/10 scale-105 shadow-lg' : 'border-border bg-card hover:border-primary/50', // Enhanced selected style
                                 disableForm ? 'opacity-60 cursor-not-allowed' : ''
                              )}
                              onClick={() => !disableForm && setSelectedReportType('funcionario')}
                         >
                             <CardHeader className="p-0 items-center text-center space-y-2">
-                                <div className="bg-blue-100 dark:bg-blue-900/30 p-3 rounded-full mb-3">
-                                    <UserCog className="h-8 w-8 text-primary" />
+                                <div className={cn(
+                                    "p-3 rounded-full mb-3 transition-colors",
+                                    selectedReportType === 'funcionario' ? 'bg-primary text-primary-foreground' : 'bg-blue-100 dark:bg-blue-900/30 text-primary'
+                                 )}>
+                                    <UserCog className="h-8 w-8" />
                                 </div>
                                 <CardTitle className="text-lg text-primary">Funcionario Público</CardTitle>
                                 <CardDescription className="text-xs text-muted-foreground px-2">
                                      Reporta malas prácticas, corrupción o abuso por parte de un funcionario público.
                                 </CardDescription>
                             </CardHeader>
-                            <Button
-                                type="button"
-                                variant={selectedReportType === 'funcionario' ? 'default' : 'outline'}
-                                size="sm"
-                                className={cn(
-                                    "w-full mt-4",
-                                    selectedReportType === 'funcionario' ? 'bg-primary text-primary-foreground' : 'border-primary text-primary hover:bg-primary/10'
-                                )}
-                                disabled={disableForm}
-                                onClick={(e) => { e.stopPropagation(); !disableForm && setSelectedReportType('funcionario'); }}
-                            >
-                                Seleccionar
-                            </Button>
+                            {/* Removed Button */}
                         </Card>
 
                         {/* Incidente Card */}
                          <Card
                             className={cn(
                                 "cursor-pointer border-2 p-4 flex flex-col items-center justify-between transition-all hover:shadow-md",
-                                selectedReportType === 'incidente' ? 'border-destructive bg-destructive/5' : 'border-border bg-card hover:border-destructive/50',
+                                selectedReportType === 'incidente' ? 'border-destructive bg-destructive/10 scale-105 shadow-lg' : 'border-border bg-card hover:border-destructive/50', // Enhanced selected style
                                 disableForm ? 'opacity-60 cursor-not-allowed' : ''
                              )}
                              onClick={() => !disableForm && setSelectedReportType('incidente')}
                          >
                              <CardHeader className="p-0 items-center text-center space-y-2">
-                                 <div className="bg-red-100 dark:bg-red-900/30 p-3 rounded-full mb-3">
-                                     <TriangleAlert className="h-8 w-8 text-destructive" />
+                                 <div className={cn(
+                                     "p-3 rounded-full mb-3 transition-colors",
+                                     selectedReportType === 'incidente' ? 'bg-destructive text-destructive-foreground' : 'bg-red-100 dark:bg-red-900/30 text-destructive'
+                                  )}>
+                                     <TriangleAlert className="h-8 w-8" />
                                  </div>
                                 <CardTitle className="text-lg text-destructive">Delito / Incidente</CardTitle>
                                 <CardDescription className="text-xs text-muted-foreground px-2">
                                      Reporta robos, asaltos, extorsiones u otros delitos que hayas presenciado.
                                 </CardDescription>
                              </CardHeader>
-                            <Button
-                                type="button"
-                                variant={selectedReportType === 'incidente' ? 'destructive' : 'outline'}
-                                size="sm"
-                                className={cn(
-                                    "w-full mt-4",
-                                    selectedReportType === 'incidente' ? 'bg-destructive text-destructive-foreground hover:bg-destructive/90' : 'border-destructive text-destructive hover:bg-destructive/10'
-                                )}
-                                disabled={disableForm}
-                                onClick={(e) => { e.stopPropagation(); !disableForm && setSelectedReportType('incidente'); }}
-                            >
-                                Seleccionar
-                            </Button>
+                              {/* Removed Button */}
                         </Card>
                     </div>
                      {/* Hidden Form Field for validation trigger if needed, or rely on button check */}
