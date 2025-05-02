@@ -4,7 +4,7 @@
 import type { FC } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Home, User, FileText } from 'lucide-react'; // Using FileText for Reports
+import { Home, User, FileText, ShieldAlert } from 'lucide-react'; // Using FileText for Reports, ShieldAlert for Danger Zones
 import { cn } from '@/lib/utils';
 
 interface NavItemProps {
@@ -39,6 +39,7 @@ export const BottomNavBar: FC = () => {
     <nav className="fixed bottom-0 left-0 right-0 h-16 bg-card border-t border-border shadow-lg flex items-stretch justify-around z-50">
       {/* Changed /welcome to /reports to be more intuitive */}
       <NavItem href="/welcome" label="Reportes" icon={<FileText className="h-5 w-5" />} />
+      <NavItem href="/danger-zones" label="Zonas" icon={<ShieldAlert className="h-5 w-5" />} /> {/* Added Danger Zones */}
       <NavItem href="/profile" label="Perfil" icon={<User className="h-5 w-5" />} />
     </nav>
   );
