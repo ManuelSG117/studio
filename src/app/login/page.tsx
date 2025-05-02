@@ -17,7 +17,7 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Terminal, ArrowLeft } from "lucide-react";
-import { useToast } from "@/hooks/use-toast";
+import { useToast } from "@/hooks/use-toast"; // Corrected import path
 
 const formSchema = z.object({
   email: z.string().email({ message: "Dirección de correo inválida." }),
@@ -29,7 +29,8 @@ type FormData = z.infer<typeof formSchema>;
 const LoginPage: FC = () => {
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  // Error state removed, using toast instead
+  // const [error, setError] = useState<string | null>(null);
   const { toast } = useToast();
 
   const form = useForm<FormData>({
@@ -42,7 +43,7 @@ const LoginPage: FC = () => {
 
   const onSubmit = async (values: FormData) => {
     setIsLoading(true);
-    setError(null);
+    // setError(null); // No longer needed
     try {
       await signInWithEmailAndPassword(auth, values.email, values.password);
       toast({
@@ -67,7 +68,13 @@ const LoginPage: FC = () => {
          friendlyError = 'Esta cuenta ha sido deshabilitada. Contacta al soporte si crees que es un error.';
       }
       console.error("Firebase Login Error:", authError);
-      setError(friendlyError);
+      // Use toast to display the error
+      toast({
+        variant: "destructive",
+        title: "Problema al Iniciar Sesión",
+        description: friendlyError,
+      });
+      // setError(friendlyError); // No longer needed
       setIsLoading(false); // Stop loading on error
     }
     // Keep loading true until redirect or explicit stop on error
@@ -94,13 +101,14 @@ const LoginPage: FC = () => {
         <CardContent className="px-6 sm:px-8 pt-2 pb-6"> {/* Adjusted padding */}
           <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-5"> {/* Adjusted spacing */}
-              {error && (
+              {/* Removed Alert component */}
+              {/* {error && (
                  <Alert variant="destructive" className="mb-4">
                    <Terminal className="h-4 w-4" />
-                   <AlertTitle>Problema al Iniciar Sesión</AlertTitle> {/* Updated title */}
+                   <AlertTitle>Problema al Iniciar Sesión</AlertTitle>
                    <AlertDescription>{error}</AlertDescription>
                  </Alert>
-              )}
+              )} */}
               <FormField
                 control={form.control}
                 name="email"
