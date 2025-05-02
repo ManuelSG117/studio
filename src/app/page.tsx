@@ -20,6 +20,7 @@ const AuthScreen: FC = () => {
   const handleGoogleSignIn = async () => {
     const provider = new GoogleAuthProvider();
     try {
+      // Ensure the domain is authorized in Firebase Console -> Authentication -> Settings -> Authorized domains
       await signInWithPopup(auth, provider);
       // User signed in successfully
       toast({
@@ -30,13 +31,21 @@ const AuthScreen: FC = () => {
       setTimeout(() => {
         router.push("/welcome");
       }, 1500);
-    } catch (error) {
+    } catch (error: any) {
       // Handle Errors here.
       console.error("Google Sign-In Error:", error);
+      let description = "No se pudo iniciar sesión con Google. Por favor, inténtalo de nuevo.";
+      if (error.code === 'auth/popup-closed-by-user') {
+        description = "El proceso de inicio de sesión fue cancelado.";
+      } else if (error.code === 'auth/cancelled-popup-request') {
+        description = "Se canceló la solicitud de inicio de sesión.";
+      } else if (error.code === 'auth/unauthorized-domain') {
+         description = "Este dominio no está autorizado para iniciar sesión con Google. Contacta al administrador.";
+      }
       toast({
         variant: "destructive",
         title: "Fallo al Iniciar con Google",
-        description: "No se pudo iniciar sesión con Google. Por favor, inténtalo de nuevo.",
+        description: description,
       });
     }
   };
@@ -57,7 +66,7 @@ const AuthScreen: FC = () => {
           />
           <CardTitle className="text-4xl font-bold text-primary">+Seguro</CardTitle>
           <CardDescription className="text-md text-muted-foreground px-6 pt-2">
-            Tu plataforma de reportes de seguridad y prevención
+            Reporta incidentes y mantente informado sobre la seguridad en tu zona.
           </CardDescription>
         </CardHeader>
         <CardContent className="flex flex-col gap-4 px-6 pb-8"> {/* Added padding */}
