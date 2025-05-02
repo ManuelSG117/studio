@@ -1,4 +1,3 @@
-
 "use client";
 
 import type { FC, ChangeEvent } from "react";
@@ -23,6 +22,8 @@ import { ArrowLeft, Send, Loader2, Upload, Image as ImageIcon, Trash2, UserCog, 
 import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
 import Image from "next/image"; // Import Image
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog"; // Import AlertDialog components
+
 
 // Define the report type enum
 type ReportType = 'incidente' | 'funcionario';
@@ -165,74 +166,77 @@ const NewReportPage: FC = () => {
        setPreviewUrl(null);
    };
 
-   // Get Current Location Handler
-    const handleGetCurrentLocation = () => {
-        if (!navigator.geolocation) {
-            toast({
-                variant: "destructive",
-                title: "Geolocalización no soportada",
-                description: "Tu navegador no soporta la geolocalización.",
-            });
-            return;
-        }
-
-        // No pre-toast warning needed as button title covers it.
-
+   // Get Current Location Logic (inside a separate function for clarity)
+    const fetchAndSetLocation = () => {
         setIsFetchingLocation(true);
         navigator.geolocation.getCurrentPosition(
-            (position) => {
+             (position) => {
                 const { latitude, longitude } = position.coords;
-                // Try reverse geocoding (async, best effort)
-                fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}`)
+                // Try reverse geocoding
+                 fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}`)
                     .then(response => response.json())
                     .then(data => {
-                        const address = data.display_name || `Ubicación (Lat: ${latitude.toFixed(4)}, Lon: ${longitude.toFixed(4)})`;
-                        form.setValue("location", address, { shouldValidate: true });
-                        toast({
-                            title: "Ubicación Obtenida",
-                            description: "Se ha establecido tu ubicación actual con dirección.",
-                        });
+                         const address = data.display_name || `Ubicación (Lat: ${latitude.toFixed(4)}, Lon: ${longitude.toFixed(4)})`;
+                         form.setValue("location", address, { shouldValidate: true });
+                         toast({
+                            title: "Ubicación Actual Obtenida",
+                            description: "Se estableció tu ubicación. Revisa si es correcta y añade detalles si es necesario (ej. número interior, piso).", // Updated toast message
+                         });
                     })
                     .catch(err => {
-                        console.error("Reverse geocoding failed:", err);
-                        const locationString = `Ubicación (Lat: ${latitude.toFixed(4)}, Lon: ${longitude.toFixed(4)})`;
-                        form.setValue("location", locationString, { shouldValidate: true });
-                         toast({
-                            title: "Ubicación Obtenida (Coordenadas)",
-                            description: "No se pudo obtener la dirección, se usaron coordenadas.",
-                         });
+                         console.error("Reverse geocoding failed:", err);
+                         const locationString = `Lat: ${latitude.toFixed(4)}, Lon: ${longitude.toFixed(4)}`;
+                         form.setValue("location", locationString, { shouldValidate: true });
+                          toast({
+                             title: "Coordenadas Obtenidas",
+                             description: "No se pudo obtener la dirección, se usaron coordenadas. Por favor, completa la dirección manualmente.", // Updated toast message
+                          });
                     })
                     .finally(() => {
                          form.setValue("latitude", latitude);
                          form.setValue("longitude", longitude);
                          setIsFetchingLocation(false);
                     });
-
             },
             (error) => {
-                console.error("Geolocation error:", error);
-                let description = "No se pudo obtener tu ubicación.";
-                if (error.code === error.PERMISSION_DENIED) {
-                    description = "Permiso de ubicación denegado.";
-                } else if (error.code === error.POSITION_UNAVAILABLE) {
-                    description = "La información de ubicación no está disponible.";
-                } else if (error.code === error.TIMEOUT) {
-                    description = "Se agotó el tiempo de espera para obtener la ubicación.";
-                }
-                toast({
-                    variant: "destructive",
-                    title: "Error de Ubicación",
-                    description: description,
-                });
-                setIsFetchingLocation(false);
+                 console.error("Geolocation error:", error);
+                 let description = "No se pudo obtener tu ubicación.";
+                 if (error.code === error.PERMISSION_DENIED) {
+                     description = "Permiso de ubicación denegado.";
+                 } else if (error.code === error.POSITION_UNAVAILABLE) {
+                     description = "La información de ubicación no está disponible.";
+                 } else if (error.code === error.TIMEOUT) {
+                     description = "Se agotó el tiempo de espera para obtener la ubicación.";
+                 }
+                 toast({
+                     variant: "destructive",
+                     title: "Error de Ubicación",
+                     description: description,
+                 });
+                 setIsFetchingLocation(false);
             },
             {
-                enableHighAccuracy: true, // Request high accuracy
-                timeout: 10000, // 10 seconds timeout
-                maximumAge: 0 // Don't use cached location
+                 enableHighAccuracy: true,
+                 timeout: 10000,
+                 maximumAge: 0
             }
-        );
+         );
     };
+
+
+    // Handler for the AlertDialog action button
+    const handleConfirmUseLocation = () => {
+       if (!navigator.geolocation) {
+          toast({
+              variant: "destructive",
+              title: "Geolocalización no soportada",
+              description: "Tu navegador no soporta la geolocalización.",
+          });
+          return;
+       }
+       fetchAndSetLocation(); // Call the location fetching logic
+    };
+
 
 
   // Form submission handler
@@ -322,7 +326,7 @@ const NewReportPage: FC = () => {
                   <Skeleton className="h-8 w-2/3 mx-auto mb-2" />
                   <Skeleton className="h-4 w-1/2 mx-auto" />
              </CardHeader>
-             <CardContent className="px-6 sm:px-8 pt-2 pb-6 space-y-5">
+             <CardContent className="px-6 sm:px:8 pt-2 pb-6 space-y-5">
                   {[...Array(5)].map((_, i) => (
                       <div key={i} className="space-y-2">
                          <Skeleton className="h-4 w-1/4" />
@@ -357,7 +361,7 @@ const NewReportPage: FC = () => {
           <CardTitle className="text-2xl font-bold text-primary">Crear Nuevo Reporte</CardTitle>
           <CardDescription className="text-muted-foreground">Selecciona el tipo y describe el incidente.</CardDescription>
         </CardHeader>
-        <CardContent className="px-6 sm:px-8 pt-2 pb-6">
+        <CardContent className="px-6 sm:px:8 pt-2 pb-6">
           <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
 
@@ -495,25 +499,44 @@ const NewReportPage: FC = () => {
                              className="h-11 flex-grow mb-2" // Add margin-bottom
                          />
                      </FormControl>
-                     {/* Use Current Location Button - Full Width */}
-                     <Button
-                         type="button"
-                         variant="outline"
-                         className="w-full h-11 border-primary text-primary hover:bg-primary/10 flex items-center justify-center space-x-2"
-                         onClick={handleGetCurrentLocation}
-                         disabled={disableForm}
-                         aria-label="Usar ubicación actual (solo si estás en el lugar del incidente)"
-                         title="Usar mi ubicación actual (solo si estás en el lugar del incidente)"
-                     >
-                         {isFetchingLocation ? (
-                             <Loader2 className="h-5 w-5 animate-spin" />
-                         ) : (
-                             <LocateFixed className="h-5 w-5" />
-                         )}
-                         <span>{isFetchingLocation ? 'Obteniendo...' : 'Usar mi Ubicación Actual'}</span>
-                     </Button>
+                     {/* Use Current Location Button with AlertDialog */}
+                     <AlertDialog>
+                        <AlertDialogTrigger asChild>
+                             <Button
+                                type="button"
+                                variant="outline"
+                                className="w-full h-11 border-primary text-primary hover:bg-primary/10 flex items-center justify-center space-x-2"
+                                disabled={disableForm || isFetchingLocation}
+                                aria-label="Usar ubicación actual (solo si estás en el lugar del incidente)"
+                                title="Usar mi ubicación actual (solo si estás en el lugar del incidente)"
+                            >
+                                {isFetchingLocation ? (
+                                    <Loader2 className="h-5 w-5 animate-spin" />
+                                ) : (
+                                    <LocateFixed className="h-5 w-5" />
+                                )}
+                                <span>{isFetchingLocation ? 'Obteniendo...' : 'Usar mi Ubicación Actual'}</span>
+                            </Button>
+                        </AlertDialogTrigger>
+                        <AlertDialogContent>
+                            <AlertDialogHeader>
+                                <AlertDialogTitle>Confirmación de Ubicación</AlertDialogTitle>
+                                <AlertDialogDescription>
+                                    Esta acción usará tu ubicación actual del GPS. Asegúrate de estar físicamente en el lugar donde ocurrió el incidente para mayor precisión.
+                                </AlertDialogDescription>
+                            </AlertDialogHeader>
+                            <AlertDialogFooter>
+                                <AlertDialogCancel disabled={isFetchingLocation}>Cancelar</AlertDialogCancel>
+                                <AlertDialogAction onClick={handleConfirmUseLocation} disabled={isFetchingLocation}>
+                                    {isFetchingLocation ? <Loader2 className="mr-2 h-4 w-4 animate-spin"/> : null}
+                                     Usar Ubicación Actual
+                                </AlertDialogAction>
+                            </AlertDialogFooter>
+                        </AlertDialogContent>
+                     </AlertDialog>
+
                      <FormDescription className="text-xs text-center mt-1">
-                         Usa este botón solo si te encuentras físicamente en el lugar del reporte.
+                         Asegúrate de estar en el lugar del reporte al usar esta opción.
                      </FormDescription>
                      <FormMessage />
                   </FormItem>
@@ -608,5 +631,3 @@ const NewReportPage: FC = () => {
 };
 
 export default NewReportPage;
-    
-    
