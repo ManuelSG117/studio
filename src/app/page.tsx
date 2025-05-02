@@ -76,8 +76,17 @@ const HomePage: FC = () => {
     <div className="min-h-screen flex flex-col bg-background"> {/* Use theme background */}
       {/* Progress Bar */}
       <motion.div
-        style={{ scaleX: scrollYProgress }}
-        className="fixed top-0 left-0 right-0 h-1 bg-gradient-to-r from-primary via-secondary to-destructive z-50 origin-[0%]" // Use theme colors
+        style={{
+            scaleX: scrollYProgress,
+            position: "fixed", // Added position fixed
+            top: 0,
+            left: 0,
+            right: 0,
+            height: "4px", // Use string for pixels
+            background: "linear-gradient(90deg, hsl(var(--primary)), hsl(var(--secondary)), hsl(var(--destructive)))", // Use theme colors
+            transformOrigin: "0%",
+            zIndex: 50 // Ensure it's on top
+        }}
       />
 
       <main className="flex-1">
@@ -173,12 +182,14 @@ const HomePage: FC = () => {
 
                   <HoverCard>
                     <HoverCardTrigger asChild>
-                      <Button asChild variant="outline" className="w-full border-2 border-primary text-primary hover:bg-primary hover:text-primary-foreground transition-colors duration-300 group-hover:shadow-md">
-                         <Link href="/login" className="flex items-center justify-center gap-2">
-                           Reportar Funcionario
-                           <ChevronRight className="h-4 w-4 opacity-70 group-hover:translate-x-1 transition-transform" />
-                         </Link>
-                      </Button>
+                      <motion.div whileTap={{ scale: 0.95 }}>
+                         <Button asChild variant="outline" className="w-full border-2 border-primary text-primary hover:bg-primary hover:text-primary-foreground transition-colors duration-300 group-hover:shadow-md">
+                           <Link href="/login" className="flex items-center justify-center gap-2">
+                             Reportar Funcionario
+                             <ChevronRight className="h-4 w-4 opacity-70 group-hover:translate-x-1 transition-transform" />
+                           </Link>
+                         </Button>
+                      </motion.div>
                     </HoverCardTrigger>
                     <HoverCardContent className="w-80 bg-popover text-popover-foreground p-4 shadow-lg rounded-lg border border-primary/20">
                       <div className="flex justify-between space-x-4">
@@ -225,12 +236,14 @@ const HomePage: FC = () => {
 
                    <HoverCard>
                     <HoverCardTrigger asChild>
-                      <Button asChild variant="outline" className="w-full border-2 border-destructive text-destructive hover:bg-destructive hover:text-destructive-foreground transition-colors duration-300 group-hover:shadow-md">
-                         <Link href="/login" className="flex items-center justify-center gap-2">
-                           Reportar Incidente
-                           <ChevronRight className="h-4 w-4 opacity-70 group-hover:translate-x-1 transition-transform" />
-                         </Link>
-                      </Button>
+                      <motion.div whileTap={{ scale: 0.95 }}>
+                         <Button asChild variant="outline" className="w-full border-2 border-destructive text-destructive hover:bg-destructive hover:text-destructive-foreground transition-colors duration-300 group-hover:shadow-md">
+                           <Link href="/login" className="flex items-center justify-center gap-2">
+                             Reportar Incidente
+                             <ChevronRight className="h-4 w-4 opacity-70 group-hover:translate-x-1 transition-transform" />
+                           </Link>
+                         </Button>
+                      </motion.div>
                     </HoverCardTrigger>
                     <HoverCardContent className="w-80 bg-popover text-popover-foreground p-4 shadow-lg rounded-lg border border-destructive/20">
                       <div className="flex justify-between space-x-4">
@@ -694,4 +707,3 @@ const HomePage: FC = () => {
 };
 
 export default HomePage;
-    
