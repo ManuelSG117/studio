@@ -176,20 +176,38 @@ const NewReportPage: FC = () => {
             return;
         }
 
+        // No pre-toast warning needed as button title covers it.
+
         setIsFetchingLocation(true);
         navigator.geolocation.getCurrentPosition(
             (position) => {
                 const { latitude, longitude } = position.coords;
-                const locationString = `Ubicación actual (Lat: ${latitude.toFixed(4)}, Lon: ${longitude.toFixed(4)})`;
-                // Ideally, use reverse geocoding here to get a street address
-                form.setValue("location", locationString, { shouldValidate: true });
-                form.setValue("latitude", latitude);
-                form.setValue("longitude", longitude);
-                toast({
-                    title: "Ubicación obtenida",
-                    description: "Se ha establecido tu ubicación actual.",
-                });
-                setIsFetchingLocation(false);
+                // Try reverse geocoding (async, best effort)
+                fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}`)
+                    .then(response => response.json())
+                    .then(data => {
+                        const address = data.display_name || `Ubicación (Lat: ${latitude.toFixed(4)}, Lon: ${longitude.toFixed(4)})`;
+                        form.setValue("location", address, { shouldValidate: true });
+                        toast({
+                            title: "Ubicación Obtenida",
+                            description: "Se ha establecido tu ubicación actual con dirección.",
+                        });
+                    })
+                    .catch(err => {
+                        console.error("Reverse geocoding failed:", err);
+                        const locationString = `Ubicación (Lat: ${latitude.toFixed(4)}, Lon: ${longitude.toFixed(4)})`;
+                        form.setValue("location", locationString, { shouldValidate: true });
+                         toast({
+                            title: "Ubicación Obtenida (Coordenadas)",
+                            description: "No se pudo obtener la dirección, se usaron coordenadas.",
+                         });
+                    })
+                    .finally(() => {
+                         form.setValue("latitude", latitude);
+                         form.setValue("longitude", longitude);
+                         setIsFetchingLocation(false);
+                    });
+
             },
             (error) => {
                 console.error("Geolocation error:", error);
@@ -468,34 +486,35 @@ const NewReportPage: FC = () => {
                 render={({ field }) => (
                   <FormItem>
                      <FormLabel>Ubicación</FormLabel>
-                     <div className="flex items-center space-x-2">
-                         <FormControl>
-                           <Input
+                     <FormControl>
+                         <Input
                              placeholder="Ej: Esquina de Av. Juárez y Calle Madero, Col. Centro"
                              {...field}
                              disabled={disableForm}
                              aria-required="true"
-                             className="h-11 flex-grow"
-                             />
-                         </FormControl>
-                         {/* Use Current Location Button */}
-                         <Button
-                             type="button"
-                             variant="outline"
-                             size="icon"
-                             onClick={handleGetCurrentLocation}
-                             disabled={disableForm}
-                             aria-label="Usar ubicación actual (si estás en el lugar del incidente)"
-                             className="h-11 w-11 flex-shrink-0 border-primary text-primary hover:bg-primary/10"
-                             title="Usar mi ubicación actual (solo si estás en el lugar del incidente)"
-                         >
-                             {isFetchingLocation ? (
-                                 <Loader2 className="h-5 w-5 animate-spin" />
-                             ) : (
-                                 <LocateFixed className="h-5 w-5" />
-                             )}
-                         </Button>
-                     </div>
+                             className="h-11 flex-grow mb-2" // Add margin-bottom
+                         />
+                     </FormControl>
+                     {/* Use Current Location Button - Full Width */}
+                     <Button
+                         type="button"
+                         variant="outline"
+                         className="w-full h-11 border-primary text-primary hover:bg-primary/10 flex items-center justify-center space-x-2"
+                         onClick={handleGetCurrentLocation}
+                         disabled={disableForm}
+                         aria-label="Usar ubicación actual (solo si estás en el lugar del incidente)"
+                         title="Usar mi ubicación actual (solo si estás en el lugar del incidente)"
+                     >
+                         {isFetchingLocation ? (
+                             <Loader2 className="h-5 w-5 animate-spin" />
+                         ) : (
+                             <LocateFixed className="h-5 w-5" />
+                         )}
+                         <span>{isFetchingLocation ? 'Obteniendo...' : 'Usar mi Ubicación Actual'}</span>
+                     </Button>
+                     <FormDescription className="text-xs text-center mt-1">
+                         Usa este botón solo si te encuentras físicamente en el lugar del reporte.
+                     </FormDescription>
                      <FormMessage />
                   </FormItem>
                 )}
@@ -589,5 +608,5 @@ const NewReportPage: FC = () => {
 };
 
 export default NewReportPage;
-
+    
     
