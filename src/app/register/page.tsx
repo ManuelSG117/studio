@@ -14,7 +14,7 @@ import { auth, db } from "@/lib/firebase/client"; // Import db
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form"; // Added FormDescription
 // Removed unused imports for Select, Popover, Calendar, date-fns, es locale
 import { cn } from "@/lib/utils";
 import { ArrowLeft, Check, X } from "lucide-react"; // Import Icons, Removed CalendarIcon
@@ -159,7 +159,7 @@ const RegisterPage: FC = () => {
              <ArrowLeft className="h-5 w-5" />
            </Button>
           <CardTitle className="text-2xl font-bold text-primary">Crear Cuenta</CardTitle>
-          <CardDescription className="text-muted-foreground">Ingresa tu correo y crea una contraseña.</CardDescription> {/* Updated description */}
+          <CardDescription className="text-muted-foreground px-4">Únete a +Seguro para contribuir a un Uruapan más seguro</CardDescription> {/* Updated description */}
         </CardHeader>
         <CardContent className="px-6 sm:px-8 pt-2 pb-6">
           <Form {...form}>
@@ -265,3 +265,4 @@ const RegisterPage: FC = () => {
 };
 
 export default RegisterPage;
+
