@@ -23,6 +23,7 @@ export interface UserProfile { // Export UserProfile type
   phoneNumber?: string;
   gender?: 'masculino' | 'femenino' | 'otro';
   dob?: Date; // Store as Date object
+  photoURL?: string | null; // Add photoURL field
 }
 
 // Function to get user profile data from Firestore
@@ -43,6 +44,7 @@ export const getUserProfileData = async (userId: string): Promise<UserProfile | 
               gender: data.gender,
               // Convert Firestore Timestamp to Date object
               dob: data.dob instanceof Timestamp ? data.dob.toDate() : undefined,
+              photoURL: data.photoURL, // Fetch photoURL from Firestore
           };
         } else {
            console.log("No profile document found for user:", userId);
@@ -70,6 +72,11 @@ const ProfilePage: FC = () => {
         // Fetch additional profile data from Firestore
         const profileData = await getUserProfileData(currentUser.uid);
         setUserProfile(profileData);
+        // Keep user state in sync with auth potentially updated photoURL
+        if (profileData?.photoURL !== currentUser.photoURL) {
+           setUser({ ...currentUser, photoURL: profileData?.photoURL || null });
+           console.log("Syncing auth photoURL with Firestore data");
+        }
       } else {
         // No user is signed in.
         setUser(null);
@@ -108,6 +115,11 @@ const ProfilePage: FC = () => {
     if (names.length === 1) return names[0][0]?.toUpperCase() || "?";
     return (names[0][0]?.toUpperCase() || "") + (names[names.length - 1][0]?.toUpperCase() || "");
   };
+
+  // Combine photoURL from Auth and Firestore for display
+  // Prefer Firestore URL if available, fallback to Auth URL
+  const displayPhotoURL = userProfile?.photoURL ?? user?.photoURL ?? undefined;
+
 
   // Display Loading Skeletons
   if (isLoading) {
@@ -166,8 +178,8 @@ const ProfilePage: FC = () => {
            {/* Back Button removed, navigation handled by bottom bar */}
 
           <Avatar className="w-20 h-20 mb-4 border-2 border-primary">
-             {/* Use user.photoURL if available (e.g., from Google Sign-In), else placeholder */}
-            <AvatarImage src={user.photoURL || `https://picsum.photos/seed/${user.uid}/100/100`} alt="Foto de perfil" data-ai-hint="user profile avatar"/>
+             {/* Use combined photoURL */}
+            <AvatarImage src={displayPhotoURL} alt="Foto de perfil" data-ai-hint="user profile avatar"/>
             <AvatarFallback className="text-xl bg-muted text-muted-foreground">
                {/* Use initials from Firestore profile if available, else from auth display name, else from email */}
               {getInitials(userProfile?.fullName || user.displayName || user.email)}
@@ -248,7 +260,7 @@ const ProfilePage: FC = () => {
              )}
 
              {/* Message if some data is missing */}
-              {userProfile && (!userProfile.fullName || !userProfile.address || !userProfile.phoneNumber || !userProfile.gender || !userProfile.dob) && (
+              {userProfile && (!userProfile.fullName || !userProfile.address || !userProfile.phoneNumber || !userProfile.gender || !userProfile.dob || !userProfile.photoURL) && (
                  <p className="text-sm text-muted-foreground italic text-center pt-2">
                      Falta información en tu perfil. Complétala haciendo clic en Editar Perfil.
                  </p>
