@@ -18,22 +18,21 @@ import { Textarea } from "@/components/ui/textarea"; // Import Textarea
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 // Correctly import FormDescription
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage, FormDescription } from "@/components/ui/form";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Skeleton } from "@/components/ui/skeleton";
-import { ArrowLeft, Send, Loader2, Upload, Image as ImageIcon, Trash2 } from "lucide-react"; // Use Send for submit, Upload/ImageIcon for media
+import { ArrowLeft, Send, Loader2, Upload, Image as ImageIcon, Trash2, UserCog, TriangleAlert } from "lucide-react"; // Use Send for submit, Upload/ImageIcon for media, UserCog, TriangleAlert
 import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
 import Image from "next/image"; // Import Image
 
-// Define the form schema for a new report
+// Define the report type enum
+type ReportType = 'incidente' | 'funcionario';
+
+// Define the form schema WITHOUT reportType
 const reportFormSchema = z.object({
-  reportType: z.enum(['incidente', 'funcionario'], {
-    required_error: "Selecciona el tipo de reporte.",
-  }),
   title: z.string().min(5, { message: "El título debe tener al menos 5 caracteres." }).max(100, { message: "El título no puede exceder los 100 caracteres."}),
   description: z.string().min(10, { message: "La descripción debe tener al menos 10 caracteres." }).max(1000, { message: "La descripción no puede exceder los 1000 caracteres."}),
   location: z.string().min(3, { message: "La ubicación es requerida." }).max(150, { message: "La ubicación no puede exceder los 150 caracteres."}),
-  // mediaFile is handled separately, not part of Zod schema for direct form values
+  // mediaFile is handled separately
 });
 
 type ReportFormData = z.infer<typeof reportFormSchema>;
@@ -49,11 +48,12 @@ const NewReportPage: FC = () => {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [selectedFile, setSelectedFile] = useState<File | null>(null); // Holds the compressed file
   const [previewUrl, setPreviewUrl] = useState<string | null>(null); // Preview for image/video
+  const [selectedReportType, setSelectedReportType] = useState<ReportType | null>(null); // State for visual selection
 
   const form = useForm<ReportFormData>({
     resolver: zodResolver(reportFormSchema),
     defaultValues: {
-      reportType: undefined,
+      // reportType removed from defaultValues
       title: "",
       description: "",
       location: "",
@@ -74,12 +74,11 @@ const NewReportPage: FC = () => {
     return () => unsubscribe();
   }, [router]);
 
-  // Handle file selection and COMPRESSION
+  // Handle file selection and COMPRESSION (remains the same)
   const handleFileChange = async (event: ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (!file) return;
 
-    // Basic validation (type - image or video for now)
     if (!file.type.startsWith("image/") && !file.type.startsWith("video/")) {
       toast({
         variant: "destructive",
@@ -93,25 +92,22 @@ const NewReportPage: FC = () => {
     setPreviewUrl(null);
     setSelectedFile(null);
 
-    // Compression options (adjust as needed, especially for video)
-    // For videos, compression might be more complex or skipped depending on requirements
     const options = {
-        maxSizeMB: file.type.startsWith("image/") ? 2 : 10, // Allow larger size for video, compress images more
+        maxSizeMB: file.type.startsWith("image/") ? 2 : 10,
         maxWidthOrHeight: 1280,
         useWebWorker: true,
         initialQuality: 0.7,
     }
 
     try {
-        let processedFile = file; // Start with the original file
+        let processedFile = file;
 
-        if (file.type.startsWith("image/")) { // Only compress images for now
+        if (file.type.startsWith("image/")) {
              console.log(`Original image size: ${(file.size / 1024 / 1024).toFixed(2)} MB`);
              processedFile = await imageCompression(file, options);
              console.log(`Compressed image size: ${(processedFile.size / 1024 / 1024).toFixed(2)} MB`);
         } else {
             console.log(`Video file size: ${(file.size / 1024 / 1024).toFixed(2)} MB (compression skipped)`);
-            // TODO: Consider video compression library if needed
             if (file.size > options.maxSizeMB * 1024 * 1024) {
                 toast({
                     variant: "warning",
@@ -121,10 +117,8 @@ const NewReportPage: FC = () => {
             }
         }
 
-
         setSelectedFile(processedFile);
 
-        // Create a preview URL
         const reader = new FileReader();
         reader.onloadend = () => {
             setPreviewUrl(reader.result as string);
@@ -146,19 +140,19 @@ const NewReportPage: FC = () => {
     } finally {
         setIsCompressing(false);
         if (fileInputRef.current) {
-            fileInputRef.current.value = ""; // Reset input
+            fileInputRef.current.value = "";
         }
     }
   };
 
-  // Trigger hidden file input click
+  // Trigger hidden file input click (remains the same)
   const handleUploadClick = () => {
     if (!isCompressing && !isUploading && !isLoading) {
         fileInputRef.current?.click();
     }
   };
 
-   // Remove selected file
+   // Remove selected file (remains the same)
    const handleRemoveFile = () => {
        if (isCompressing || isUploading || isLoading) return;
        setSelectedFile(null);
@@ -167,6 +161,12 @@ const NewReportPage: FC = () => {
 
   // Form submission handler
   const onSubmit = async (values: ReportFormData) => {
+    // Check if report type is selected
+    if (!selectedReportType) {
+        toast({ variant: "destructive", title: "Error", description: "Por favor, selecciona un tipo de reporte." });
+        return;
+    }
+
     setIsLoading(true);
     setIsUploading(false);
 
@@ -176,13 +176,12 @@ const NewReportPage: FC = () => {
         return;
     }
 
-    console.log("Submitting report data:", values);
+    console.log("Submitting report data:", { ...values, reportType: selectedReportType });
     let mediaDownloadURL: string | null = null;
 
-    // 1. Upload Media if selected
+    // 1. Upload Media if selected (remains the same)
     if (selectedFile) {
       setIsUploading(true);
-      // Generate a unique file name using timestamp and user ID
       const fileName = `${user.uid}_${Date.now()}_${selectedFile.name}`;
       const mediaRef = storageRef(storage, `reportMedia/${fileName}`);
       try {
@@ -197,7 +196,6 @@ const NewReportPage: FC = () => {
           title: "Error al Subir Archivo",
           description: "No se pudo guardar la evidencia. El reporte se guardará sin ella.",
         });
-        // Proceed without media URL
       } finally {
         setIsUploading(false);
       }
@@ -205,30 +203,29 @@ const NewReportPage: FC = () => {
 
     // 2. Save Report Data to Firestore
     try {
-      const reportsCollectionRef = collection(db, "reports"); // Reference to the 'reports' collection
+      const reportsCollectionRef = collection(db, "reports");
       const reportData = {
-        userId: user.uid, // Store the reporter's user ID
-        userEmail: user.email, // Optionally store email for quick reference
-        reportType: values.reportType,
+        userId: user.uid,
+        userEmail: user.email,
+        reportType: selectedReportType, // Use state variable
         title: values.title,
         description: values.description,
         location: values.location,
-        mediaUrl: mediaDownloadURL, // Store the URL if upload was successful
-        status: 'Pendiente', // Initial status
+        mediaUrl: mediaDownloadURL,
+        status: 'Pendiente',
         createdAt: Timestamp.now(),
-        // TODO: Add latitude/longitude if implementing map selection later
         // latitude: ...,
         // longitude: ...,
       };
 
-      const docRef = await addDoc(reportsCollectionRef, reportData); // Add new document
+      const docRef = await addDoc(reportsCollectionRef, reportData);
       console.log("Report submitted successfully with ID:", docRef.id);
 
       toast({
         title: "Reporte Enviado",
         description: "Tu reporte ha sido registrado exitosamente.",
       });
-      router.push("/welcome"); // Redirect to reports list on success
+      router.push("/welcome");
     } catch (error) {
       console.error("Error saving report:", error);
       toast({
@@ -236,12 +233,11 @@ const NewReportPage: FC = () => {
         title: "Error al Guardar Reporte",
         description: "No se pudo registrar el reporte. Inténtalo de nuevo.",
       });
-      setIsLoading(false); // Only set loading false on final error
+      setIsLoading(false);
     }
-    // Keep isLoading true until redirect or final error
   };
 
-   // Loading state skeleton
+   // Loading state skeleton (remains the same)
    if (isAuthLoading) {
       return (
         <main className="flex min-h-screen flex-col items-center justify-center py-8 px-4 sm:px-8 bg-secondary">
@@ -264,51 +260,106 @@ const NewReportPage: FC = () => {
       );
     }
 
+    const disableForm = isLoading || isUploading || isCompressing;
+
 
   return (
     <main className="flex min-h-screen flex-col items-center justify-center py-8 px-4 sm:px-8 bg-secondary">
-      <Card className="w-full max-w-lg shadow-lg border-none rounded-xl">
+      <Card className="w-full max-w-lg shadow-lg border-none rounded-xl bg-card">
         <CardHeader className="text-center relative pb-4 pt-8">
            <Button
              variant="ghost"
              size="icon"
              className="absolute left-4 top-6 text-muted-foreground hover:text-primary rounded-full"
-             onClick={() => router.back()} // Go back to previous page
+             onClick={() => router.back()}
              aria-label="Volver"
              type="button"
-             disabled={isLoading || isUploading || isCompressing}
+             disabled={disableForm}
            >
              <ArrowLeft className="h-5 w-5" />
            </Button>
           <CardTitle className="text-2xl font-bold text-primary">Crear Nuevo Reporte</CardTitle>
-          <CardDescription className="text-muted-foreground">Describe el incidente o la conducta del funcionario.</CardDescription>
+          <CardDescription className="text-muted-foreground">Selecciona el tipo y describe el incidente.</CardDescription>
         </CardHeader>
         <CardContent className="px-6 sm:px-8 pt-2 pb-6">
           <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
 
-               {/* Report Type */}
-               <FormField
-                 control={form.control}
-                 name="reportType"
-                 render={({ field }) => (
-                   <FormItem>
-                     <FormLabel>Tipo de Reporte</FormLabel>
-                      <Select onValueChange={field.onChange} value={field.value} disabled={isLoading || isUploading || isCompressing}>
-                       <FormControl>
-                         <SelectTrigger className="h-11">
-                            <SelectValue placeholder="Selecciona incidente o funcionario" />
-                         </SelectTrigger>
-                       </FormControl>
-                       <SelectContent>
-                         <SelectItem value="incidente">Incidente (Robo, Vandalismo, etc.)</SelectItem>
-                         <SelectItem value="funcionario">Funcionario (Corrupción, Abuso, etc.)</SelectItem>
-                       </SelectContent>
-                     </Select>
-                     <FormMessage />
-                   </FormItem>
-                 )}
-               />
+               {/* Report Type Selection Cards */}
+               <FormItem>
+                   <FormLabel className="text-base font-medium text-foreground">Tipo de Reporte</FormLabel>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-2">
+                        {/* Funcionario Card */}
+                        <Card
+                             className={cn(
+                                "cursor-pointer border-2 p-4 flex flex-col items-center justify-between transition-all hover:shadow-md",
+                                selectedReportType === 'funcionario' ? 'border-primary bg-primary/5' : 'border-border bg-card hover:border-primary/50',
+                                disableForm ? 'opacity-60 cursor-not-allowed' : ''
+                             )}
+                             onClick={() => !disableForm && setSelectedReportType('funcionario')}
+                        >
+                            <CardHeader className="p-0 items-center text-center space-y-2">
+                                <div className="bg-blue-100 dark:bg-blue-900/30 p-3 rounded-full mb-3">
+                                    <UserCog className="h-8 w-8 text-primary" />
+                                </div>
+                                <CardTitle className="text-lg text-primary">Funcionario Público</CardTitle>
+                                <CardDescription className="text-xs text-muted-foreground px-2">
+                                     Reporta malas prácticas, corrupción o abuso por parte de un funcionario público.
+                                </CardDescription>
+                            </CardHeader>
+                            <Button
+                                type="button"
+                                variant={selectedReportType === 'funcionario' ? 'default' : 'outline'}
+                                size="sm"
+                                className={cn(
+                                    "w-full mt-4",
+                                    selectedReportType === 'funcionario' ? 'bg-primary text-primary-foreground' : 'border-primary text-primary hover:bg-primary/10'
+                                )}
+                                disabled={disableForm}
+                                onClick={(e) => { e.stopPropagation(); !disableForm && setSelectedReportType('funcionario'); }}
+                            >
+                                Seleccionar
+                            </Button>
+                        </Card>
+
+                        {/* Incidente Card */}
+                         <Card
+                            className={cn(
+                                "cursor-pointer border-2 p-4 flex flex-col items-center justify-between transition-all hover:shadow-md",
+                                selectedReportType === 'incidente' ? 'border-destructive bg-destructive/5' : 'border-border bg-card hover:border-destructive/50',
+                                disableForm ? 'opacity-60 cursor-not-allowed' : ''
+                             )}
+                             onClick={() => !disableForm && setSelectedReportType('incidente')}
+                         >
+                             <CardHeader className="p-0 items-center text-center space-y-2">
+                                 <div className="bg-red-100 dark:bg-red-900/30 p-3 rounded-full mb-3">
+                                     <TriangleAlert className="h-8 w-8 text-destructive" />
+                                 </div>
+                                <CardTitle className="text-lg text-destructive">Delito / Incidente</CardTitle>
+                                <CardDescription className="text-xs text-muted-foreground px-2">
+                                     Reporta robos, asaltos, extorsiones u otros delitos que hayas presenciado.
+                                </CardDescription>
+                             </CardHeader>
+                            <Button
+                                type="button"
+                                variant={selectedReportType === 'incidente' ? 'destructive' : 'outline'}
+                                size="sm"
+                                className={cn(
+                                    "w-full mt-4",
+                                    selectedReportType === 'incidente' ? 'bg-destructive text-destructive-foreground hover:bg-destructive/90' : 'border-destructive text-destructive hover:bg-destructive/10'
+                                )}
+                                disabled={disableForm}
+                                onClick={(e) => { e.stopPropagation(); !disableForm && setSelectedReportType('incidente'); }}
+                            >
+                                Seleccionar
+                            </Button>
+                        </Card>
+                    </div>
+                     {/* Hidden Form Field for validation trigger if needed, or rely on button check */}
+                     {!selectedReportType && form.formState.isSubmitted && (
+                        <p className="text-sm font-medium text-destructive mt-2">Por favor, selecciona un tipo de reporte.</p>
+                    )}
+               </FormItem>
 
               {/* Title */}
               <FormField
@@ -321,7 +372,7 @@ const NewReportPage: FC = () => {
                       <Input
                         placeholder="Ej: Robo en Calle Principal"
                         {...field}
-                        disabled={isLoading || isUploading || isCompressing}
+                        disabled={disableForm}
                         aria-required="true"
                         className="h-11"
                       />
@@ -342,7 +393,7 @@ const NewReportPage: FC = () => {
                       <Textarea
                         placeholder="Describe lo sucedido con la mayor cantidad de detalles posible..."
                         {...field}
-                        disabled={isLoading || isUploading || isCompressing}
+                        disabled={disableForm}
                         aria-required="true"
                         className="min-h-[120px]" // Increase default height for description
                       />
@@ -363,7 +414,7 @@ const NewReportPage: FC = () => {
                       <Input
                         placeholder="Ej: Esquina de Av. Juárez y Calle Madero, Col. Centro"
                         {...field}
-                        disabled={isLoading || isUploading || isCompressing}
+                        disabled={disableForm}
                         aria-required="true"
                         className="h-11"
                       />
@@ -383,7 +434,7 @@ const NewReportPage: FC = () => {
                             type="button"
                             variant="outline"
                             onClick={handleUploadClick}
-                            disabled={isLoading || isUploading || isCompressing}
+                            disabled={disableForm}
                             className="h-11"
                           >
                              {isCompressing ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Upload className="mr-2 h-4 w-4" />}
@@ -404,7 +455,7 @@ const NewReportPage: FC = () => {
                                        size="icon"
                                        className="h-8 w-8 text-destructive hover:bg-destructive/10"
                                        onClick={handleRemoveFile}
-                                       disabled={isLoading || isUploading || isCompressing}
+                                       disabled={disableForm}
                                        aria-label="Eliminar archivo"
                                    >
                                        <Trash2 className="h-4 w-4" />
@@ -423,7 +474,7 @@ const NewReportPage: FC = () => {
                         onChange={handleFileChange}
                         accept="image/*,video/*" // Accept images and videos
                         className="hidden"
-                        disabled={isLoading || isUploading || isCompressing}
+                        disabled={disableForm}
                      />
                      {/* Upload Progress Indicator */}
                      {isUploading && (
@@ -441,10 +492,9 @@ const NewReportPage: FC = () => {
                 size="lg"
                 className="w-full bg-primary hover:bg-primary/90 text-primary-foreground h-12 rounded-full text-base font-medium mt-8" // Increased margin-top
                 disabled={
-                    isLoading ||
-                    isUploading ||
-                    isCompressing ||
-                    !form.formState.isValid
+                    disableForm ||
+                    !form.formState.isValid ||
+                    !selectedReportType // Also disable if report type not selected
                  }
               >
                  {isLoading || isUploading || isCompressing ? (
@@ -463,5 +513,4 @@ const NewReportPage: FC = () => {
 };
 
 export default NewReportPage;
-     
-    
+```
