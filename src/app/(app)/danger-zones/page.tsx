@@ -16,7 +16,7 @@ import { MapPin, AlertTriangle } from 'lucide-react'; // Import icons
 const DangerZoneMap = dynamic(() => import('@/components/danger-zone-map'), {
   ssr: false,
   loading: () => (
-      <div className="aspect-video bg-muted rounded-lg flex flex-col items-center justify-center text-muted-foreground text-sm border border-border">
+      <div className="h-full w-full flex flex-col items-center justify-center text-muted-foreground text-sm border border-border rounded-lg bg-muted">
           <MapPin className="h-10 w-10 mb-2 opacity-50 animate-pulse" />
           <span>Cargando mapa...</span>
       </div>
@@ -45,25 +45,30 @@ const DangerZonesPage: FC = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [user, setUser] = useState<User | null>(null); // Use User type
   const [dangerZones, setDangerZones] = useState<DangerZone[]>([]); // State for danger zones data
+  const [isClient, setIsClient] = useState(false); // State to track client-side mounting
 
    useEffect(() => {
+    setIsClient(true); // Indicate component has mounted on client
     const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
       if (!currentUser) {
         router.replace("/login"); // Redirect if not logged in
       } else {
         setUser(currentUser); // Set user if logged in
          // TODO: Fetch actual danger zone data from your backend/database
-         // For now, using mock data
-         setDangerZones(mockDangerZones);
+         // For now, using mock data after a slight delay to simulate loading
+         setTimeout(() => {
+            setDangerZones(mockDangerZones);
+            setIsLoading(false); // Finish loading after auth check and data fetch
+         }, 500); // Simulate network delay
       }
-      setIsLoading(false); // Finish loading after auth check
+      // Removed setIsLoading(false) from here to ensure it happens after data is potentially fetched
     });
 
     return () => unsubscribe();
   }, [router]);
 
-   // Loading state
-  if (isLoading) {
+   // Loading state skeleton
+  if (isLoading || !isClient) { // Also wait for client mount
     return (
       <main className="flex flex-col items-center p-4 sm:p-6 bg-secondary">
          <div className="w-full max-w-4xl space-y-4">
@@ -71,11 +76,22 @@ const DangerZonesPage: FC = () => {
                 <Skeleton className="h-8 w-1/3" />
             </div>
             <Skeleton className="h-10 w-full mb-4" />
-            <Skeleton className="aspect-video w-full rounded-lg" />
+            <Card className="w-full shadow-sm rounded-lg overflow-hidden border border-border bg-card mb-6">
+                 <CardHeader className="pb-2 pt-4 px-4 sm:px-5">
+                    <Skeleton className="h-6 w-1/2 mb-2" />
+                    <Skeleton className="h-4 w-3/4" />
+                 </CardHeader>
+                 <CardContent className="p-0 sm:p-0 h-[60vh] sm:h-[70vh] flex items-center justify-center">
+                    <Skeleton className="h-full w-full" />
+                 </CardContent>
+             </Card>
          </div>
       </main>
     );
   }
+
+  // Render map only after client mount, auth check, loading finished, and data is available
+  const renderMap = isClient && !isLoading && user && dangerZones.length > 0;
 
   return (
     <main className="flex flex-col items-center p-4 sm:p-6 bg-secondary">
@@ -100,35 +116,27 @@ const DangerZonesPage: FC = () => {
                      </CardDescription>
                 </CardHeader>
                 <CardContent className="p-0 sm:p-0 h-[60vh] sm:h-[70vh]"> {/* Adjust padding and height */}
-                     {/* Render map only when not loading and data is available */}
-                     {!isLoading && dangerZones.length > 0 && <DangerZoneMap zones={dangerZones} />}
-                     {!isLoading && dangerZones.length === 0 && (
-                        <div className="h-full flex items-center justify-center text-muted-foreground">
-                            No hay zonas de peligro para mostrar.
-                        </div>
+                     {/* Conditional rendering for the map */}
+                     {renderMap ? (
+                        <DangerZoneMap zones={dangerZones} />
+                     ) : (
+                        <div className="h-full w-full flex flex-col items-center justify-center text-muted-foreground text-sm border border-border rounded-lg bg-muted">
+                            {dangerZones.length === 0 && !isLoading ? (
+                                <span>No hay zonas de peligro para mostrar.</span>
+                            ) : (
+                                <>
+                                    {/* Show loading skeleton/indicator if map isn't ready but shouldn't be empty */}
+                                    <MapPin className="h-10 w-10 mb-2 opacity-50 animate-pulse" />
+                                    <span>Cargando mapa...</span>
+                                </>
+                            )}
+                         </div>
                      )}
                 </CardContent>
             </Card>
 
              {/* Potentially add a list view or other information below the map */}
-             {/*
-              <Card className="mt-6">
-                  <CardHeader>
-                      <CardTitle>Lista de Zonas</CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                      <ul>
-                          {dangerZones.map(zone => (
-                              <li key={zone.id} className="border-b py-2">
-                                  <p className="font-semibold">{zone.title}</p>
-                                  <p className="text-sm text-muted-foreground">{zone.description}</p>
-                                  <p className="text-xs text-muted-foreground/80">Lat: {zone.lat}, Lng: {zone.lng}</p>
-                              </li>
-                          ))}
-                      </ul>
-                  </CardContent>
-              </Card>
-             */}
+             {/* ... (List view code remains commented) ... */}
         </div>
     </main>
   );
