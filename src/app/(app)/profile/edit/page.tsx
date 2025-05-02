@@ -9,7 +9,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import { onAuthStateChanged, type User } from "firebase/auth";
-import { doc, updateDoc, Timestamp } from "firebase/firestore"; // Import updateDoc
+import { doc, setDoc, Timestamp } from "firebase/firestore"; // Import setDoc instead of updateDoc
 import { auth, db } from "@/lib/firebase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -122,11 +122,14 @@ const EditProfilePage: FC = () => {
         phoneNumber: values.phoneNumber,
         gender: values.gender,
         dob: Timestamp.fromDate(values.dob), // Convert date to timestamp
-        // Do not update email here
+        // Email is read-only and stored during registration, not updated here
+        // Add or update lastUpdatedAt timestamp if needed
+        lastUpdatedAt: Timestamp.now(),
       };
 
-      await updateDoc(userDocRef, profileDataToUpdate);
-      console.log("Profile data updated successfully for user:", user.uid);
+      // Use setDoc with merge: true to create or update the document
+      await setDoc(userDocRef, profileDataToUpdate, { merge: true });
+      console.log("Profile data upserted successfully for user:", user.uid);
 
       toast({
         title: "Perfil Actualizado",
@@ -134,10 +137,10 @@ const EditProfilePage: FC = () => {
       });
       router.push("/profile"); // Redirect back to profile view page
     } catch (error) {
-      console.error("Error updating profile:", error);
+      console.error("Error saving profile:", error);
       toast({
         variant: "destructive",
-        title: "Error al Actualizar",
+        title: "Error al Guardar",
         description: "No se pudo guardar la información. Inténtalo de nuevo.",
       });
     } finally {
