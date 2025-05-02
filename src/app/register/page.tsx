@@ -1,4 +1,3 @@
-
 "use client";
 
 import type { FC } from "react";
@@ -133,7 +132,7 @@ const RegisterPage: FC = () => {
     const RequirementItem: FC<{ met: boolean; text: string }> = ({ met, text }) => (
       <li className={cn(
         "flex items-center text-xs transition-colors duration-200",
-        met ? "text-green-600 dark:text-green-400" : "text-muted-foreground"
+        met ? "text-green-600 dark:text-green-400" : "text-muted-foreground" // Use green for met, muted otherwise
       )}>
         {met ? (
           <Check className="h-4 w-4 mr-1.5 flex-shrink-0" />
@@ -265,4 +264,3 @@ const RegisterPage: FC = () => {
 };
 
 export default RegisterPage;
-
