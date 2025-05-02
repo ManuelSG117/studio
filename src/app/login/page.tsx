@@ -12,7 +12,6 @@ import { signInWithEmailAndPassword, setPersistence, browserLocalPersistence, br
 import { auth } from "@/lib/firebase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-// Removed Checkbox import as it's not in the new design
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"; // Import Tabs components
@@ -21,6 +20,8 @@ import { GoogleIcon } from '@/components/icons/google-icon'; // Import Google Ic
 import { LogIn, Loader2 } from "lucide-react"; // Use LogIn icon, keep Loader2
 import { useToast } from "@/hooks/use-toast";
 import Image from "next/image"; // Import Image
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"; // Import Alert components
+import { Terminal } from 'lucide-react'; // Use Terminal for alert icon
 
 // Schema remains the same (without rememberMe)
 const formSchema = z.object({
@@ -35,6 +36,7 @@ const LoginPage: FC = () => {
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
   const [isGoogleLoading, setIsGoogleLoading] = useState(false); // Specific loading state for Google Sign-In
+  const [authError, setAuthError] = useState<string | null>(null); // State for auth errors
   const { toast } = useToast();
 
   const form = useForm<FormData>({
@@ -46,35 +48,43 @@ const LoginPage: FC = () => {
     },
   });
 
-  // Google Sign-In Handler (Moved from auth page)
+  // Google Sign-In Handler
    const handleGoogleSignIn = async () => {
-     setIsGoogleLoading(true); // Start Google loading indicator
+     setIsGoogleLoading(true);
+     setAuthError(null); // Clear previous errors
      const provider = new GoogleAuthProvider();
      try {
        await signInWithPopup(auth, provider);
-       // On successful sign-in, AuthContext will handle redirection based on profile completeness
        toast({
          title: "Inicio de Sesión con Google Exitoso",
          description: "Verificando perfil...",
        });
-        // Redirect immediately to welcome, AuthProvider will handle profile check
-        router.push('/welcome');
+        // AuthProvider will handle redirect based on profile status
+        // No immediate redirect here to allow AuthProvider to work
      } catch (error) {
        console.error("Google Sign-In Error:", error);
-       toast({
-         variant: "destructive",
-         title: "Fallo al Iniciar con Google",
-         description: "No se pudo iniciar sesión con Google. Por favor, inténtalo de nuevo.",
-       });
+       let friendlyError = "No se pudo iniciar sesión con Google. Por favor, inténtalo de nuevo.";
+       if (error instanceof Error) {
+           const firebaseError = error as AuthError;
+           if (firebaseError.code === 'auth/popup-closed-by-user') {
+               friendlyError = "Se cerró la ventana de inicio de sesión antes de completar.";
+           } else if (firebaseError.code === 'auth/cancelled-popup-request') {
+                friendlyError = "Se canceló la solicitud de inicio de sesión.";
+           } else if (firebaseError.code === 'auth/unauthorized-domain') {
+                friendlyError = "Este dominio no está autorizado para iniciar sesión con Google.";
+           }
+       }
+       setAuthError(friendlyError); // Display error in the UI
      } finally {
-        setIsGoogleLoading(false); // Stop Google loading regardless of outcome
+        setIsGoogleLoading(false);
      }
    };
 
 
   const onSubmit = async (values: FormData) => {
     setIsLoading(true);
-    setIsGoogleLoading(false); // Ensure Google loading stops if email login is tried
+    setIsGoogleLoading(false);
+    setAuthError(null); // Clear previous errors
     try {
        // Set persistence (session only, as "remember me" was removed)
        await setPersistence(auth, browserSessionPersistence);
@@ -85,16 +95,15 @@ const LoginPage: FC = () => {
         title: "Inicio de Sesión Exitoso",
         description: "Redirigiendo...",
       });
-      setTimeout(() => {
-         // Redirect immediately to welcome, AuthProvider will handle profile check
-         router.push("/welcome");
-      }, 1000);
+      // AuthProvider will handle redirect based on profile status
+      // No immediate redirect here to allow AuthProvider to work
     } catch (err) {
       const authError = err as AuthError;
       let friendlyError = "Ocurrió un problema. Verifica tus credenciales e intenta de nuevo.";
 
       if (authError.code === 'auth/user-not-found' || authError.code === 'auth/wrong-password' || authError.code === 'auth/invalid-credential') {
-        friendlyError = 'Correo electrónico o contraseña incorrectos. Por favor, verifica tus datos e inténtalo de nuevo.';
+        // friendlyError = 'Correo electrónico o contraseña incorrectos. Por favor, verifica tus datos e inténtalo de nuevo.';
+         friendlyError = 'Credenciales incorrectas. Verifica tu correo y contraseña.'; // Improved message
       } else if (authError.code === 'auth/invalid-email') {
          friendlyError = 'El formato del correo electrónico no es válido.';
       } else if (authError.code === 'auth/user-disabled') {
@@ -103,14 +112,9 @@ const LoginPage: FC = () => {
           friendlyError = 'Demasiados intentos fallidos. Por favor, intenta más tarde.';
       }
       console.error("Firebase Login Error:", authError);
-      toast({
-        variant: "destructive",
-        title: "Error de Inicio de Sesión",
-        description: friendlyError,
-      });
+      setAuthError(friendlyError); // Set the error state to display in the Alert
       setIsLoading(false);
     }
-    // setIsLoading(false); // Keep loading until redirect or error
   };
 
   return (
@@ -134,13 +138,23 @@ const LoginPage: FC = () => {
         {/* Tabs for Login and Register */}
         <Tabs defaultValue="login" className="w-full">
            <TabsList className="grid w-full grid-cols-2 h-auto rounded-none bg-muted/50 p-1"> {/* Adjusted styling */}
-             <TabsTrigger value="login" className="py-2.5 data-[state=active]:bg-background data-[state=active]:shadow-sm">Iniciar Sesión</TabsTrigger>
-             <TabsTrigger value="register" className="py-2.5 data-[state=active]:bg-background data-[state=active]:shadow-sm" onClick={() => router.push('/register')}>Registrarse</TabsTrigger>
+             <TabsTrigger value="login" className="py-2.5 data-[state=active]:bg-background data-[state=active]:shadow-sm data-[state=inactive]:bg-transparent data-[state=inactive]:shadow-none">Iniciar Sesión</TabsTrigger>
+             <TabsTrigger value="register" className="py-2.5 data-[state=active]:bg-background data-[state=active]:shadow-sm data-[state=inactive]:bg-transparent data-[state=inactive]:shadow-none" onClick={() => router.push('/register')}>Registrarse</TabsTrigger>
            </TabsList>
 
            {/* Login Tab Content */}
            <TabsContent value="login">
              <CardContent className="px-6 sm:px-8 pt-6 pb-6">
+                {/* Error Alert */}
+                {authError && (
+                   <Alert variant="destructive" className="mb-6 bg-destructive/10 border-destructive/20 text-destructive">
+                     <Terminal className="h-4 w-4" />
+                     <AlertTitle className="font-semibold">Error de Autenticación</AlertTitle>
+                     <AlertDescription className="text-xs">
+                       {authError}
+                     </AlertDescription>
+                   </Alert>
+                )}
                 <Form {...form}>
                   <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
                     <FormField
@@ -154,6 +168,7 @@ const LoginPage: FC = () => {
                               type="email"
                               placeholder="tu@correo.com" // Updated placeholder
                               {...field}
+                              value={field.value || ""}
                               disabled={isLoading || isGoogleLoading}
                               aria-required="true"
                               aria-invalid={!!form.formState.errors.email}
@@ -169,12 +184,20 @@ const LoginPage: FC = () => {
                       name="password"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Contraseña</FormLabel>
+                           <div className="flex justify-between items-center">
+                               <FormLabel>Contraseña</FormLabel>
+                               {/* Forgot Password Link moved here */}
+                               <Link href="/forgot-password"
+                                    className="text-xs text-accent hover:text-accent/90 underline">
+                                    ¿Olvidaste?
+                               </Link>
+                           </div>
                           <FormControl>
                             <Input
                               type="password"
                               placeholder="••••••••"
                               {...field}
+                              value={field.value || ""}
                               disabled={isLoading || isGoogleLoading}
                               aria-required="true"
                               aria-invalid={!!form.formState.errors.password}
@@ -186,13 +209,7 @@ const LoginPage: FC = () => {
                       )}
                     />
 
-                     {/* Forgot Password Link (optional, repositioned) */}
-                      <div className="text-right">
-                          <Link href="/forgot-password"
-                           className="text-sm text-accent hover:text-accent/90 underline">
-                             ¿Olvidaste tu contraseña?
-                          </Link>
-                      </div>
+                     {/* Removed Checkbox field */}
 
 
                     <Button
@@ -247,10 +264,7 @@ const LoginPage: FC = () => {
 
            {/* Register Tab Content (Empty or could redirect) */}
            <TabsContent value="register">
-             {/* Content for register tab if needed, or just rely on the onClick redirect */}
-             {/* <CardContent className="p-6 text-center text-muted-foreground">
-                Serás redirigido a la página de registro.
-              </CardContent> */}
+             {/* No content needed here as onClick redirects */}
            </TabsContent>
         </Tabs>
       </Card>
@@ -259,3 +273,5 @@ const LoginPage: FC = () => {
 };
 
 export default LoginPage;
+
+    
