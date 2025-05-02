@@ -2,7 +2,7 @@
 "use client";
 
 import type { FC } from "react";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link"; // Import Link
 import { useForm } from "react-hook-form";
@@ -10,33 +10,27 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import { createUserWithEmailAndPassword, type AuthError } from "firebase/auth";
 import { auth } from "@/lib/firebase/client";
-// Removed unused date-fns imports
-// import { format } from "date-fns";
-// import { es } from 'date-fns/locale';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-// Removed unused Label import
-// import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage, FormDescription } from "@/components/ui/form"; // Import FormDescription
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-// Removed unused RadioGroup imports
-// import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
-// Removed unused Popover/Calendar imports
-// import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-// import { Calendar } from "@/components/ui/calendar";
 import { cn } from "@/lib/utils";
-// Removed unused CalendarIcon
-import { Terminal, ArrowLeft } from "lucide-react"; // Import ArrowLeft
+import { Terminal, ArrowLeft, Check, X } from "lucide-react"; // Import ArrowLeft, Check, X
 import { useToast } from "@/hooks/use-toast";
+
+// Password validation criteria
+const MIN_LENGTH = 8;
+const HAS_UPPERCASE = /[A-Z]/;
+const HAS_SPECIAL_CHAR = /[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/;
 
 // Updated Schema: Only email, password, confirmPassword. Added password complexity and confirmation validation.
 const formSchema = z.object({
   email: z.string().email({ message: "Dirección de correo inválida." }),
   password: z.string()
-    .min(8, { message: "La contraseña debe tener al menos 8 caracteres." })
-    .regex(/[A-Z]/, { message: "La contraseña debe contener al menos una letra mayúscula." })
-    .regex(/[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/, { message: "La contraseña debe contener al menos un caracter especial." }),
+    .min(MIN_LENGTH, { message: `La contraseña debe tener al menos ${MIN_LENGTH} caracteres.` })
+    .regex(HAS_UPPERCASE, { message: "La contraseña debe contener al menos una letra mayúscula." })
+    .regex(HAS_SPECIAL_CHAR, { message: "La contraseña debe contener al menos un caracter especial." }),
   confirmPassword: z.string().min(1, { message: "Por favor confirma tu contraseña." }),
 }).refine((data) => data.password === data.confirmPassword, {
   message: "Las contraseñas no coinciden.",
@@ -54,18 +48,26 @@ const RegisterPage: FC = () => {
 
   const form = useForm<FormData>({
     resolver: zodResolver(formSchema),
+    mode: "onChange", // Validate on change to update checklist
     defaultValues: {
       email: "",
       password: "",
       confirmPassword: "", // Added default value
-      // Removed unused fields
-      // fullName: "",
-      // address: "",
-      // phoneNumber: "",
-      // gender: undefined,
-      // dob: undefined,
     },
   });
+
+  const passwordValue = form.watch("password"); // Watch password field changes
+
+  // Password requirement state
+  const [metMinLength, setMetMinLength] = useState(false);
+  const [metUppercase, setMetUppercase] = useState(false);
+  const [metSpecialChar, setMetSpecialChar] = useState(false);
+
+  useEffect(() => {
+    setMetMinLength(passwordValue.length >= MIN_LENGTH);
+    setMetUppercase(HAS_UPPERCASE.test(passwordValue));
+    setMetSpecialChar(HAS_SPECIAL_CHAR.test(passwordValue));
+  }, [passwordValue]); // Re-run effect when passwordValue changes
 
   const onSubmit = async (values: FormData) => {
     setIsLoading(true);
@@ -74,8 +76,6 @@ const RegisterPage: FC = () => {
     try {
       // Create user with email and password - No need for other fields here
       await createUserWithEmailAndPassword(auth, values.email, values.password);
-
-      // --- Removed TODO for saving additional data ---
 
       toast({
         title: "Registro Exitoso!",
@@ -105,6 +105,21 @@ const RegisterPage: FC = () => {
     // Keep loading true until redirect or explicit stop on error
   };
 
+    // Helper component for password requirements
+    const RequirementItem: FC<{ met: boolean; text: string }> = ({ met, text }) => (
+      <li className={cn(
+        "flex items-center text-xs transition-colors duration-200",
+        met ? "text-green-600 dark:text-green-400" : "text-muted-foreground"
+      )}>
+        {met ? (
+          <Check className="h-4 w-4 mr-1.5 flex-shrink-0" />
+        ) : (
+          <X className="h-4 w-4 mr-1.5 flex-shrink-0" /> // Show X if not met
+        )}
+        {text}
+      </li>
+    );
+
   return (
     <main className="flex min-h-screen flex-col items-center justify-center py-8 px-4 sm:px-8 bg-secondary">
       <Card className="w-full max-w-md shadow-lg border-none rounded-xl"> {/* Reduced max-width */}
@@ -115,6 +130,7 @@ const RegisterPage: FC = () => {
              className="absolute left-4 top-6 text-muted-foreground hover:text-primary rounded-full"
              onClick={() => router.push('/')}
              aria-label="Volver"
+              type="button" // Ensure it doesn't submit the form
            >
              <ArrowLeft className="h-5 w-5" />
            </Button>
@@ -173,11 +189,13 @@ const RegisterPage: FC = () => {
                         className="h-11"
                        />
                     </FormControl>
-                    {/* Clarify password requirements */}
-                    <FormDescription className="text-xs pt-1">
-                       Mínimo 8 caracteres, 1 mayúscula, 1 caracter especial (!@#...).
-                    </FormDescription>
-                    <FormMessage />
+                     {/* Password Requirements Checklist */}
+                     <ul className="space-y-1 mt-2 pl-1">
+                        <RequirementItem met={metMinLength} text={`Mínimo ${MIN_LENGTH} caracteres`} />
+                        <RequirementItem met={metUppercase} text="Al menos una letra mayúscula" />
+                        <RequirementItem met={metSpecialChar} text="Al menos un caracter especial (!@#...)" />
+                     </ul>
+                    <FormMessage /> {/* Show validation errors from Zod */}
                   </FormItem>
                 )}
               />
@@ -213,7 +231,7 @@ const RegisterPage: FC = () => {
                 type="submit"
                 size="lg"
                 className="w-full bg-primary hover:bg-primary/90 text-primary-foreground h-12 rounded-full text-base font-medium mt-6"
-                disabled={isLoading}
+                disabled={isLoading || !form.formState.isValid} // Disable if form is invalid
               >
                 {isLoading ? "Registrando..." : "Registrarme"}
               </Button>
