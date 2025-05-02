@@ -130,8 +130,7 @@ const LoginPage: FC = () => {
                     data-ai-hint="app logo"
                  />
                  <CardTitle className="text-3xl font-bold text-primary tracking-tight">
-                    <span className="text-primary">Ciudadano</span>
-                    <span className="text-destructive">Alerta</span>
+                    +Seguro
                  </CardTitle>
             </div>
            <CardDescription className="text-muted-foreground text-sm">Plataforma para reportes ciudadanos</CardDescription>
