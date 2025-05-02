@@ -1,5 +1,3 @@
-
-
 "use client";
 
 import type { FC } from 'react';
@@ -112,7 +110,6 @@ const HomePage: FC = () => {
               <motion.div className="w-full max-w-sm space-y-2" variants={itemVariants}>
                 <div className="grid grid-cols-2 gap-2">
                   <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
-                     {/* Remove legacyBehavior and inner <a> */}
                      <Button asChild variant="outline" className="w-full transition-all border-2 border-primary hover:bg-primary/10">
                        <Link href="/login" className="w-full">
                          Iniciar Sesión
@@ -120,7 +117,6 @@ const HomePage: FC = () => {
                      </Button>
                   </motion.div>
                   <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
-                     {/* Remove legacyBehavior and inner <a> */}
                      <Button asChild className="w-full transition-all" variant="secondary">
                        <Link href="/register" className="w-full">
                          Registrarse
@@ -178,13 +174,10 @@ const HomePage: FC = () => {
                   <HoverCard>
                     <HoverCardTrigger asChild>
                       <Button asChild variant="outline" className="w-full border-2 border-primary text-primary hover:bg-primary hover:text-primary-foreground transition-colors duration-300 group-hover:shadow-md">
-                         {/* Remove legacyBehavior and inner <a> */}
-                         <motion.div whileTap={{ scale: 0.95 }}>
-                            <Link href="/login" className="flex items-center justify-center gap-2">
-                               Reportar Funcionario
-                               <ChevronRight className="h-4 w-4 opacity-70 group-hover:translate-x-1 transition-transform" />
-                            </Link>
-                         </motion.div>
+                         <Link href="/login" className="flex items-center justify-center gap-2">
+                           Reportar Funcionario
+                           <ChevronRight className="h-4 w-4 opacity-70 group-hover:translate-x-1 transition-transform" />
+                         </Link>
                       </Button>
                     </HoverCardTrigger>
                     <HoverCardContent className="w-80 bg-popover text-popover-foreground p-4 shadow-lg rounded-lg border border-primary/20">
@@ -233,13 +226,10 @@ const HomePage: FC = () => {
                    <HoverCard>
                     <HoverCardTrigger asChild>
                       <Button asChild variant="outline" className="w-full border-2 border-destructive text-destructive hover:bg-destructive hover:text-destructive-foreground transition-colors duration-300 group-hover:shadow-md">
-                         {/* Remove legacyBehavior and inner <a> */}
-                         <motion.div whileTap={{ scale: 0.95 }}>
-                             <Link href="/login" className="flex items-center justify-center gap-2">
-                               Reportar Incidente
-                               <ChevronRight className="h-4 w-4 opacity-70 group-hover:translate-x-1 transition-transform" />
-                             </Link>
-                          </motion.div>
+                         <Link href="/login" className="flex items-center justify-center gap-2">
+                           Reportar Incidente
+                           <ChevronRight className="h-4 w-4 opacity-70 group-hover:translate-x-1 transition-transform" />
+                         </Link>
                       </Button>
                     </HoverCardTrigger>
                     <HoverCardContent className="w-80 bg-popover text-popover-foreground p-4 shadow-lg rounded-lg border border-destructive/20">
@@ -313,7 +303,6 @@ const HomePage: FC = () => {
                     </p>
                     <motion.div className="mt-6" whileHover={{ x: -5 }} whileTap={{ scale: 0.95 }}>
                       <Button asChild variant="outline" className="border-primary text-primary hover:bg-primary/10 flex items-center">
-                         {/* Remove legacyBehavior and inner <a> */}
                          <Link href="/register" className="flex items-center">
                            Crear cuenta
                            <ChevronRight className="ml-1 h-4 w-4" />
@@ -347,11 +336,10 @@ const HomePage: FC = () => {
                           <div className="flex justify-end">
                             <div className="h-9 w-24 bg-primary/20 rounded animate-pulse"></div>
                           </div>
-                        </div>
-                      </CardContent>
-                    </Card>
-                  </motion.div>
-                </div>
+                        </CardContent>
+                      </Card>
+                    </motion.div>
+                  </div>
                 {/* Timeline dot */}
                 <div className="absolute left-0 md:left-1/2 top-12 transform md:-translate-x-1/2 h-6 w-6 bg-background border-4 border-primary rounded-full hidden md:block"></div>
               </motion.div>
@@ -419,7 +407,6 @@ const HomePage: FC = () => {
                      </p>
                      <motion.div className="mt-6" whileHover={{ x: 5 }} whileTap={{ scale: 0.95 }}>
                        <Button asChild variant="outline" className="border-secondary text-secondary-foreground hover:bg-secondary/80 flex items-center"> {/* Adjusted secondary color */}
-                          {/* Remove legacyBehavior and inner <a> */}
                           <Link href="/login" className="flex items-center">
                              Crear reporte
                              <ChevronRight className="ml-1 h-4 w-4" />
@@ -458,7 +445,6 @@ const HomePage: FC = () => {
                      </p>
                      <motion.div className="mt-6" whileHover={{ x: -5 }} whileTap={{ scale: 0.95 }}>
                        <Button asChild variant="outline" className="border-destructive text-destructive hover:bg-destructive/10 flex items-center">
-                          {/* Remove legacyBehavior and inner <a> */}
                           <Link href="/login" className="flex items-center">
                              Ver seguimiento
                              <ChevronRight className="ml-1 h-4 w-4" />
@@ -522,7 +508,6 @@ const HomePage: FC = () => {
               transition={{ duration: 0.6, delay: 0.5 }}
             >
               <Button asChild className="bg-primary hover:bg-primary/90 text-primary-foreground px-8 py-6 text-lg rounded-xl shadow-lg hover:shadow-xl transition-all">
-                 {/* Remove legacyBehavior and inner <a> */}
                  <Link href="/register" className="px-8 py-6 text-lg">
                     Comenzar ahora
                  </Link>
@@ -643,9 +628,8 @@ const HomePage: FC = () => {
                >
                  <h3 className="text-2xl font-bold text-white">Enlaces útiles</h3>
                  <ul className="space-y-4 mt-5">
-                    {[ 'Preguntas frecuentes', 'Términos y condiciones', 'Política de privacidad', 'Contacto' ].map((linkText, index) => (
+                    {['Preguntas frecuentes', 'Términos y condiciones', 'Política de privacidad', 'Contacto'].map((linkText, index) => (
                          <motion.li key={index} whileHover={{ x: 5 }} className="transition-all border-b border-white/10 pb-2">
-                           {/* Remove legacyBehavior and inner <a> */}
                            <Link href="#" className="text-slate-300 hover:text-white text-sm flex items-center">
                               <ChevronRight className="h-4 w-4 mr-2 text-primary" />
                               {linkText}
@@ -671,12 +655,12 @@ const HomePage: FC = () => {
                     {/* Simplified Contact Form Placeholder */}
                    <div className="bg-white/5 p-4 rounded-lg backdrop-blur-sm border border-white/10">
                      <input type="email" placeholder="Tu correo electrónico" className="w-full bg-transparent border-b border-white/20 pb-2 text-white placeholder:text-slate-400 focus:outline-none focus:border-primary" />
-                     <Button className="w-full mt-4 bg-secondary hover:bg-secondary/90 text-secondary-foreground">
-                       Enviar mensaje
+                     <Button asChild className="w-full mt-4 bg-secondary hover:bg-secondary/90 text-secondary-foreground">
+                       <Link href="mailto:contacto@masseguro.com">Enviar mensaje</Link> {/* Example mailto link */}
                      </Button>
                    </div>
                    <div className="flex justify-center mt-4">
-                       <motion.a href="#" className="text-xs text-slate-400 hover:text-white underline" whileHover={{ y: -2 }}>
+                       <motion.a href="tel:1234567890" className="text-xs text-slate-400 hover:text-white underline" whileHover={{ y: -2 }}>
                          Llámanos al (123) 456-7890
                        </motion.a>
                    </div>
@@ -710,3 +694,4 @@ const HomePage: FC = () => {
 };
 
 export default HomePage;
+    
