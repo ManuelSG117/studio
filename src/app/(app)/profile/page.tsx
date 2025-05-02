@@ -1,3 +1,4 @@
+
 "use client";
 
 import type { FC } from 'react';
@@ -9,7 +10,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Skeleton } from '@/components/ui/skeleton';
-import { LogOut, ArrowLeft, Edit, User as UserIcon, Mail, Home, Phone, Cake, VenetianMask } from 'lucide-react';
+import { LogOut, Edit, User as UserIcon, Mail, Home, Phone, Cake, VenetianMask } from 'lucide-react'; // Removed ArrowLeft as back nav is handled by bottom bar
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale'; // Import Spanish locale
 import { useToast } from '@/hooks/use-toast';
@@ -101,10 +102,10 @@ const ProfilePage: FC = () => {
   // Display Loading Skeletons
   if (isLoading) {
     return (
-      <main className="flex min-h-screen flex-col items-center p-4 sm:p-8 bg-secondary">
+      <main className="flex flex-col items-center p-4 sm:p-8 bg-secondary">
         <Card className="w-full max-w-lg shadow-lg border-none rounded-xl bg-card">
           <CardHeader className="relative pb-4 pt-8 items-center text-center">
-            <Skeleton className="absolute left-4 top-6 h-8 w-8 rounded-full" />
+             {/* Removed back button skeleton */}
             <Skeleton className="h-20 w-20 rounded-full mb-4" />
             <Skeleton className="h-6 w-3/4 mb-1" />
             <Skeleton className="h-4 w-1/2" />
@@ -130,7 +131,7 @@ const ProfilePage: FC = () => {
   // If user data failed to load (shouldn't happen if redirected correctly)
   if (!user) {
     return (
-       <main className="flex min-h-screen flex-col items-center justify-center p-4 bg-secondary">
+       <main className="flex flex-col items-center justify-center p-4 bg-secondary">
             <Card className="w-full max-w-md shadow-lg border-none rounded-xl text-center bg-card">
                  <CardHeader>
                      <CardTitle className="text-xl text-destructive">Error</CardTitle>
@@ -139,8 +140,9 @@ const ProfilePage: FC = () => {
                      <p className="text-muted-foreground mb-6">
                          No se pudo cargar la información del usuario.
                      </p>
+                     {/* Changed button to redirect to login */}
                      <Button onClick={() => router.push('/login')} variant="outline" className="rounded-full">
-                         <ArrowLeft className="mr-2 h-4 w-4" /> Volver a Inicio de Sesión
+                         Ir a Inicio de Sesión
                      </Button>
                  </CardContent>
             </Card>
@@ -150,20 +152,10 @@ const ProfilePage: FC = () => {
 
   // Display Profile
   return (
-    <main className="flex min-h-screen flex-col items-center p-4 sm:p-8 bg-secondary">
+    <main className="flex flex-col items-center p-4 sm:p-8 bg-secondary">
       <Card className="w-full max-w-lg shadow-lg border-none rounded-xl bg-card">
         <CardHeader className="relative pb-4 pt-8 items-center text-center">
-           {/* Back Button */}
-           <Button
-                variant="ghost"
-                size="icon"
-                className="absolute left-4 top-6 text-muted-foreground hover:text-primary rounded-full"
-                onClick={() => router.push('/welcome')} // Navigate back to welcome page
-                aria-label="Volver a Reportes"
-                type="button"
-            >
-             <ArrowLeft className="h-5 w-5" />
-           </Button>
+           {/* Back Button removed, navigation handled by bottom bar */}
 
           <Avatar className="w-20 h-20 mb-4 border-2 border-primary">
              {/* Use user.photoURL if available, otherwise fallback */}

@@ -12,7 +12,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
-import { LogOut, Search, UserCog, TriangleAlert, MapPin } from "lucide-react";
+import { LogOut, Search, UserCog, TriangleAlert, MapPin, User as UserIcon } from "lucide-react"; // Added UserIcon for profile link
 import Image from "next/image"; // Import Image
 
 // Define the report type
@@ -100,16 +100,6 @@ const WelcomePage: FC = () => {
     return () => unsubscribe();
   }, [router]);
 
-  const handleLogout = async () => {
-    try {
-      await auth.signOut();
-      router.push("/");
-    } catch (error) {
-      console.error("Error signing out: ", error);
-      // Optionally show a toast message
-    }
-  };
-
   // Memoize filtered reports to avoid recalculation on every render
   const filteredReports = useMemo(() => {
     return reports.filter(report => {
@@ -163,7 +153,8 @@ const WelcomePage: FC = () => {
            {/* Header Skeleton */}
            <div className="flex justify-between items-center mb-4">
              <Skeleton className="h-10 w-1/2" />
-             <Skeleton className="h-8 w-8 rounded-full" />
+              {/* Placeholder for profile/logout button */}
+              <Skeleton className="h-8 w-8 rounded-full" />
            </div>
            <Skeleton className="h-10 w-full mb-4" />
            <div className="flex space-x-3 mb-6">
@@ -197,19 +188,22 @@ const WelcomePage: FC = () => {
 
 
   return (
-    <main className="flex min-h-screen flex-col items-center p-4 sm:p-6 bg-secondary">
+    <main className="flex flex-col items-center p-4 sm:p-6 bg-secondary">
       <div className="w-full max-w-2xl">
         {/* Header */}
         <header className="flex justify-between items-center mb-4">
           <h1 className="text-2xl font-semibold text-primary">Reportes</h1>
+           {/* Replaced Logout button with a link to profile - Logout is now on profile page */}
            <Button
-            onClick={handleLogout}
-            variant="ghost" // Use ghost for a less prominent look
-            size="icon" // Make it an icon button
-            className="text-muted-foreground hover:text-primary hover:bg-primary/10 rounded-full"
-            aria-label="Cerrar sesión"
-          >
-            <LogOut className="h-5 w-5" />
+                asChild
+                variant="ghost"
+                size="icon"
+                className="text-muted-foreground hover:text-primary hover:bg-primary/10 rounded-full"
+                aria-label="Ver Perfil"
+            >
+              <Link href="/profile">
+                <UserIcon className="h-5 w-5" />
+              </Link>
           </Button>
         </header>
 

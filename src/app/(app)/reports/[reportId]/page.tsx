@@ -8,12 +8,14 @@ import Link from 'next/link';
 import Image from 'next/image'; // Import next/image
 import { onAuthStateChanged } from 'firebase/auth';
 import { auth } from '@/lib/firebase/client';
-import { getReportById, type Report } from '@/app/welcome/page'; // Import function and type
+// Updated import path due to moving welcome page
+import { getReportById, type Report } from '@/app/(app)/welcome/page';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
-import { ArrowLeft, CalendarDays, MapPin, Tag, UserCog, TriangleAlert, Image as ImageIcon, Map, Video } from 'lucide-react'; // Add ImageIcon, Map, Video
+// Removed ArrowLeft as back nav is handled by bottom bar
+import { CalendarDays, MapPin, Tag, UserCog, TriangleAlert, Image as ImageIcon, Map, Video } from 'lucide-react';
 
 // Placeholder for a Map component (replace with actual implementation)
 const MapPreviewPlaceholder: FC<{ location: string }> = ({ location }) => (
@@ -75,10 +77,10 @@ const ReportDetailPage: FC = () => {
      // Loading state for authentication check and data fetching
     if (isAuthLoading || report === undefined) {
         return (
-            <main className="flex min-h-screen flex-col items-center p-4 sm:p-8 bg-secondary">
+            <main className="flex flex-col items-center p-4 sm:p-8 bg-secondary">
                 <Card className="w-full max-w-2xl shadow-lg border-none rounded-xl bg-card">
                     <CardHeader className="relative pb-4 pt-8">
-                        <Skeleton className="absolute left-4 top-6 h-8 w-8 rounded-full" />
+                        {/* Removed back button skeleton */}
                         <Skeleton className="h-7 w-3/5 mx-auto" />
                         <Skeleton className="h-4 w-2/5 mx-auto mt-2" />
                     </CardHeader>
@@ -119,7 +121,7 @@ const ReportDetailPage: FC = () => {
      // Report not found state
     if (report === null) {
          return (
-             <main className="flex min-h-screen flex-col items-center justify-center p-4 sm:p-8 bg-secondary">
+             <main className="flex flex-col items-center justify-center p-4 sm:p-8 bg-secondary">
                  <Card className="w-full max-w-md shadow-lg border-none rounded-xl text-center bg-card">
                      <CardHeader>
                          <CardTitle className="text-xl text-destructive">Reporte No Encontrado</CardTitle>
@@ -128,9 +130,10 @@ const ReportDetailPage: FC = () => {
                          <p className="text-muted-foreground mb-6">
                              No pudimos encontrar el reporte que buscas. Puede que haya sido eliminado o el enlace sea incorrecto.
                          </p>
+                          {/* Changed button to link to /welcome */}
                          <Button asChild variant="outline" className="rounded-full">
                              <Link href="/welcome">
-                                 <ArrowLeft className="mr-2 h-4 w-4" /> Volver a Reportes
+                                 Volver a Reportes
                              </Link>
                          </Button>
                      </CardContent>
@@ -142,20 +145,10 @@ const ReportDetailPage: FC = () => {
 
     // Display report details
     return (
-        <main className="flex min-h-screen flex-col items-center p-4 sm:p-8 bg-secondary">
+        <main className="flex flex-col items-center p-4 sm:p-8 bg-secondary">
             <Card className="w-full max-w-2xl shadow-lg border-none rounded-xl bg-card">
                 <CardHeader className="relative pb-4 pt-8">
-                    {/* Back Button */}
-                    <Button
-                        variant="ghost"
-                        size="icon"
-                        className="absolute left-4 top-6 text-muted-foreground hover:text-primary rounded-full"
-                        onClick={() => router.push('/welcome')}
-                        aria-label="Volver a Reportes"
-                        type="button"
-                    >
-                        <ArrowLeft className="h-5 w-5" />
-                    </Button>
+                     {/* Back Button removed */}
                     <CardTitle className="text-2xl font-bold text-primary text-center pt-2">{report.title}</CardTitle>
                     <CardDescription className="text-muted-foreground text-center">
                         Detalles del reporte #{report.id}
