@@ -24,6 +24,7 @@ import { cn } from "@/lib/utils";
 import { ArrowLeft, CalendarIcon, Save } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { getUserProfileData, type UserProfile } from "@/app/(app)/profile/page"; // Import getUserProfileData and UserProfile
+import { Skeleton } from "@/components/ui/skeleton"; // Import Skeleton
 
 // Schema for the edit form (similar to registration, but password is not included)
 const formSchema = z.object({
@@ -370,3 +371,4 @@ const EditProfilePage: FC = () => {
 };
 
 export default EditProfilePage;
+
