@@ -57,6 +57,7 @@ const LoginPage: FC = () => {
       const authError = err as AuthError;
       let friendlyError = "El inicio de sesión falló. Por favor, verifica tus credenciales.";
 
+      // More specific error messages based on Firebase error codes
       if (authError.code === 'auth/user-not-found' || authError.code === 'auth/wrong-password' || authError.code === 'auth/invalid-credential') {
         friendlyError = 'Correo electrónico o contraseña incorrectos.';
       } else if (authError.code === 'auth/invalid-email') {
@@ -66,7 +67,7 @@ const LoginPage: FC = () => {
       }
       console.error("Firebase Login Error:", authError);
       setError(friendlyError);
-      setIsLoading(false);
+      setIsLoading(false); // Stop loading on error
     }
     // Keep loading true until redirect or explicit stop on error
   };
@@ -74,14 +75,15 @@ const LoginPage: FC = () => {
   return (
     <main className="flex min-h-screen flex-col items-center justify-center p-4 sm:p-8 bg-secondary">
       <Card className="w-full max-w-md shadow-lg">
-         <CardHeader className="text-center relative"> {/* Added relative positioning */}
+         <CardHeader className="text-center relative pb-4"> {/* Added relative positioning & padding bottom */}
            {/* Back Button */}
             <Button
               variant="ghost"
               size="icon"
-              className="absolute left-4 top-4 text-muted-foreground hover:text-primary"
+              className="absolute left-4 top-4 text-muted-foreground hover:text-primary" // Position top-left
               onClick={() => router.push('/')} // Navigate back to home/auth screen
               aria-label="Volver"
+              type="button" // Ensure it doesn't submit the form
             >
               <ArrowLeft className="h-5 w-5" />
             </Button>
@@ -92,7 +94,7 @@ const LoginPage: FC = () => {
           <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
               {error && (
-                 <Alert variant="destructive">
+                 <Alert variant="destructive" className="mb-4"> {/* Added margin bottom */}
                    <Terminal className="h-4 w-4" />
                    <AlertTitle>Error de Inicio de Sesión</AlertTitle>
                    <AlertDescription>{error}</AlertDescription>
@@ -112,6 +114,7 @@ const LoginPage: FC = () => {
                         disabled={isLoading}
                         aria-required="true"
                         aria-invalid={!!form.formState.errors.email}
+                        className="h-11" // Match button height
                       />
                     </FormControl>
                     <FormMessage />
@@ -132,16 +135,18 @@ const LoginPage: FC = () => {
                         disabled={isLoading}
                         aria-required="true"
                         aria-invalid={!!form.formState.errors.password}
+                        className="h-11" // Match button height
                        />
                     </FormControl>
-                     {/* Optional: Add forgot password link here if needed */}
+                     {/* TODO: Optional: Add forgot password link here if needed */}
                     <FormMessage />
                   </FormItem>
                 )}
               />
               <Button
                 type="submit"
-                className="w-full bg-primary hover:bg-primary/90 text-primary-foreground" // Use primary color
+                size="lg" // Make button larger
+                className="w-full bg-primary hover:bg-primary/90 text-primary-foreground h-12 rounded-full text-base font-medium" // Use primary color, rounded, match height/style of AuthScreen
                 disabled={isLoading}
               >
                 {isLoading ? "Iniciando sesión..." : "Iniciar Sesión"}
