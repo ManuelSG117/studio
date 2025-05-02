@@ -5,7 +5,8 @@ import type { FC } from 'react';
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { onAuthStateChanged, signOut, type User } from 'firebase/auth';
-import { auth } from '@/lib/firebase/client';
+import { doc, getDoc, Timestamp } from 'firebase/firestore'; // Import Firestore functions
+import { auth, db } from '@/lib/firebase/client'; // Import db
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -15,7 +16,7 @@ import { format } from 'date-fns';
 import { es } from 'date-fns/locale'; // Import Spanish locale
 import { useToast } from '@/hooks/use-toast';
 
-// TODO: Define a type for detailed user profile data fetched from Firestore
+// Define a type for detailed user profile data fetched from Firestore
 interface UserProfile {
   fullName?: string;
   address?: string;
@@ -24,29 +25,33 @@ interface UserProfile {
   dob?: Date; // Store as Date object
 }
 
-// Placeholder function to get user profile data (replace with Firestore fetch)
+// Function to get user profile data from Firestore
 const getUserProfileData = async (userId: string): Promise<UserProfile | null> => {
-    // Simulate fetching data - replace with actual Firestore call
+    if (!userId) return null; // Ensure userId is valid
     console.log("Fetching profile for user:", userId);
-    await new Promise(resolve => setTimeout(resolve, 500)); // Simulate network delay
-    // In a real app, you'd fetch from Firestore:
-    // const userDocRef = doc(db, 'users', userId);
-    // const userDocSnap = await getDoc(userDocRef);
-    // if (userDocSnap.exists()) {
-    //   const data = userDocSnap.data();
-    //   return {
-    //      ...data,
-    //      dob: data.dob?.toDate(), // Convert Firestore Timestamp to Date
-    //   };
-    // }
-    // Return placeholder data for now
-    return {
-      fullName: "Nombre Completo (Ejemplo)",
-      address: "Dirección de Ejemplo 123",
-      phoneNumber: "+56 9 8765 4321",
-      gender: "masculino",
-      dob: new Date(1995, 5, 15), // Example DOB
-    };
+    try {
+        const userDocRef = doc(db, 'users', userId);
+        const userDocSnap = await getDoc(userDocRef);
+
+        if (userDocSnap.exists()) {
+          const data = userDocSnap.data();
+          console.log("Profile data found:", data);
+          return {
+              fullName: data.fullName,
+              address: data.address,
+              phoneNumber: data.phoneNumber,
+              gender: data.gender,
+              // Convert Firestore Timestamp to Date object
+              dob: data.dob instanceof Timestamp ? data.dob.toDate() : undefined,
+          };
+        } else {
+           console.log("No profile document found for user:", userId);
+           return null; // No document found
+        }
+    } catch (error) {
+       console.error("Error fetching user profile data:", error);
+       return null; // Return null on error
+    }
 };
 
 
@@ -58,20 +63,25 @@ const ProfilePage: FC = () => {
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
+    setIsLoading(true); // Start loading
     const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
       if (currentUser) {
         setUser(currentUser);
-        // Fetch additional profile data
+        // Fetch additional profile data from Firestore
         const profileData = await getUserProfileData(currentUser.uid);
         setUserProfile(profileData);
       } else {
+        // No user is signed in.
+        setUser(null);
+        setUserProfile(null);
         router.replace("/login"); // Redirect if not logged in
       }
-      setIsLoading(false);
+      setIsLoading(false); // Finish loading after auth check and data fetch
     });
 
+    // Cleanup subscription on unmount
     return () => unsubscribe();
-  }, [router]);
+  }, [router]); // Dependency on router
 
   const handleLogout = async () => {
     try {
@@ -80,7 +90,7 @@ const ProfilePage: FC = () => {
         title: "Sesión Cerrada",
         description: "Has cerrado sesión exitosamente.",
       });
-      router.push("/");
+      router.push("/"); // Redirect to home/auth page after logout
     } catch (error) {
       console.error("Error signing out: ", error);
       toast({
@@ -94,7 +104,7 @@ const ProfilePage: FC = () => {
   // Get initials for Avatar Fallback
   const getInitials = (name?: string | null): string => {
     if (!name) return "?";
-    const names = name.split(' ');
+    const names = name.trim().split(' ');
     if (names.length === 1) return names[0][0]?.toUpperCase() || "?";
     return (names[0][0]?.toUpperCase() || "") + (names[names.length - 1][0]?.toUpperCase() || "");
   };
@@ -130,20 +140,18 @@ const ProfilePage: FC = () => {
 
   // If user data failed to load (shouldn't happen if redirected correctly)
   if (!user) {
+     // This state might briefly appear if redirecting, or if there's an unexpected issue.
+     // Kept minimal as the redirect should handle most cases.
     return (
-       <main className="flex flex-col items-center justify-center p-4 bg-secondary">
+       <main className="flex min-h-screen flex-col items-center justify-center p-4 bg-secondary">
             <Card className="w-full max-w-md shadow-lg border-none rounded-xl text-center bg-card">
                  <CardHeader>
-                     <CardTitle className="text-xl text-destructive">Error</CardTitle>
+                     <CardTitle className="text-xl text-destructive">Error de Autenticación</CardTitle>
                  </CardHeader>
                  <CardContent>
                      <p className="text-muted-foreground mb-6">
-                         No se pudo cargar la información del usuario.
+                         No estás autenticado. Redirigiendo a inicio de sesión...
                      </p>
-                     {/* Changed button to redirect to login */}
-                     <Button onClick={() => router.push('/login')} variant="outline" className="rounded-full">
-                         Ir a Inicio de Sesión
-                     </Button>
                  </CardContent>
             </Card>
        </main>
@@ -158,7 +166,7 @@ const ProfilePage: FC = () => {
            {/* Back Button removed, navigation handled by bottom bar */}
 
           <Avatar className="w-20 h-20 mb-4 border-2 border-primary">
-             {/* Use user.photoURL if available, otherwise fallback */}
+             {/* Use user.photoURL if available (e.g., from Google Sign-In), else placeholder */}
             <AvatarImage src={user.photoURL || `https://picsum.photos/seed/${user.uid}/100/100`} alt="Foto de perfil" data-ai-hint="user profile avatar"/>
             <AvatarFallback className="text-xl bg-muted text-muted-foreground">
                {/* Use initials from Firestore profile if available, else from auth display name, else from email */}
@@ -175,8 +183,8 @@ const ProfilePage: FC = () => {
         <CardContent className="px-6 sm:px-8 pt-4 pb-6 space-y-4">
           <h3 className="text-base font-semibold text-primary border-b pb-2 mb-4">Información Personal</h3>
 
-           {/* Display Full Name if different from Title */}
-           {userProfile?.fullName && userProfile.fullName !== (user.displayName || 'Usuario') && (
+           {/* Display Full Name from profile only if it exists */}
+           {userProfile?.fullName && (
              <div className="flex items-start space-x-3 text-sm">
                <UserIcon className="h-5 w-5 text-muted-foreground flex-shrink-0 mt-0.5" />
                <div className="flex-1">
@@ -232,10 +240,10 @@ const ProfilePage: FC = () => {
               </div>
            )}
 
-             {/* Fallback if no extra profile data */}
-             {!userProfile && (
+             {/* Fallback if no extra profile data found in Firestore */}
+             {userProfile === null && !isLoading && ( // Only show if loading is done and profile is explicitly null
                  <p className="text-sm text-muted-foreground italic text-center pt-2">
-                     Información adicional del perfil no disponible.
+                     No se encontró información adicional del perfil.
                  </p>
              )}
 
@@ -255,3 +263,4 @@ const ProfilePage: FC = () => {
 };
 
 export default ProfilePage;
+
