@@ -14,31 +14,31 @@ body {
     --card-foreground: 0 0% 3.9%; /* Almost black */
     --popover: 0 0% 100%; /* White */
     --popover-foreground: 0 0% 3.9%; /* Almost black */
-    --primary: 180 100% 25%; /* Teal (#008080) */
+    --primary: 180 100% 25%; /* Teal (#008080) - Main App Color */
     --primary-foreground: 0 0% 100%; /* White */
-    --secondary: 0 0% 94.1%; /* Light Gray (#F0F0F0) */
+    --secondary: 0 0% 96.1%; /* Lighter Gray for background (#F5F5F5) */
     --secondary-foreground: 0 0% 9%; /* Dark Gray */
     --muted: 0 0% 94.1%; /* Light Gray (#F0F0F0) */
     --muted-foreground: 0 0% 45.1%; /* Medium Gray */
-    --accent: 39 100% 50%; /* Orange (#FFA500) */
-    --accent-foreground: 0 0% 3.9%; /* Almost black */
+    --accent: 217 89% 61%; /* Google Blue (#4285F4) */
+    --accent-foreground: 0 0% 100%; /* White for accent buttons */
     --destructive: 0 84.2% 60.2%; /* Default Red */
     --destructive-foreground: 0 0% 98%; /* White */
     --border: 0 0% 89.8%; /* Light Gray border */
     --input: 0 0% 89.8%; /* Light Gray input */
     --ring: 180 100% 25%; /* Teal for focus ring */
     --chart-1: 180 100% 25%; /* Teal */
-    --chart-2: 39 100% 50%; /* Orange */
+    --chart-2: 217 89% 61%; /* Google Blue */
     --chart-3: 0 0% 60%; /* Medium Gray */
     --chart-4: 180 50% 50%; /* Lighter Teal */
-    --chart-5: 39 80% 60%; /* Lighter Orange */
+    --chart-5: 217 80% 70%; /* Lighter Google Blue */
     --radius: 0.5rem;
     --sidebar-background: 0 0% 98%;
     --sidebar-foreground: 240 5.3% 26.1%;
     --sidebar-primary: 180 100% 25%; /* Teal */
     --sidebar-primary-foreground: 0 0% 100%; /* White */
-    --sidebar-accent: 39 100% 50%; /* Orange */
-    --sidebar-accent-foreground: 0 0% 3.9%; /* Almost black */
+    --sidebar-accent: 217 89% 61%; /* Google Blue */
+    --sidebar-accent-foreground: 0 0% 100%; /* White */
     --sidebar-border: 220 13% 91%;
     --sidebar-ring: 180 100% 25%; /* Teal */
   }
@@ -46,7 +46,7 @@ body {
     /* Define dark theme colors if needed, mirroring the light theme structure */
     --background: 0 0% 3.9%; /* Dark background */
     --foreground: 0 0% 98%; /* Light foreground */
-    --card: 0 0% 3.9%; /* Dark card */
+    --card: 0 0% 7%; /* Slightly lighter dark card */
     --card-foreground: 0 0% 98%; /* Light card foreground */
     --popover: 0 0% 3.9%; /* Dark popover */
     --popover-foreground: 0 0% 98%; /* Light popover foreground */
@@ -56,25 +56,25 @@ body {
     --secondary-foreground: 0 0% 98%; /* Light foreground */
     --muted: 0 0% 14.9%; /* Darker Gray */
     --muted-foreground: 0 0% 63.9%; /* Lighter Medium Gray */
-    --accent: 39 100% 55%; /* Brighter Orange for dark mode */
-    --accent-foreground: 0 0% 3.9%; /* Almost black */
+    --accent: 217 89% 65%; /* Slightly lighter Google Blue for dark */
+    --accent-foreground: 0 0% 100%; /* White */
     --destructive: 0 72.2% 50.6%; /* Darker Red */
     --destructive-foreground: 0 0% 98%; /* White */
     --border: 0 0% 14.9%; /* Dark border */
     --input: 0 0% 14.9%; /* Dark input */
     --ring: 180 100% 35%; /* Brighter Teal for focus ring */
     --chart-1: 180 100% 35%; /* Brighter Teal */
-    --chart-2: 39 100% 55%; /* Brighter Orange */
+    --chart-2: 217 89% 65%; /* Lighter Google Blue */
     --chart-3: 0 0% 70%; /* Lighter Gray */
     --chart-4: 180 50% 60%; /* Brighter Lighter Teal */
-    --chart-5: 39 80% 70%; /* Brighter Lighter Orange */
+    --chart-5: 217 80% 75%; /* Brighter Lighter Google Blue */
     --radius: 0.5rem;
     --sidebar-background: 0 0% 7%; /* Dark sidebar */
     --sidebar-foreground: 0 0% 95%; /* Light sidebar text */
     --sidebar-primary: 180 100% 35%; /* Brighter Teal */
     --sidebar-primary-foreground: 0 0% 100%; /* White */
-    --sidebar-accent: 39 100% 55%; /* Brighter Orange */
-    --sidebar-accent-foreground: 0 0% 3.9%; /* Almost black */
+    --sidebar-accent: 217 89% 65%; /* Lighter Google Blue */
+    --sidebar-accent-foreground: 0 0% 100%; /* White */
     --sidebar-border: 0 0% 14.9%; /* Dark border */
     --sidebar-ring: 180 100% 35%; /* Brighter Teal */
   }

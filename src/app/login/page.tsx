@@ -1,13 +1,14 @@
+
 "use client";
 
 import type { FC } from "react";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import Link from "next/link"; // Import Link
+import Link from "next/link";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
-import { createUserWithEmailAndPassword, type AuthError } from "firebase/auth";
+import { signInWithEmailAndPassword, type AuthError } from "firebase/auth";
 import { auth } from "@/lib/firebase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -15,17 +16,17 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { Terminal, ArrowLeft } from "lucide-react"; // Import ArrowLeft
+import { Terminal, ArrowLeft } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 
 const formSchema = z.object({
-  email: z.string().email({ message: "Invalid email address." }),
-  password: z.string().min(6, { message: "Password must be at least 6 characters." }),
+  email: z.string().email({ message: "Dirección de correo inválida." }),
+  password: z.string().min(1, { message: "La contraseña es requerida." }), // Min 1 for login
 });
 
 type FormData = z.infer<typeof formSchema>;
 
-const RegisterPage: FC = () => {
+const LoginPage: FC = () => {
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -43,9 +44,9 @@ const RegisterPage: FC = () => {
     setIsLoading(true);
     setError(null);
     try {
-      await createUserWithEmailAndPassword(auth, values.email, values.password);
+      await signInWithEmailAndPassword(auth, values.email, values.password);
       toast({
-        title: "Registro Exitoso!",
+        title: "Inicio de Sesión Exitoso!",
         description: "Redirigiendo a la página de bienvenida...",
       });
       // Add a slight delay for the toast message
@@ -54,17 +55,16 @@ const RegisterPage: FC = () => {
       }, 1500);
     } catch (err) {
       const authError = err as AuthError;
-      let friendlyError = "El registro falló. Por favor, inténtalo de nuevo.";
-      if (authError.code === "auth/email-already-in-use") {
-        friendlyError = "Esta dirección de correo electrónico ya está en uso.";
-      } else if (authError.code === "auth/weak-password") {
-        friendlyError = "La contraseña es demasiado débil. Por favor, elige una contraseña más segura.";
+      let friendlyError = "El inicio de sesión falló. Por favor, verifica tus credenciales.";
+
+      if (authError.code === 'auth/user-not-found' || authError.code === 'auth/wrong-password' || authError.code === 'auth/invalid-credential') {
+        friendlyError = 'Correo electrónico o contraseña incorrectos.';
       } else if (authError.code === 'auth/invalid-email') {
-        friendlyError = 'El formato del correo electrónico no es válido.';
-      } else if (authError.code === 'auth/operation-not-allowed') {
-        friendlyError = 'El inicio de sesión por correo electrónico/contraseña no está habilitado.';
+         friendlyError = 'El formato del correo electrónico no es válido.';
+      } else if (authError.code === 'auth/user-disabled') {
+         friendlyError = 'Esta cuenta ha sido deshabilitada.';
       }
-      console.error("Firebase Registration Error:", authError);
+      console.error("Firebase Login Error:", authError);
       setError(friendlyError);
       setIsLoading(false);
     }
@@ -74,19 +74,19 @@ const RegisterPage: FC = () => {
   return (
     <main className="flex min-h-screen flex-col items-center justify-center p-4 sm:p-8 bg-secondary">
       <Card className="w-full max-w-md shadow-lg">
-        <CardHeader className="text-center relative"> {/* Added relative positioning */}
-          {/* Back Button */}
-           <Button
-             variant="ghost"
-             size="icon"
-             className="absolute left-4 top-4 text-muted-foreground hover:text-primary"
-             onClick={() => router.push('/')} // Navigate back to home/auth screen
-             aria-label="Volver"
-           >
-             <ArrowLeft className="h-5 w-5" />
-           </Button>
-          <CardTitle className="text-2xl font-bold text-primary pt-2">Regístrate</CardTitle>
-          <CardDescription>Crea tu cuenta para continuar.</CardDescription>
+         <CardHeader className="text-center relative"> {/* Added relative positioning */}
+           {/* Back Button */}
+            <Button
+              variant="ghost"
+              size="icon"
+              className="absolute left-4 top-4 text-muted-foreground hover:text-primary"
+              onClick={() => router.push('/')} // Navigate back to home/auth screen
+              aria-label="Volver"
+            >
+              <ArrowLeft className="h-5 w-5" />
+            </Button>
+          <CardTitle className="text-2xl font-bold text-primary pt-2">Iniciar Sesión</CardTitle>
+          <CardDescription>Ingresa con tu correo electrónico.</CardDescription>
         </CardHeader>
         <CardContent>
           <Form {...form}>
@@ -94,7 +94,7 @@ const RegisterPage: FC = () => {
               {error && (
                  <Alert variant="destructive">
                    <Terminal className="h-4 w-4" />
-                   <AlertTitle>Error de Registro</AlertTitle>
+                   <AlertTitle>Error de Inicio de Sesión</AlertTitle>
                    <AlertDescription>{error}</AlertDescription>
                  </Alert>
               )}
@@ -134,24 +134,25 @@ const RegisterPage: FC = () => {
                         aria-invalid={!!form.formState.errors.password}
                        />
                     </FormControl>
+                     {/* Optional: Add forgot password link here if needed */}
                     <FormMessage />
                   </FormItem>
                 )}
               />
               <Button
                 type="submit"
-                className="w-full bg-primary hover:bg-primary/90 text-primary-foreground" // Use primary color for main action
+                className="w-full bg-primary hover:bg-primary/90 text-primary-foreground" // Use primary color
                 disabled={isLoading}
               >
-                {isLoading ? "Registrando..." : "Registrarme"}
+                {isLoading ? "Iniciando sesión..." : "Iniciar Sesión"}
               </Button>
             </form>
           </Form>
         </CardContent>
          <CardFooter className="text-center text-sm text-muted-foreground justify-center pb-6">
-           <p>¿Ya tienes cuenta?{' '}
-             <Link href="/login" className="text-accent hover:text-accent/90 font-medium underline">
-               Inicia sesión aquí
+           <p>¿No tienes cuenta?{' '}
+             <Link href="/register" className="text-accent hover:text-accent/90 font-medium underline">
+               Regístrate aquí
              </Link>
            </p>
          </CardFooter>
@@ -160,4 +161,4 @@ const RegisterPage: FC = () => {
   );
 };
 
-export default RegisterPage;
+export default LoginPage;
