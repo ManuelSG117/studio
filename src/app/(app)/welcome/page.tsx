@@ -1,3 +1,4 @@
+
 "use client";
 
 import type { FC } from "react";
@@ -166,7 +167,7 @@ const WelcomePage: FC = () => {
               <div className="flex-1">
                 <Skeleton className="h-10 w-1/2" />
               </div>
-              <Skeleton className="h-9 w-9 rounded-full ml-4 flex-shrink-0" />
+              {/* Removed Add button skeleton */}
               <Skeleton className="h-9 w-9 rounded-full ml-2 flex-shrink-0" />
            </div>
            <Skeleton className="h-10 w-full mb-4" />
@@ -207,18 +208,7 @@ const WelcomePage: FC = () => {
         <header className="flex justify-between items-center mb-4 gap-4"> {/* Added gap */}
           <h1 className="text-2xl font-semibold text-primary flex-1">Reportes</h1>
           <div className="flex items-center space-x-2"> {/* Container for right-side buttons */}
-                {/* Add New Report Button */}
-                <Button
-                    asChild
-                    variant="default" // Primary button style
-                    size="icon" // Icon button size
-                    className="rounded-full shadow-md" // Circular style
-                    aria-label="Crear Nuevo Reporte"
-                >
-                    <Link href="/reports/new"> {/* Link to the new report page */}
-                        <Plus className="h-5 w-5" />
-                    </Link>
-                </Button>
+               {/* Removed Add New Report Button from header */}
 
                {/* Profile Link Button */}
                <Button
@@ -267,7 +257,7 @@ const WelcomePage: FC = () => {
         </div>
 
         {/* Report List */}
-        <div className="space-y-4">
+        <div className="space-y-4 pb-20"> {/* Add padding-bottom to avoid FAB overlap */}
           {filteredReports.length > 0 ? (
             filteredReports.map((report) => (
               <Link key={report.id} href={`/reports/${report.id}`} className="block hover:bg-card/50 rounded-lg transition-colors duration-150">
@@ -313,6 +303,18 @@ const WelcomePage: FC = () => {
         </div>
 
       </div>
+
+       {/* Floating Action Button (FAB) for New Report */}
+       <Button
+          asChild
+          variant="default"
+          className="fixed bottom-20 right-4 sm:right-6 h-14 w-14 rounded-full shadow-lg z-40 flex items-center justify-center p-0" // Position and style FAB
+          aria-label="Crear Nuevo Reporte"
+        >
+          <Link href="/reports/new">
+             <Plus className="h-6 w-6" />
+          </Link>
+        </Button>
     </main>
   );
 };
