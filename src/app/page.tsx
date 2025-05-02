@@ -1,4 +1,5 @@
 
+
 "use client";
 
 import type { FC } from 'react';
@@ -97,28 +98,34 @@ const HomePage: FC = () => {
               <motion.div className="space-y-2" variants={itemVariants}>
                 <h1 className="text-4xl font-bold tracking-tighter sm:text-5xl md:text-6xl">
                   <span className="text-primary">+Seguro</span>
-                  <span className="text-secondary"> Uruapan</span>
+                  <span className="text-secondary-foreground"> Uruapan</span> {/* Changed color for better contrast */}
                 </h1>
                 <p className="mx-auto max-w-[700px] text-muted-foreground md:text-xl/relaxed lg:text-base/relaxed xl:text-xl/relaxed">
-                  Tu plataforma para reportar incidentes y contribuir a una comunidad más segura.
+                   Tu plataforma ciudadana para reportar incidentes y construir un entorno más seguro.
                 </p>
               </motion.div>
               <motion.div className="space-y-2" variants={itemVariants}>
                 <p className="mx-auto max-w-[700px] text-muted-foreground">
-                  Reporta funcionarios públicos o incidentes delictivos de forma segura. {/* Simplified message */}
+                   Reporta funcionarios públicos o incidentes delictivos de forma segura. {/* Simplified message */}
                 </p>
               </motion.div>
               <motion.div className="w-full max-w-sm space-y-2" variants={itemVariants}>
                 <div className="grid grid-cols-2 gap-2">
                   <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
-                    <Button asChild variant="outline" className="w-full transition-all border-2 border-primary hover:bg-primary/10">
-                      <Link href="/login">Iniciar Sesión</Link> {/* Use Link */}
-                    </Button>
+                     {/* Remove legacyBehavior and inner <a> */}
+                     <Button asChild variant="outline" className="w-full transition-all border-2 border-primary hover:bg-primary/10">
+                       <Link href="/login" className="w-full">
+                         Iniciar Sesión
+                       </Link>
+                     </Button>
                   </motion.div>
                   <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
-                    <Button asChild className="w-full transition-all" variant="secondary">
-                       <Link href="/register">Registrarse</Link> {/* Use Link */}
-                    </Button>
+                     {/* Remove legacyBehavior and inner <a> */}
+                     <Button asChild className="w-full transition-all" variant="secondary">
+                       <Link href="/register" className="w-full">
+                         Registrarse
+                       </Link>
+                     </Button>
                   </motion.div>
                 </div>
               </motion.div>
@@ -170,14 +177,15 @@ const HomePage: FC = () => {
 
                   <HoverCard>
                     <HoverCardTrigger asChild>
-                      <motion.div whileTap={{ scale: 0.95 }}>
-                        <Button asChild variant="outline" className="w-full border-2 border-primary text-primary hover:bg-primary hover:text-primary-foreground transition-colors duration-300 group-hover:shadow-md flex items-center justify-center gap-2">
-                           <Link href="/login"> {/* Link to login */}
-                             Reportar Funcionario
-                             <ChevronRight className="h-4 w-4 opacity-70 group-hover:translate-x-1 transition-transform" />
-                           </Link>
-                        </Button>
-                      </motion.div>
+                      <Button asChild variant="outline" className="w-full border-2 border-primary text-primary hover:bg-primary hover:text-primary-foreground transition-colors duration-300 group-hover:shadow-md">
+                         {/* Remove legacyBehavior and inner <a> */}
+                         <motion.div whileTap={{ scale: 0.95 }}>
+                            <Link href="/login" className="flex items-center justify-center gap-2">
+                               Reportar Funcionario
+                               <ChevronRight className="h-4 w-4 opacity-70 group-hover:translate-x-1 transition-transform" />
+                            </Link>
+                         </motion.div>
+                      </Button>
                     </HoverCardTrigger>
                     <HoverCardContent className="w-80 bg-popover text-popover-foreground p-4 shadow-lg rounded-lg border border-primary/20">
                       <div className="flex justify-between space-x-4">
@@ -222,16 +230,17 @@ const HomePage: FC = () => {
                     Informa sobre robos, asaltos u otros delitos en tu comunidad. Contribuye a crear zonas más seguras y ayuda a prevenir futuros incidentes.
                   </p>
 
-                  <HoverCard>
+                   <HoverCard>
                     <HoverCardTrigger asChild>
-                      <motion.div whileTap={{ scale: 0.95 }}>
-                        <Button asChild variant="outline" className="w-full border-2 border-destructive text-destructive hover:bg-destructive hover:text-destructive-foreground transition-colors duration-300 group-hover:shadow-md flex items-center justify-center gap-2">
-                          <Link href="/login"> {/* Link to login */}
-                            Reportar Incidente
-                            <ChevronRight className="h-4 w-4 opacity-70 group-hover:translate-x-1 transition-transform" />
-                          </Link>
-                        </Button>
-                      </motion.div>
+                      <Button asChild variant="outline" className="w-full border-2 border-destructive text-destructive hover:bg-destructive hover:text-destructive-foreground transition-colors duration-300 group-hover:shadow-md">
+                         {/* Remove legacyBehavior and inner <a> */}
+                         <motion.div whileTap={{ scale: 0.95 }}>
+                             <Link href="/login" className="flex items-center justify-center gap-2">
+                               Reportar Incidente
+                               <ChevronRight className="h-4 w-4 opacity-70 group-hover:translate-x-1 transition-transform" />
+                             </Link>
+                          </motion.div>
+                      </Button>
                     </HoverCardTrigger>
                     <HoverCardContent className="w-80 bg-popover text-popover-foreground p-4 shadow-lg rounded-lg border border-destructive/20">
                       <div className="flex justify-between space-x-4">
@@ -304,9 +313,10 @@ const HomePage: FC = () => {
                     </p>
                     <motion.div className="mt-6" whileHover={{ x: -5 }} whileTap={{ scale: 0.95 }}>
                       <Button asChild variant="outline" className="border-primary text-primary hover:bg-primary/10 flex items-center">
-                        <Link href="/register"> {/* Link to register */}
-                          Crear cuenta
-                          <ChevronRight className="ml-1 h-4 w-4" />
+                         {/* Remove legacyBehavior and inner <a> */}
+                         <Link href="/register" className="flex items-center">
+                           Crear cuenta
+                           <ChevronRight className="ml-1 h-4 w-4" />
                          </Link>
                       </Button>
                     </motion.div>
@@ -367,7 +377,7 @@ const HomePage: FC = () => {
                              <h4 className="text-lg font-medium">Crear Reporte</h4>
                              <p className="text-sm text-muted-foreground">Detallado y preciso</p>
                            </div>
-                           <span className="inline-flex items-center justify-center h-8 w-8 rounded-full bg-secondary/10 text-secondary">
+                           <span className="inline-flex items-center justify-center h-8 w-8 rounded-full bg-secondary/10 text-secondary-foreground"> {/* Adjusted secondary color */}
                              <AlertTriangle className="h-4 w-4" />
                            </span>
                          </div>
@@ -408,11 +418,12 @@ const HomePage: FC = () => {
                        Describe el incidente, añade la ubicación, adjunta evidencia y clasifica el tipo. Más detalles, mejor ayuda.
                      </p>
                      <motion.div className="mt-6" whileHover={{ x: 5 }} whileTap={{ scale: 0.95 }}>
-                       <Button asChild variant="outline" className="border-secondary text-secondary hover:bg-secondary/10 flex items-center">
-                         <Link href="/login"> {/* Link to login */}
-                           Crear reporte
-                           <ChevronRight className="ml-1 h-4 w-4" />
-                         </Link>
+                       <Button asChild variant="outline" className="border-secondary text-secondary-foreground hover:bg-secondary/80 flex items-center"> {/* Adjusted secondary color */}
+                          {/* Remove legacyBehavior and inner <a> */}
+                          <Link href="/login" className="flex items-center">
+                             Crear reporte
+                             <ChevronRight className="ml-1 h-4 w-4" />
+                           </Link>
                        </Button>
                      </motion.div>
                    </motion.div>
@@ -447,10 +458,11 @@ const HomePage: FC = () => {
                      </p>
                      <motion.div className="mt-6" whileHover={{ x: -5 }} whileTap={{ scale: 0.95 }}>
                        <Button asChild variant="outline" className="border-destructive text-destructive hover:bg-destructive/10 flex items-center">
-                         <Link href="/login"> {/* Link to login */}
-                           Ver seguimiento
-                           <ChevronRight className="ml-1 h-4 w-4" />
-                         </Link>
+                          {/* Remove legacyBehavior and inner <a> */}
+                          <Link href="/login" className="flex items-center">
+                             Ver seguimiento
+                             <ChevronRight className="ml-1 h-4 w-4" />
+                           </Link>
                        </Button>
                      </motion.div>
                    </motion.div>
@@ -510,7 +522,10 @@ const HomePage: FC = () => {
               transition={{ duration: 0.6, delay: 0.5 }}
             >
               <Button asChild className="bg-primary hover:bg-primary/90 text-primary-foreground px-8 py-6 text-lg rounded-xl shadow-lg hover:shadow-xl transition-all">
-                 <Link href="/register">Comenzar ahora</Link> {/* Link to register */}
+                 {/* Remove legacyBehavior and inner <a> */}
+                 <Link href="/register" className="px-8 py-6 text-lg">
+                    Comenzar ahora
+                 </Link>
               </Button>
             </motion.div>
           </div>
@@ -594,7 +609,7 @@ const HomePage: FC = () => {
                >
                  <h3 className="text-2xl font-bold text-white flex items-center">
                    <span className="text-primary">+</span>Seguro
-                   <span className="text-secondary ml-1">Uruapan</span>
+                   <span className="text-secondary-foreground ml-1">Uruapan</span> {/* Adjusted color */}
                  </h3>
                  <p className="text-slate-300 text-sm mt-3 leading-relaxed">
                    Plataforma ciudadana para reportar incidentes y crear una ciudad más segura.
@@ -630,10 +645,11 @@ const HomePage: FC = () => {
                  <ul className="space-y-4 mt-5">
                     {[ 'Preguntas frecuentes', 'Términos y condiciones', 'Política de privacidad', 'Contacto' ].map((linkText, index) => (
                          <motion.li key={index} whileHover={{ x: 5 }} className="transition-all border-b border-white/10 pb-2">
+                           {/* Remove legacyBehavior and inner <a> */}
                            <Link href="#" className="text-slate-300 hover:text-white text-sm flex items-center">
-                             <ChevronRight className="h-4 w-4 mr-2 text-primary" />
-                             {linkText}
-                           </Link>
+                              <ChevronRight className="h-4 w-4 mr-2 text-primary" />
+                              {linkText}
+                            </Link>
                          </motion.li>
                     ))}
                  </ul>
@@ -681,8 +697,8 @@ const HomePage: FC = () => {
              </p>
              <div className="flex gap-6 mt-4 md:mt-0">
                {['Términos', 'Privacidad', 'Cookies'].map((linkText, index) => (
-                 <motion.a key={index} href="#" className="text-xs text-slate-400 hover:text-white transition-colors" whileHover={{ y: -2 }}>
-                   {linkText}
+                  <motion.a key={index} href="#" className="text-xs text-slate-400 hover:text-white transition-colors" whileHover={{ y: -2 }}>
+                    {linkText}
                  </motion.a>
                ))}
              </div>
