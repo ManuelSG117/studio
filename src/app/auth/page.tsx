@@ -78,9 +78,9 @@ const AuthScreen: FC = () => {
           <Image
             src="/icon.png" // Assuming your logo is in the public folder
             alt="App Logo"
-            width={120} // Adjust size as needed
-            height={120}
-            className="mx-auto mb-4 rounded-full"
+            width={80} // Adjusted size
+            height={80}
+            className="mx-auto mb-4 rounded-lg" // Removed rounded-full
             priority // Load logo quickly
             data-ai-hint="app logo"
           />
@@ -93,7 +93,7 @@ const AuthScreen: FC = () => {
            {/* Google Sign-In Button */}
           <Button
              onClick={handleGoogleSignIn}
-             className="w-full h-12 rounded-full bg-[#4285F4] hover:bg-[#4285F4]/90 text-white text-base font-medium" // Google Blue
+             className="w-full h-12 rounded-full bg-[#4285F4] hover:bg-[#4285F4]/90 text-white text-base font-medium" // Google Blue, rounded-full
              size="lg"
              disabled={isGoogleLoading} // Disable while Google loading
           >
@@ -109,7 +109,7 @@ const AuthScreen: FC = () => {
           <Button
             onClick={() => router.push('/login')}
             variant="outline" // Use outline style for contrast
-            className="w-full h-12 rounded-full border-primary text-primary hover:bg-primary/10 text-base font-medium"
+            className="w-full h-12 rounded-full border-primary text-primary hover:bg-primary/10 text-base font-medium" // Rounded full
             size="lg"
             disabled={isGoogleLoading} // Also disable if Google is loading
           >
