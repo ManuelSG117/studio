@@ -17,7 +17,7 @@ import { es } from 'date-fns/locale'; // Import Spanish locale
 import { useToast } from '@/hooks/use-toast';
 
 // Define a type for detailed user profile data fetched from Firestore
-interface UserProfile {
+export interface UserProfile { // Export UserProfile type
   fullName?: string;
   address?: string;
   phoneNumber?: string;
@@ -26,7 +26,7 @@ interface UserProfile {
 }
 
 // Function to get user profile data from Firestore
-const getUserProfileData = async (userId: string): Promise<UserProfile | null> => {
+export const getUserProfileData = async (userId: string): Promise<UserProfile | null> => { // Export function
     if (!userId) return null; // Ensure userId is valid
     console.log("Fetching profile for user:", userId);
     try {
@@ -243,14 +243,22 @@ const ProfilePage: FC = () => {
              {/* Fallback if no extra profile data found in Firestore */}
              {userProfile === null && !isLoading && ( // Only show if loading is done and profile is explicitly null
                  <p className="text-sm text-muted-foreground italic text-center pt-2">
-                     No se encontró información adicional del perfil.
+                     No se encontró información adicional del perfil. Completa tu perfil para una mejor experiencia.
                  </p>
              )}
+
+             {/* Message if some data is missing */}
+              {userProfile && (!userProfile.fullName || !userProfile.address || !userProfile.phoneNumber || !userProfile.gender || !userProfile.dob) && (
+                 <p className="text-sm text-muted-foreground italic text-center pt-2">
+                     Falta información en tu perfil. Complétala haciendo clic en Editar Perfil.
+                 </p>
+             )}
+
 
         </CardContent>
 
         <CardFooter className="flex flex-col sm:flex-row justify-between items-center pt-4 pb-8 px-6 sm:px-8 gap-3 border-t border-border">
-          <Button variant="outline" className="w-full sm:w-auto rounded-full" onClick={() => toast({ title: "Próximamente", description: "La edición del perfil estará disponible pronto."})}>
+          <Button variant="outline" className="w-full sm:w-auto rounded-full" onClick={() => router.push('/profile/edit')}>
             <Edit className="mr-2 h-4 w-4" /> Editar Perfil
           </Button>
           <Button variant="destructive" className="w-full sm:w-auto rounded-full" onClick={handleLogout}>

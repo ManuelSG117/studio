@@ -1,3 +1,4 @@
+
 "use client";
 
 import type { FC } from "react";
@@ -14,13 +15,9 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"; // Import Select
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"; // Import Popover
-import { Calendar } from "@/components/ui/calendar"; // Import Calendar
-import { format } from "date-fns"; // Import date-fns for formatting
-import { es } from "date-fns/locale"; // Import Spanish locale
+// Removed unused imports for Select, Popover, Calendar, date-fns, es locale
 import { cn } from "@/lib/utils";
-import { ArrowLeft, Check, X, CalendarIcon } from "lucide-react"; // Import Icons
+import { ArrowLeft, Check, X } from "lucide-react"; // Import Icons, Removed CalendarIcon
 import { useToast } from "@/hooks/use-toast";
 
 // Password validation criteria
@@ -28,13 +25,8 @@ const MIN_LENGTH = 8;
 const HAS_UPPERCASE = /[A-Z]/;
 const HAS_SPECIAL_CHAR = /[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/;
 
-// Updated Schema with profile fields
+// Updated Schema: Only email and password fields
 const formSchema = z.object({
-  fullName: z.string().min(1, { message: "El nombre completo es requerido." }),
-  address: z.string().min(1, { message: "La dirección es requerida." }),
-  phoneNumber: z.string().min(1, { message: "El número de teléfono es requerido." }), // Simple validation for now
-  gender: z.enum(['masculino', 'femenino', 'otro'], { required_error: "Selecciona un género." }),
-  dob: z.date({ required_error: "La fecha de nacimiento es requerida." }),
   email: z.string().email({ message: "Dirección de correo inválida." }),
   password: z.string()
     .min(MIN_LENGTH, { message: `La contraseña debe tener al menos ${MIN_LENGTH} caracteres.` })
@@ -58,11 +50,6 @@ const RegisterPage: FC = () => {
     resolver: zodResolver(formSchema),
     mode: "onChange", // Validate on change to update checklist
     defaultValues: {
-      fullName: "",
-      address: "",
-      phoneNumber: "",
-      // gender: undefined, // Zod enum handles undefined, no explicit default needed
-      // dob: undefined, // Zod date handles undefined, no explicit default needed
       email: "",
       password: "",
       confirmPassword: "", // Added default value
@@ -84,29 +71,25 @@ const RegisterPage: FC = () => {
 
   const onSubmit = async (values: FormData) => {
     setIsLoading(true);
-    console.log("Registration Data Submitted:", values); // Log all submitted data
+    console.log("Registration Data Submitted:", {email: values.email}); // Log only email submitted data
     try {
       // 1. Create user with email and password
       const userCredential = await createUserWithEmailAndPassword(auth, values.email, values.password);
       const user = userCredential.user;
       console.log("User created successfully:", user.uid);
 
-      // 2. Prepare profile data for Firestore
+      // 2. Prepare minimal profile data for Firestore (only email)
+      // You might want to add a timestamp or other basic info here if needed
       const profileData = {
-        fullName: values.fullName,
-        address: values.address,
-        phoneNumber: values.phoneNumber,
-        gender: values.gender,
-        // Convert Date object to Firestore Timestamp
-        dob: Timestamp.fromDate(values.dob),
-        email: values.email, // Optionally store email in Firestore too
+        email: values.email, // Store email in Firestore
+        createdAt: Timestamp.now(), // Add creation timestamp
       };
       console.log("Profile data to save:", profileData);
 
 
-      // 3. Save profile data to Firestore
+      // 3. Save basic profile data to Firestore
       await setDoc(doc(db, "users", user.uid), profileData);
-      console.log("Profile data saved to Firestore for user:", user.uid);
+      console.log("Basic profile data saved to Firestore for user:", user.uid);
 
       toast({
         title: "Registro Exitoso!",
@@ -114,7 +97,8 @@ const RegisterPage: FC = () => {
       });
       // Add a slight delay for the toast message
       setTimeout(() => {
-        router.push("/welcome");
+        // Redirect to profile edit page to complete profile
+        router.push("/profile/edit");
       }, 1500);
     } catch (err) {
       const authError = err as AuthError;
@@ -175,145 +159,11 @@ const RegisterPage: FC = () => {
              <ArrowLeft className="h-5 w-5" />
            </Button>
           <CardTitle className="text-2xl font-bold text-primary">Crear Cuenta</CardTitle>
-          <CardDescription className="text-muted-foreground">Completa tus datos para registrarte.</CardDescription> {/* Updated description */}
+          <CardDescription className="text-muted-foreground">Ingresa tu correo y crea una contraseña.</CardDescription> {/* Updated description */}
         </CardHeader>
         <CardContent className="px-6 sm:px-8 pt-2 pb-6">
           <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-5">
-
-              {/* Full Name */}
-              <FormField
-                control={form.control}
-                name="fullName"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Nombre Completo</FormLabel>
-                    <FormControl>
-                      <Input
-                        placeholder="Tu nombre completo"
-                        {...field}
-                        disabled={isLoading}
-                        aria-required="true"
-                        className="h-11"
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              {/* Address */}
-              <FormField
-                control={form.control}
-                name="address"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Dirección</FormLabel>
-                    <FormControl>
-                      <Input
-                        placeholder="Tu dirección"
-                        {...field}
-                        disabled={isLoading}
-                        aria-required="true"
-                        className="h-11"
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              {/* Phone Number */}
-              <FormField
-                control={form.control}
-                name="phoneNumber"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Número de Teléfono</FormLabel>
-                    <FormControl>
-                      <Input
-                        type="tel" // Use tel type for better mobile input
-                        placeholder="Ej: +56 9 1234 5678"
-                        {...field}
-                        disabled={isLoading}
-                        aria-required="true"
-                        className="h-11"
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-             {/* Gender */}
-              <FormField
-                control={form.control}
-                name="gender"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Género</FormLabel>
-                     <Select onValueChange={field.onChange} defaultValue={field.value} disabled={isLoading}>
-                      <FormControl>
-                        <SelectTrigger className="h-11">
-                           <SelectValue placeholder="Selecciona tu género" />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent>
-                        <SelectItem value="masculino">Masculino</SelectItem>
-                        <SelectItem value="femenino">Femenino</SelectItem>
-                        <SelectItem value="otro">Otro</SelectItem>
-                      </SelectContent>
-                    </Select>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-               {/* Date of Birth */}
-              <FormField
-                 control={form.control}
-                 name="dob"
-                 render={({ field }) => (
-                   <FormItem className="flex flex-col">
-                     <FormLabel>Fecha de Nacimiento</FormLabel>
-                     <Popover>
-                       <PopoverTrigger asChild>
-                         <FormControl>
-                           <Button
-                             variant={"outline"}
-                             className={cn(
-                               "w-full pl-3 text-left font-normal h-11",
-                               !field.value && "text-muted-foreground"
-                             )}
-                             disabled={isLoading}
-                           >
-                             {field.value ? (
-                               format(field.value, "PPP", { locale: es }) // Format date using Spanish locale
-                             ) : (
-                               <span>Selecciona una fecha</span>
-                             )}
-                             <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
-                           </Button>
-                         </FormControl>
-                       </PopoverTrigger>
-                       <PopoverContent className="w-auto p-0" align="start">
-                         <Calendar
-                           mode="single"
-                           selected={field.value}
-                           onSelect={field.onChange}
-                           disabled={(date) =>
-                             date > new Date() || date < new Date("1900-01-01")
-                           }
-                           initialFocus
-                           locale={es} // Use Spanish locale in calendar
-                         />
-                       </PopoverContent>
-                     </Popover>
-                     <FormMessage />
-                   </FormItem>
-                 )}
-               />
-
 
               {/* Email */}
               <FormField
