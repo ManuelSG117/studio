@@ -485,9 +485,9 @@ const NewReportPage: FC = () => {
                              size="icon"
                              onClick={handleGetCurrentLocation}
                              disabled={disableForm}
-                             aria-label="Usar ubicación actual"
+                             aria-label="Usar ubicación actual (si estás en el lugar del incidente)"
                              className="h-11 w-11 flex-shrink-0 border-primary text-primary hover:bg-primary/10"
-                             title="Usar mi ubicación actual"
+                             title="Usar mi ubicación actual (solo si estás en el lugar del incidente)"
                          >
                              {isFetchingLocation ? (
                                  <Loader2 className="h-5 w-5 animate-spin" />
