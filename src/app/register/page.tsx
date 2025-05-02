@@ -1,4 +1,3 @@
-
 "use client";
 
 import type { FC } from "react";
@@ -14,7 +13,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+// Alert component removed
 import { cn } from "@/lib/utils";
 import { Terminal, ArrowLeft, Check, X } from "lucide-react"; // Import ArrowLeft, Check, X
 import { useToast } from "@/hooks/use-toast";
@@ -43,7 +42,8 @@ type FormData = z.infer<typeof formSchema>;
 const RegisterPage: FC = () => {
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  // Error state removed, using toast instead
+  // const [error, setError] = useState<string | null>(null);
   const { toast } = useToast();
 
   const form = useForm<FormData>({
@@ -71,7 +71,7 @@ const RegisterPage: FC = () => {
 
   const onSubmit = async (values: FormData) => {
     setIsLoading(true);
-    setError(null);
+    // setError(null); // No longer needed
     console.log("Registration Data (Email/Password only):", { email: values.email }); // Log only necessary data
     try {
       // Create user with email and password - No need for other fields here
@@ -99,8 +99,14 @@ const RegisterPage: FC = () => {
         friendlyError = 'El inicio de sesión por correo electrónico/contraseña no está habilitado.';
       }
       console.error("Firebase Registration Error:", authError);
-      setError(friendlyError);
-      setIsLoading(false);
+      // setError(friendlyError); // No longer needed
+      // Use toast to display the error
+      toast({
+        variant: "destructive",
+        title: "Error de Registro",
+        description: friendlyError,
+      });
+      setIsLoading(false); // Stop loading on error
     }
     // Keep loading true until redirect or explicit stop on error
   };
@@ -140,13 +146,14 @@ const RegisterPage: FC = () => {
         <CardContent className="px-6 sm:px-8 pt-2 pb-6">
           <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-5">
-              {error && (
+              {/* Removed Alert component */}
+              {/* {error && (
                  <Alert variant="destructive" className="mb-4">
                    <Terminal className="h-4 w-4" />
                    <AlertTitle>Error de Registro</AlertTitle>
                    <AlertDescription>{error}</AlertDescription>
                  </Alert>
-              )}
+              )} */}
 
               {/* Email */}
               <FormField
