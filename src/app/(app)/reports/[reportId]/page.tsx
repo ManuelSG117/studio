@@ -6,6 +6,7 @@ import { useEffect, useState } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import Link from 'next/link';
 import Image from 'next/image'; // Import next/image
+import dynamic from 'next/dynamic'; // Import dynamic
 import { onAuthStateChanged } from 'firebase/auth';
 import { auth } from '@/lib/firebase/client';
 // Updated import path due to moving welcome page
@@ -16,14 +17,19 @@ import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
 // Removed ArrowLeft as back nav is handled by bottom bar
 import { CalendarDays, MapPin, Tag, UserCog, TriangleAlert, Image as ImageIcon, Map, Video } from 'lucide-react';
+import 'leaflet/dist/leaflet.css'; // Import Leaflet CSS for map preview
 
-// Placeholder for a Map component (replace with actual implementation)
-const MapPreviewPlaceholder: FC<{ location: string }> = ({ location }) => (
-    <div className="aspect-video bg-muted rounded-lg flex items-center justify-center text-muted-foreground text-sm border border-border">
-        <Map className="h-8 w-8 mr-2 opacity-50" />
-        <span>Mapa de "{location}"</span>
-    </div>
-);
+// Dynamically import the Map Preview component
+const MapPreview = dynamic(() => import('@/components/map-preview'), {
+    ssr: false,
+    loading: () => (
+        <div className="aspect-video bg-muted rounded-lg flex items-center justify-center text-muted-foreground text-sm border border-border">
+            <Map className="h-8 w-8 mr-2 opacity-50 animate-pulse" />
+            <span>Cargando mapa...</span>
+        </div>
+    ),
+});
+
 
 const ReportDetailPage: FC = () => {
     const router = useRouter();
@@ -40,8 +46,17 @@ const ReportDetailPage: FC = () => {
             } else {
                 setUser(currentUser); // Set user if logged in
                  // Fetch report data after confirming authentication
+                 // TODO: Fetch real report data including coordinates
                  const foundReport = getReportById(reportId);
-                 setReport(foundReport); // Set report data or null if not found
+                 // Mock coordinates if not present in placeholder data
+                 const reportWithCoords = foundReport
+                   ? {
+                       ...foundReport,
+                       latitude: foundReport.latitude ?? 19.4326, // Example default coords
+                       longitude: foundReport.longitude ?? -99.1332,
+                     }
+                   : null;
+                 setReport(reportWithCoords); // Set report data or null if not found
             }
             setIsAuthLoading(false);
         });
@@ -121,7 +136,7 @@ const ReportDetailPage: FC = () => {
      // Report not found state
     if (report === null) {
          return (
-             <main className="flex flex-col items-center justify-center p-4 sm:p-8 bg-secondary">
+             <main className="flex flex-col items-center justify-center min-h-screen p-4 sm:p-8 bg-secondary"> {/* Added min-h-screen */}
                  <Card className="w-full max-w-md shadow-lg border-none rounded-xl text-center bg-card">
                      <CardHeader>
                          <CardTitle className="text-xl text-destructive">Reporte No Encontrado</CardTitle>
@@ -204,30 +219,37 @@ const ReportDetailPage: FC = () => {
                                  <Image
                                      src={report.mediaUrl}
                                      alt={`Evidencia para reporte ${report.id}`}
-                                     layout="fill"
-                                     objectFit="cover"
+                                     layout="fill" // Changed from fill to responsive for potentially better handling
+                                     objectFit="contain" // Changed from cover to contain to see whole image/video frame
                                      data-ai-hint="report evidence media"
+                                     unoptimized // Consider adding if media is externally hosted and optimization isn't needed/possible
                                  />
                                  {/* TODO: Add video player logic if needed */}
-                                 {/* If it's a video, you might render a <video> tag or a placeholder */}
-                                 {/* Example: If it ends with .mp4 (adjust logic as needed) */}
-                                 {/* {report.mediaUrl.endsWith('.mp4') && (
+                                 {/* Example check for video based on common extensions */}
+                                 {/\.(mp4|webm|ogg)$/i.test(report.mediaUrl) && (
                                      <div className="absolute inset-0 bg-black/50 flex items-center justify-center">
                                          <Video className="h-12 w-12 text-white" />
+                                         <span className="sr-only">Es un video</span>
                                      </div>
-                                 )} */}
+                                  )}
                              </div>
                          </div>
                     )}
 
                     {/* Location Map Preview */}
-                    <div className="pt-2">
-                         <h3 className="text-base font-semibold text-primary mb-2 flex items-center">
-                             <Map className="h-5 w-5 mr-2 opacity-70" /> Ubicación en Mapa
-                         </h3>
-                         <MapPreviewPlaceholder location={report.location} />
-                         {/* TODO: Integrate actual map component (e.g., Google Maps Embed API, Leaflet) */}
-                    </div>
+                     {report.latitude && report.longitude && (
+                        <div className="pt-2">
+                             <h3 className="text-base font-semibold text-primary mb-2 flex items-center">
+                                 <Map className="h-5 w-5 mr-2 opacity-70" /> Ubicación en Mapa
+                             </h3>
+                             {/* Use the dynamic MapPreview component */}
+                             <MapPreview
+                                 latitude={report.latitude}
+                                 longitude={report.longitude}
+                                 locationName={report.location}
+                              />
+                        </div>
+                     )}
 
 
                      {/* TODO: Add Actions (e.g., Edit, Change Status, Delete) if needed */}

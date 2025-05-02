@@ -4,25 +4,38 @@
 import type { FC } from 'react';
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
+import dynamic from 'next/dynamic'; // Import dynamic
 import { onAuthStateChanged } from 'firebase/auth';
 import { auth } from '@/lib/firebase/client';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
 import { MapPin, AlertTriangle } from 'lucide-react'; // Import icons
+import 'leaflet/dist/leaflet.css'; // Import Leaflet CSS
 
-// Placeholder for a Map component (replace with actual implementation)
-const MapPlaceholder: FC = () => (
-    <div className="aspect-video bg-muted rounded-lg flex flex-col items-center justify-center text-muted-foreground text-sm border border-border">
-        <AlertTriangle className="h-10 w-10 mb-2 opacity-50" />
-        <span>Vista de Mapa de Zonas de Peligro</span>
-        <span className="text-xs">(Componente de mapa a implementar)</span>
-    </div>
-);
+// Dynamically import the Map component to avoid SSR issues
+const DangerZoneMap = dynamic(() => import('@/components/danger-zone-map'), {
+  ssr: false,
+  loading: () => (
+      <div className="aspect-video bg-muted rounded-lg flex flex-col items-center justify-center text-muted-foreground text-sm border border-border">
+          <MapPin className="h-10 w-10 mb-2 opacity-50 animate-pulse" />
+          <span>Cargando mapa...</span>
+      </div>
+  ),
+});
+
+// Placeholder data for danger zones (replace with actual data fetching)
+const mockDangerZones = [
+  { id: 'dz1', lat: 19.4326, lng: -99.1332, title: 'Zona Centro Histórico', description: 'Alto índice de robos a transeúnte.' },
+  { id: 'dz2', lat: 19.4000, lng: -99.1667, title: 'Colonia Roma', description: 'Reportes de robo de autopartes.' },
+  { id: 'dz3', lat: 19.3560, lng: -99.1717, title: 'Coyoacán Centro', description: 'Actividad sospechosa reportada por las noches.' },
+];
+
 
 const DangerZonesPage: FC = () => {
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(true);
   const [user, setUser] = useState(null);
+  const [dangerZones, setDangerZones] = useState<any[]>([]); // State for danger zones data
 
    useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
@@ -30,6 +43,8 @@ const DangerZonesPage: FC = () => {
         router.replace("/login"); // Redirect if not logged in
       } else {
         setUser(currentUser); // Set user if logged in
+         // TODO: Fetch actual danger zone data from your backend/database
+         setDangerZones(mockDangerZones);
       }
       setIsLoading(false); // Finish loading after auth check
     });
@@ -74,15 +89,30 @@ const DangerZonesPage: FC = () => {
                          Visualiza las áreas reportadas con mayor incidencia.
                      </CardDescription>
                 </CardHeader>
-                <CardContent className="p-4 sm:p-5">
-                    <MapPlaceholder />
-                     {/* TODO: Implement actual map integration (e.g., Leaflet, Google Maps SDK) */}
-                     {/* Data for markers/heatmaps would be fetched here */}
+                <CardContent className="p-0 sm:p-0 h-[60vh] sm:h-[70vh]"> {/* Adjust padding and height */}
+                     <DangerZoneMap zones={dangerZones} />
                 </CardContent>
             </Card>
 
              {/* Potentially add a list view or other information below the map */}
-             {/* <Card> ... </Card> */}
+             {/*
+              <Card className="mt-6">
+                  <CardHeader>
+                      <CardTitle>Lista de Zonas</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                      <ul>
+                          {dangerZones.map(zone => (
+                              <li key={zone.id} className="border-b py-2">
+                                  <p className="font-semibold">{zone.title}</p>
+                                  <p className="text-sm text-muted-foreground">{zone.description}</p>
+                                  <p className="text-xs text-muted-foreground/80">Lat: {zone.lat}, Lng: {zone.lng}</p>
+                              </li>
+                          ))}
+                      </ul>
+                  </CardContent>
+              </Card>
+             */}
         </div>
     </main>
   );
