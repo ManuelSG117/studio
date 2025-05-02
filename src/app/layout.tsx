@@ -17,7 +17,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: '+Seguro App', // Updated title
+  title: '+Seguro', // Updated title
   description: 'Plataforma de reportes de seguridad y prevención', // Updated description
 };
 

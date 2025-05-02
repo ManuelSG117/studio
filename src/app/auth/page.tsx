@@ -84,7 +84,7 @@ const AuthScreen: FC = () => {
             priority // Load logo quickly
             data-ai-hint="app logo"
           />
-          <CardTitle className="text-3xl font-bold text-primary">+Seguro</CardTitle>
+          <CardTitle className="text-3xl font-bold text-primary">+Seguro</CardTitle> {/* Updated title */}
           <CardDescription className="text-muted-foreground px-4">
             Tu plataforma ciudadana para reportar incidentes y construir un entorno más seguro.
           </CardDescription>

@@ -130,8 +130,8 @@ const HomePage: FC = () => {
                     data-ai-hint="app logo safety shield"
                  />
                 <h1 className="text-4xl font-bold tracking-tighter sm:text-5xl md:text-6xl">
-                  <span className="text-primary">+Seguro</span>
-                  <span className="text-destructive ml-2">Uruapan</span> {/* Adjusted color to match image */}
+                  <span className="text-primary">+Seguro</span> {/* Updated title */}
+                  {/* <span className="text-destructive ml-2">Uruapan</span> Removed location */}
                 </h1>
                 <p className="mx-auto max-w-[700px] text-muted-foreground md:text-xl/relaxed lg:text-base/relaxed xl:text-xl/relaxed">
                    Tu plataforma ciudadana para reportar incidentes y construir un entorno más seguro.
@@ -185,7 +185,7 @@ const HomePage: FC = () => {
                </Badge>
                <h2 className="text-3xl md:text-4xl font-bold mb-4 text-foreground">Reporta incidentes en tu comunidad</h2>
                <p className="text-muted-foreground text-lg">
-                 +Seguro Uruapan te permite contribuir a una comunidad más segura. Elige el tipo de reporte:
+                 +Seguro te permite contribuir a una comunidad más segura. Elige el tipo de reporte:
                </p>
             </motion.div>
 
@@ -319,8 +319,8 @@ const HomePage: FC = () => {
 
             {/* Steps with timeline */}
             <div className="relative max-w-5xl mx-auto">
-              {/* Timeline line */}
-              <div className="absolute left-4 md:left-1/2 transform md:-translate-x-1/2 h-full w-1 bg-gradient-to-b from-primary/30 via-primary/60 to-primary/30 rounded-full z-0 hidden md:block"></div>
+              {/* Timeline line - Reverted to simpler line */}
+              <div className="absolute left-4 md:left-1/2 transform md:-translate-x-1/2 h-full w-1 bg-border rounded-full z-0 hidden md:block"></div>
 
               {/* Step 1 */}
               <motion.div
@@ -343,8 +343,8 @@ const HomePage: FC = () => {
                       >
                         1
                       </motion.div>
-                      {/* Timeline dot - positioned relative to the step */}
-                       <div className="absolute left-4 top-6 transform -translate-x-1/2 md:left-auto md:right-0 md:translate-x-1/2 h-6 w-6 bg-card border-4 border-primary rounded-full z-20 hidden md:block"></div>
+                      {/* Timeline dot - Reverted styling */}
+                       <div className="absolute left-4 top-6 transform -translate-x-1/2 md:left-auto md:right-0 md:translate-x-1/2 h-4 w-4 bg-card border-4 border-primary rounded-full z-20 hidden md:block"></div>
                     </div>
                     <h3 className="text-2xl md:text-3xl font-semibold text-primary mb-3">Crea una cuenta</h3>
                     <p className="text-muted-foreground">
@@ -439,7 +439,7 @@ const HomePage: FC = () => {
                         2
                       </motion.div>
                       {/* Timeline dot */}
-                       <div className="absolute left-4 top-6 transform -translate-x-1/2 md:left-1/2 md:-translate-x-1/2 h-6 w-6 bg-card border-4 border-destructive rounded-full z-20 hidden md:block"></div>
+                       <div className="absolute left-4 top-6 transform -translate-x-1/2 md:left-1/2 md:-translate-x-1/2 h-4 w-4 bg-card border-4 border-destructive rounded-full z-20 hidden md:block"></div>
                      </div>
                     <h3 className="text-2xl md:text-3xl font-semibold text-destructive mb-3">Crea un reporte detallado</h3>
                     <p className="text-muted-foreground">
@@ -477,7 +477,7 @@ const HomePage: FC = () => {
                         3
                       </motion.div>
                        {/* Timeline dot */}
-                       <div className="absolute left-4 top-6 transform -translate-x-1/2 md:left-auto md:right-0 md:translate-x-1/2 h-6 w-6 bg-card border-4 border-accent rounded-full z-20 hidden md:block"></div>
+                       <div className="absolute left-4 top-6 transform -translate-x-1/2 md:left-auto md:right-0 md:translate-x-1/2 h-4 w-4 bg-card border-4 border-accent rounded-full z-20 hidden md:block"></div>
                      </div>
                     <h3 className="text-2xl md:text-3xl font-semibold text-accent mb-3">Da seguimiento</h3>
                     <p className="text-muted-foreground">
@@ -615,7 +615,7 @@ const HomePage: FC = () => {
              <div className="space-y-4">
                  <h3 className="text-xl font-semibold text-white flex items-center">
                    <span className="text-primary">+</span>Seguro
-                   <span className="text-destructive ml-1">Uruapan</span> {/* Use colors from theme */}
+                   {/* <span className="text-destructive ml-1">Uruapan</span> Removed location */}
                  </h3>
                  <p className="text-sm leading-relaxed">
                    Plataforma ciudadana para reportar incidentes y crear una ciudad más segura para todos. Tu participación es clave para el cambio y la transformación de nuestra comunidad.
@@ -671,7 +671,7 @@ const HomePage: FC = () => {
            {/* Bottom Footer */}
            <div className="border-t border-white/10 mt-8 pt-6 text-center text-xs text-gray-400">
              <p>
-               © {new Date().getFullYear()} +Seguro Uruapan. Todos los derechos reservados.
+               © {new Date().getFullYear()} +Seguro. Todos los derechos reservados. {/* Updated name */}
              </p>
            </div>
          </div>
@@ -681,4 +681,3 @@ const HomePage: FC = () => {
 };
 
 export default HomePage;
-
