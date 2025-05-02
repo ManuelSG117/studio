@@ -8,10 +8,12 @@ import { useAuth } from '@/context/AuthContext';
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Shield, AlertTriangle, ChevronRight, MapPin, Check, Navigation } from 'lucide-react';
+import { Shield, AlertTriangle, ChevronRight, MapPin, Check, Navigation, ExternalLink, Heart, HelpCircle } from 'lucide-react'; // Added ExternalLink, Heart, HelpCircle
 import { Loader2 } from 'lucide-react'; // Keep Loader2 for loading state
 import { motion } from 'framer-motion'; // Import motion
 import Image from 'next/image';
+import { Input } from '@/components/ui/input'; // Import Input for footer form
+import { RiskMap } from '@/components/RiskMap'; // Import RiskMap
 
 const HomePage: FC = () => {
   const router = useRouter();
@@ -487,17 +489,159 @@ const HomePage: FC = () => {
           </div>
         </motion.section>
 
-         {/* Risk Map Section (Optional - Can be added later) */}
-         {/* <section> ... </section> */}
+         {/* Risk Map Section */}
+          <motion.section className="w-full py-16 md:py-24 bg-gradient-to-b from-secondary to-white"
+            initial="offscreen"
+            whileInView="onscreen"
+            viewport={{ once: true, amount: 0.2 }}
+            variants={scrollRevealVariants}
+          >
+            <div className="container px-4 md:px-6">
+              <motion.div className="text-center mb-12 max-w-3xl mx-auto" variants={scrollRevealVariants}>
+                  <Badge className="mb-4 bg-destructive/10 text-destructive hover:bg-destructive/20">
+                      ZONAS DE RIESGO
+                  </Badge>
+                  <h2 className="text-3xl md:text-5xl font-bold tracking-tight mb-4 text-foreground">
+                      Mapa de incidencias
+                  </h2>
+                  <p className="mx-auto max-w-[700px] text-muted-foreground md:text-xl/relaxed">
+                      Explora las áreas con mayor número de reportes para mantenerte informado y tomar precauciones
+                  </p>
+              </motion.div>
+
+              <motion.div className="rounded-2xl overflow-hidden shadow-xl border border-border"
+                  variants={scrollRevealVariants}
+                  whileHover={{ scale: 1.01 }}
+                  transition={{ type: "spring", stiffness: 300 }}
+              >
+                  <div className="relative h-[500px] w-full">
+                      <RiskMap />
+                  </div>
+              </motion.div>
+
+              {/* Legend (Consider making this more dynamic or interactive) */}
+              <motion.div className="mt-8 grid grid-cols-2 md:grid-cols-4 gap-4 max-w-3xl mx-auto" variants={scrollRevealVariants}>
+                  <div className="flex items-center gap-2 justify-center p-3 rounded-lg bg-card shadow-sm border border-border">
+                      <div className="h-4 w-4 rounded-full bg-red-500"></div>
+                      <span className="text-sm font-medium text-muted-foreground">Alta incidencia</span>
+                  </div>
+                  <div className="flex items-center gap-2 justify-center p-3 rounded-lg bg-card shadow-sm border border-border">
+                      <div className="h-4 w-4 rounded-full bg-orange-500"></div>
+                      <span className="text-sm font-medium text-muted-foreground">Media incidencia</span>
+                  </div>
+                  <div className="flex items-center gap-2 justify-center p-3 rounded-lg bg-card shadow-sm border border-border">
+                      <div className="h-4 w-4 rounded-full bg-yellow-500"></div>
+                      <span className="text-sm font-medium text-muted-foreground">Baja incidencia</span>
+                  </div>
+                  <div className="flex items-center gap-2 justify-center p-3 rounded-lg bg-card shadow-sm border border-border">
+                      <div className="h-4 w-4 rounded-full bg-green-500"></div>
+                      <span className="text-sm font-medium text-muted-foreground">Zona segura</span>
+                  </div>
+              </motion.div>
+            </div>
+          </motion.section>
 
       </main>
 
-       {/* Footer */}
-       <footer className="bg-primary/5 py-6 mt-12">
-         <div className="container text-center text-muted-foreground text-sm">
-           © {new Date().getFullYear()} +Seguro Uruapan. Todos los derechos reservados.
+      {/* Footer */}
+       <motion.footer
+           className="bg-[#1C2B41] text-gray-300 py-12" // Dark blue-gray background, lighter text
+           initial={{ opacity: 0, y: 20 }}
+           whileInView={{ opacity: 1, y: 0 }}
+           viewport={{ once: true }}
+           transition={{ duration: 0.6 }}
+       >
+         <div className="container mx-auto px-4">
+           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+             {/* About Section */}
+             <div className="space-y-4">
+                 <h3 className="text-xl font-semibold text-white flex items-center">
+                   <span className="text-primary">+</span>Seguro
+                   <span className="text-destructive ml-1">Uruapan</span> {/* Use colors from theme */}
+                 </h3>
+                 <p className="text-sm leading-relaxed">
+                   Plataforma ciudadana para reportar incidentes y crear una ciudad más segura para todos. Tu participación es clave para el cambio y la transformación de nuestra comunidad.
+                 </p>
+                 {/* Social/Action Icons */}
+                 <div className="flex space-x-3 mt-4">
+                     <motion.a href="#" className="bg-white/10 p-2 rounded-full hover:bg-white/20 transition-colors" whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.9 }}>
+                       <Heart className="h-5 w-5" /> {/* Heart icon */}
+                     </motion.a>
+                     <motion.a href="#" className="bg-white/10 p-2 rounded-full hover:bg-white/20 transition-colors" whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.9 }}>
+                       <HelpCircle className="h-5 w-5" /> {/* Help/FAQ icon */}
+                     </motion.a>
+                     <motion.a href="#" className="bg-white/10 p-2 rounded-full hover:bg-white/20 transition-colors" whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.9 }}>
+                       <ExternalLink className="h-5 w-5" /> {/* External Link icon */}
+                     </motion.a>
+                 </div>
+             </div>
+
+             {/* Links Section */}
+             <div className="space-y-4">
+               <h3 className="text-lg font-semibold text-white">Enlaces útiles</h3>
+               <ul className="space-y-2">
+                 <motion.li whileHover={{ x: 5 }} className="transition-transform">
+                   <a href="#" className="text-sm hover:text-white flex items-center group">
+                     <ChevronRight className="h-4 w-4 mr-2 text-primary opacity-70 group-hover:opacity-100" />
+                     Preguntas frecuentes
+                   </a>
+                 </motion.li>
+                 <motion.li whileHover={{ x: 5 }} className="transition-transform">
+                   <a href="#" className="text-sm hover:text-white flex items-center group">
+                     <ChevronRight className="h-4 w-4 mr-2 text-primary opacity-70 group-hover:opacity-100" />
+                     Términos y condiciones
+                   </a>
+                 </motion.li>
+                 <motion.li whileHover={{ x: 5 }} className="transition-transform">
+                   <a href="#" className="text-sm hover:text-white flex items-center group">
+                     <ChevronRight className="h-4 w-4 mr-2 text-primary opacity-70 group-hover:opacity-100" />
+                     Política de privacidad
+                   </a>
+                 </motion.li>
+                  <motion.li whileHover={{ x: 5 }} className="transition-transform">
+                   <a href="#" className="text-sm hover:text-white flex items-center group">
+                     <ChevronRight className="h-4 w-4 mr-2 text-primary opacity-70 group-hover:opacity-100" />
+                     Contacto
+                   </a>
+                 </motion.li>
+               </ul>
+             </div>
+
+             {/* Contact Section */}
+             <div className="space-y-4">
+               <h3 className="text-lg font-semibold text-white">Contáctanos</h3>
+               <p className="text-sm">
+                 ¿Tienes alguna pregunta o sugerencia? Escríbenos y te responderemos lo antes posible.
+               </p>
+               <div className="space-y-3 mt-3">
+                 <Input
+                     type="email"
+                     placeholder="Tu correo electrónico"
+                     className="bg-white/5 border-white/20 text-white placeholder:text-gray-400 focus:border-primary focus:ring-primary h-11"
+                  />
+                 <Button className="w-full bg-destructive hover:bg-destructive/90 text-destructive-foreground h-11"> {/* Use destructive color for button */}
+                   Enviar mensaje
+                 </Button>
+                 <p className="text-xs text-center text-gray-400">
+                   También puedes llamarnos al <a href="tel:+1234567890" className="underline hover:text-white">(123) 456-7890</a>
+                 </p>
+               </div>
+             </div>
+           </div>
+
+           {/* Bottom Footer */}
+           <div className="border-t border-white/10 mt-8 pt-6 flex flex-col md:flex-row justify-between items-center text-xs text-gray-400">
+             <p>
+               © {new Date().getFullYear()} +Seguro Uruapan. Todos los derechos reservados.
+             </p>
+             <div className="flex gap-4 mt-3 md:mt-0">
+               <a href="#" className="hover:text-white transition-colors">Términos</a>
+               <a href="#" className="hover:text-white transition-colors">Privacidad</a>
+               <a href="#" className="hover:text-white transition-colors">Cookies</a>
+             </div>
+           </div>
          </div>
-       </footer>
+       </motion.footer>
     </div>
   );
 };
