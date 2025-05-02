@@ -9,7 +9,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import { onAuthStateChanged, type User } from "firebase/auth";
-import { doc, setDoc, Timestamp } from "firebase/firestore"; // Import setDoc instead of updateDoc
+import { doc, setDoc, Timestamp } from "firebase/firestore";
 import { auth, db } from "@/lib/firebase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -23,8 +23,8 @@ import { es } from "date-fns/locale";
 import { cn } from "@/lib/utils";
 import { ArrowLeft, CalendarIcon, Save } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
-import { getUserProfileData, type UserProfile } from "@/app/(app)/profile/page"; // Import getUserProfileData and UserProfile
-import { Skeleton } from "@/components/ui/skeleton"; // Import Skeleton
+import { getUserProfileData, type UserProfile } from "@/app/(app)/profile/page";
+import { Skeleton } from "@/components/ui/skeleton";
 
 // Schema for the edit form (similar to registration, but password is not included)
 const formSchema = z.object({
@@ -47,63 +47,63 @@ const EditProfilePage: FC = () => {
 
   const form = useForm<FormData>({
     resolver: zodResolver(formSchema),
-    defaultValues: async () => {
-      // Fetch existing profile data to pre-fill the form
-      setIsDataLoading(true);
-      const currentUser = auth.currentUser;
-      if (currentUser) {
-        setUser(currentUser);
-        const profileData = await getUserProfileData(currentUser.uid);
-        setIsDataLoading(false);
-        return {
-          fullName: profileData?.fullName || "",
-          address: profileData?.address || "",
-          phoneNumber: profileData?.phoneNumber || "",
-          gender: profileData?.gender || undefined,
-          dob: profileData?.dob || undefined,
-          email: currentUser.email || "", // Get email from auth
-        };
-      }
-      setIsDataLoading(false);
-      return { // Default empty values if no user or data
-          fullName: "",
-          address: "",
-          phoneNumber: "",
-          gender: undefined,
-          dob: undefined,
-          email: "",
-      };
+    // Use synchronous default values to prevent uncontrolled input errors
+    defaultValues: {
+        fullName: "",
+        address: "",
+        phoneNumber: "",
+        gender: undefined, // Use undefined for Select placeholder
+        dob: undefined,    // Use undefined for Calendar placeholder
+        email: "",         // Initial email is empty, will be set by useEffect
     },
   });
 
-  // Effect to handle authentication state changes and redirection
+  // Effect to handle authentication state changes and populate form data
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
+    setIsDataLoading(true); // Set loading true initially
+    const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
       if (!currentUser) {
         router.replace("/login"); // Redirect if not logged in
+        setIsDataLoading(false); // Stop loading if redirecting
       } else {
-        setUser(currentUser); // Set user if logged in
-        // Reset form with fetched data when auth state is confirmed
-        // This ensures the form is populated after login/refresh
-        if(!form.formState.isDirty) { // Only reset if form hasn't been touched
-            getUserProfileData(currentUser.uid).then(profileData => {
-                 form.reset({
-                    fullName: profileData?.fullName || "",
-                    address: profileData?.address || "",
-                    phoneNumber: profileData?.phoneNumber || "",
-                    gender: profileData?.gender || undefined,
-                    dob: profileData?.dob || undefined,
-                    email: currentUser.email || "",
-                 });
-                 setIsDataLoading(false);
-            });
-        } else {
-            setIsDataLoading(false);
+        setUser(currentUser);
+        // Fetch profile data and reset the form once authenticated
+        try {
+          const profileData = await getUserProfileData(currentUser.uid);
+          // Reset the form with fetched data or defaults
+          form.reset({
+            fullName: profileData?.fullName || "",
+            address: profileData?.address || "",
+            phoneNumber: profileData?.phoneNumber || "",
+            gender: profileData?.gender || undefined, // Use undefined for Select placeholder if no data
+            dob: profileData?.dob || undefined, // Use undefined for Calendar placeholder if no data
+            email: currentUser.email || "", // Set email from auth
+          });
+        } catch (error) {
+          console.error("Error fetching/resetting profile data:", error);
+          toast({
+            variant: "destructive",
+            title: "Error",
+            description: "No se pudo cargar la información del perfil.",
+          });
+          // Reset with defaults + email from auth on error.
+          form.reset({
+              fullName: "",
+              address: "",
+              phoneNumber: "",
+              gender: undefined,
+              dob: undefined,
+              email: currentUser.email || "",
+          });
+        } finally {
+          setIsDataLoading(false); // Stop loading after successful reset or error handling
         }
       }
     });
     return () => unsubscribe();
-  }, [router, form]);
+    // Dependencies: Re-run when auth state changes or router/toast instances change.
+    // form.reset is stable and doesn't need to be a dependency.
+  }, [router, toast, form]); // Include form in dependencies as we call form.reset
 
   const onSubmit = async (values: FormData) => {
     setIsLoading(true);
@@ -123,7 +123,6 @@ const EditProfilePage: FC = () => {
         gender: values.gender,
         dob: Timestamp.fromDate(values.dob), // Convert date to timestamp
         // Email is read-only and stored during registration, not updated here
-        // Add or update lastUpdatedAt timestamp if needed
         lastUpdatedAt: Timestamp.now(),
       };
 
@@ -206,6 +205,7 @@ const EditProfilePage: FC = () => {
                       <Input
                         placeholder="Tu correo electrónico"
                         {...field}
+                        value={field.value || ""} // Ensure value is always a string
                         readOnly // Make input read-only
                         disabled // Visually indicate it's disabled
                         className="h-11 bg-muted/50 cursor-not-allowed"
@@ -228,6 +228,7 @@ const EditProfilePage: FC = () => {
                       <Input
                         placeholder="Tu nombre completo"
                         {...field}
+                        value={field.value || ""} // Ensure value is always a string
                         disabled={isLoading}
                         aria-required="true"
                         className="h-11"
@@ -249,6 +250,7 @@ const EditProfilePage: FC = () => {
                       <Input
                         placeholder="Tu dirección"
                         {...field}
+                        value={field.value || ""} // Ensure value is always a string
                         disabled={isLoading}
                         aria-required="true"
                         className="h-11"
@@ -271,6 +273,7 @@ const EditProfilePage: FC = () => {
                         type="tel"
                         placeholder="Ej: +56 9 1234 5678"
                         {...field}
+                        value={field.value || ""} // Ensure value is always a string
                         disabled={isLoading}
                         aria-required="true"
                         className="h-11"
@@ -288,6 +291,7 @@ const EditProfilePage: FC = () => {
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Género</FormLabel>
+                     {/* Ensure value is passed to Select */}
                      <Select onValueChange={field.onChange} value={field.value} disabled={isLoading}>
                       <FormControl>
                         <SelectTrigger className="h-11">
@@ -374,4 +378,3 @@ const EditProfilePage: FC = () => {
 };
 
 export default EditProfilePage;
-
