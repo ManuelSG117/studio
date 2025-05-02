@@ -6,18 +6,21 @@ import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/context/AuthContext';
 import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"; // Removed unused CardHeader, CardTitle
 import { Badge } from "@/components/ui/badge";
-import { Shield, AlertTriangle, ChevronRight, MapPin, Check, Navigation, ExternalLink, Heart, HelpCircle } from 'lucide-react'; // Added ExternalLink, Heart, HelpCircle
+import { Shield, AlertTriangle, ChevronRight, MapPin, Check, Navigation, ExternalLink, Heart, HelpCircle, Mail, Phone, Facebook, Twitter, Instagram } from 'lucide-react'; // Added Mail, Phone, Facebook, Twitter, Instagram
 import { Loader2 } from 'lucide-react'; // Keep Loader2 for loading state
-import { motion } from 'framer-motion'; // Import motion
+import { motion, useScroll, useTransform } from 'framer-motion'; // Import motion
 import Image from 'next/image';
-import { Input } from '@/components/ui/input'; // Import Input for footer form
+import { Input } from '@/components/ui/input'; // Keep Input if needed elsewhere, removed from footer
 import { RiskMap } from '@/components/RiskMap'; // Import RiskMap
+import { HoverCard, HoverCardTrigger, HoverCardContent } from "@/components/ui/hover-card"; // Keep hover card
 
 const HomePage: FC = () => {
   const router = useRouter();
   const { isAuthenticated, user, loading } = useAuth(); // Get auth state
+  const { scrollYProgress } = useScroll(); // Added for progress bar
+  const scaleX = useTransform(scrollYProgress, [0, 1], ["0%", "100%"]); // Correct transform for progress
 
   useEffect(() => {
     // Redirect logged-in users away from the landing page
@@ -100,6 +103,12 @@ const HomePage: FC = () => {
   // Render landing page if not loading and not authenticated
   return (
     <div className="min-h-screen flex flex-col bg-background"> {/* Use theme background */}
+       {/* Progress Bar */}
+       <motion.div
+         className="fixed top-0 left-0 right-0 h-1 bg-primary z-50" // Adjusted height and color
+         style={{ scaleX, transformOrigin: "0%" }} // Apply scaleX transform
+        />
+
       <main className="flex-1">
         {/* Hero Section */}
         <section className="w-full py-16 md:py-24 lg:py-32 bg-gradient-to-b from-white to-secondary">
@@ -111,6 +120,15 @@ const HomePage: FC = () => {
                 variants={containerVariants}
             >
               <motion.div className="space-y-2" variants={itemVariants}>
+                 <Image
+                    src="/icon.png" // Path to your logo in the public folder
+                    alt="App Logo"
+                    width={100}
+                    height={100}
+                    className="mx-auto mb-4 rounded-lg shadow-md" // Style logo
+                    priority // Load logo faster
+                    data-ai-hint="app logo safety shield"
+                 />
                 <h1 className="text-4xl font-bold tracking-tighter sm:text-5xl md:text-6xl">
                   <span className="text-primary">+Seguro</span>
                   <span className="text-destructive ml-2">Uruapan</span> {/* Adjusted color to match image */}
@@ -141,7 +159,7 @@ const HomePage: FC = () => {
                         onClick={() => router.push('/register')}
                         className="w-full transition-all bg-destructive hover:bg-destructive/90 text-destructive-foreground h-11 rounded-full" // Use destructive color
                         size="lg"
-                        variant="default" // Explicitly default, but destructive overrides color
+                        // variant="default" // Explicitly default, but destructive overrides color
                        >
                         Registrarse
                       </Button>
@@ -194,14 +212,31 @@ const HomePage: FC = () => {
                      <p className="text-muted-foreground mb-8">
                        Reporta conductas inapropiadas, corrupción o abuso de poder por parte de funcionarios públicos. Tu denuncia puede ser el catalizador para un cambio positivo.
                      </p>
-                      <Button
-                        variant="outline"
-                        className="w-full border-2 border-primary text-primary hover:bg-primary hover:text-primary-foreground transition-colors duration-300 group-hover:shadow-md flex items-center justify-center gap-2 h-11 rounded-full"
-                        onClick={() => router.push('/auth')} // Go to login/register first
-                      >
-                        Reportar Funcionario
-                        <ChevronRight className="h-4 w-4 opacity-70 group-hover:translate-x-1 transition-transform" />
-                      </Button>
+                      <HoverCard>
+                          <HoverCardTrigger asChild>
+                              <Button
+                                variant="outline"
+                                className="w-full border-2 border-primary text-primary hover:bg-primary hover:text-primary-foreground transition-colors duration-300 group-hover:shadow-md flex items-center justify-center gap-2 h-11 rounded-full"
+                                onClick={() => router.push('/auth')} // Go to login/register first
+                              >
+                                Reportar Funcionario
+                                <ChevronRight className="h-4 w-4 opacity-70 group-hover:translate-x-1 transition-transform" />
+                              </Button>
+                          </HoverCardTrigger>
+                         <HoverCardContent className="w-80 bg-card p-4 shadow-lg rounded-lg border border-primary/20">
+                            <div className="flex justify-between space-x-4">
+                                <div className="space-y-1">
+                                  <h4 className="text-sm font-semibold text-primary">Para reportar necesitas:</h4>
+                                  <ul className="text-xs mt-2 space-y-2 list-disc list-inside text-muted-foreground">
+                                    <li>Información del funcionario</li>
+                                    <li>Descripción del incidente</li>
+                                    <li>Fecha y lugar</li>
+                                    <li>Evidencia (opcional)</li>
+                                  </ul>
+                                </div>
+                            </div>
+                         </HoverCardContent>
+                      </HoverCard>
                    </CardContent>
                  </Card>
                </motion.div>
@@ -228,14 +263,31 @@ const HomePage: FC = () => {
                      <p className="text-muted-foreground mb-8">
                        Informa sobre robos, asaltos u otros delitos en tu comunidad. Contribuye a crear zonas más seguras y ayuda a prevenir futuros incidentes.
                      </p>
-                      <Button
-                        variant="outline"
-                        className="w-full border-2 border-destructive text-destructive hover:bg-destructive hover:text-destructive-foreground transition-colors duration-300 group-hover:shadow-md flex items-center justify-center gap-2 h-11 rounded-full"
-                        onClick={() => router.push('/auth')} // Go to login/register first
-                      >
-                        Reportar Incidente
-                        <ChevronRight className="h-4 w-4 opacity-70 group-hover:translate-x-1 transition-transform" />
-                      </Button>
+                      <HoverCard>
+                        <HoverCardTrigger asChild>
+                            <Button
+                              variant="outline"
+                              className="w-full border-2 border-destructive text-destructive hover:bg-destructive hover:text-destructive-foreground transition-colors duration-300 group-hover:shadow-md flex items-center justify-center gap-2 h-11 rounded-full"
+                              onClick={() => router.push('/auth')} // Go to login/register first
+                            >
+                              Reportar Incidente
+                              <ChevronRight className="h-4 w-4 opacity-70 group-hover:translate-x-1 transition-transform" />
+                            </Button>
+                        </HoverCardTrigger>
+                         <HoverCardContent className="w-80 bg-card p-4 shadow-lg rounded-lg border border-destructive/20">
+                            <div className="flex justify-between space-x-4">
+                              <div className="space-y-1">
+                                <h4 className="text-sm font-semibold text-destructive">Para reportar necesitas:</h4>
+                                <ul className="text-xs mt-2 space-y-2 list-disc list-inside text-muted-foreground">
+                                  <li>Tipo de incidente</li>
+                                  <li>Ubicación exacta</li>
+                                  <li>Hora del suceso</li>
+                                  <li>Descripción detallada</li>
+                                </ul>
+                              </div>
+                            </div>
+                         </HoverCardContent>
+                      </HoverCard>
                    </CardContent>
                  </Card>
                </motion.div>
@@ -268,7 +320,7 @@ const HomePage: FC = () => {
             {/* Steps with timeline */}
             <div className="relative max-w-5xl mx-auto">
               {/* Timeline line */}
-              <div className="absolute left-4 md:left-1/2 transform md:-translate-x-1/2 h-full w-1 bg-gradient-to-b from-primary/30 via-primary/60 to-primary/30 rounded-full z-0"></div>
+              <div className="absolute left-4 md:left-1/2 transform md:-translate-x-1/2 h-full w-1 bg-gradient-to-b from-primary/30 via-primary/60 to-primary/30 rounded-full z-0 hidden md:block"></div>
 
               {/* Step 1 */}
               <motion.div
@@ -291,6 +343,8 @@ const HomePage: FC = () => {
                       >
                         1
                       </motion.div>
+                      {/* Timeline dot - positioned relative to the step */}
+                       <div className="absolute left-4 top-6 transform -translate-x-1/2 md:left-auto md:right-0 md:translate-x-1/2 h-6 w-6 bg-card border-4 border-primary rounded-full z-20 hidden md:block"></div>
                     </div>
                     <h3 className="text-2xl md:text-3xl font-semibold text-primary mb-3">Crea una cuenta</h3>
                     <p className="text-muted-foreground">
@@ -384,6 +438,8 @@ const HomePage: FC = () => {
                       >
                         2
                       </motion.div>
+                      {/* Timeline dot */}
+                       <div className="absolute left-4 top-6 transform -translate-x-1/2 md:left-1/2 md:-translate-x-1/2 h-6 w-6 bg-card border-4 border-destructive rounded-full z-20 hidden md:block"></div>
                      </div>
                     <h3 className="text-2xl md:text-3xl font-semibold text-destructive mb-3">Crea un reporte detallado</h3>
                     <p className="text-muted-foreground">
@@ -420,6 +476,8 @@ const HomePage: FC = () => {
                       >
                         3
                       </motion.div>
+                       {/* Timeline dot */}
+                       <div className="absolute left-4 top-6 transform -translate-x-1/2 md:left-auto md:right-0 md:translate-x-1/2 h-6 w-6 bg-card border-4 border-accent rounded-full z-20 hidden md:block"></div>
                      </div>
                     <h3 className="text-2xl md:text-3xl font-semibold text-accent mb-3">Da seguimiento</h3>
                     <p className="text-muted-foreground">
@@ -552,7 +610,7 @@ const HomePage: FC = () => {
            transition={{ duration: 0.6 }}
        >
          <div className="container mx-auto px-4">
-           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 items-start"> {/* Adjusted grid and alignment */}
              {/* About Section */}
              <div className="space-y-4">
                  <h3 className="text-xl font-semibold text-white flex items-center">
@@ -562,83 +620,59 @@ const HomePage: FC = () => {
                  <p className="text-sm leading-relaxed">
                    Plataforma ciudadana para reportar incidentes y crear una ciudad más segura para todos. Tu participación es clave para el cambio y la transformación de nuestra comunidad.
                  </p>
-                 {/* Social/Action Icons */}
-                 <div className="flex space-x-3 mt-4">
-                     <motion.a href="#" className="bg-white/10 p-2 rounded-full hover:bg-white/20 transition-colors" whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.9 }}>
-                       <Heart className="h-5 w-5" /> {/* Heart icon */}
-                     </motion.a>
-                     <motion.a href="#" className="bg-white/10 p-2 rounded-full hover:bg-white/20 transition-colors" whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.9 }}>
-                       <HelpCircle className="h-5 w-5" /> {/* Help/FAQ icon */}
-                     </motion.a>
-                     <motion.a href="#" className="bg-white/10 p-2 rounded-full hover:bg-white/20 transition-colors" whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.9 }}>
-                       <ExternalLink className="h-5 w-5" /> {/* External Link icon */}
-                     </motion.a>
+                 {/* Useful Links */}
+                 <div className="flex flex-wrap gap-x-4 gap-y-1 text-xs">
+                   <a href="#" className="hover:text-white transition-colors">Preguntas frecuentes</a>
+                   <a href="#" className="hover:text-white transition-colors">Términos</a>
+                   <a href="#" className="hover:text-white transition-colors">Privacidad</a>
+                   <a href="#" className="hover:text-white transition-colors">Cookies</a>
                  </div>
              </div>
 
-             {/* Links Section */}
-             <div className="space-y-4">
-               <h3 className="text-lg font-semibold text-white">Enlaces útiles</h3>
-               <ul className="space-y-2">
-                 <motion.li whileHover={{ x: 5 }} className="transition-transform">
-                   <a href="#" className="text-sm hover:text-white flex items-center group">
-                     <ChevronRight className="h-4 w-4 mr-2 text-primary opacity-70 group-hover:opacity-100" />
-                     Preguntas frecuentes
-                   </a>
-                 </motion.li>
-                 <motion.li whileHover={{ x: 5 }} className="transition-transform">
-                   <a href="#" className="text-sm hover:text-white flex items-center group">
-                     <ChevronRight className="h-4 w-4 mr-2 text-primary opacity-70 group-hover:opacity-100" />
-                     Términos y condiciones
-                   </a>
-                 </motion.li>
-                 <motion.li whileHover={{ x: 5 }} className="transition-transform">
-                   <a href="#" className="text-sm hover:text-white flex items-center group">
-                     <ChevronRight className="h-4 w-4 mr-2 text-primary opacity-70 group-hover:opacity-100" />
-                     Política de privacidad
-                   </a>
-                 </motion.li>
-                  <motion.li whileHover={{ x: 5 }} className="transition-transform">
-                   <a href="#" className="text-sm hover:text-white flex items-center group">
-                     <ChevronRight className="h-4 w-4 mr-2 text-primary opacity-70 group-hover:opacity-100" />
-                     Contacto
-                   </a>
-                 </motion.li>
-               </ul>
+             {/* Contact & Social Media Section */}
+             <div className="space-y-4 md:col-span-1 lg:col-span-2"> {/* Span 2 columns on larger screens */}
+                 <h3 className="text-lg font-semibold text-white">Contacto y Redes Sociales</h3>
+                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                     {/* Contact Info */}
+                     <div className="space-y-2 text-sm">
+                       <a href="mailto:contacto@masseguro.com" className="flex items-center gap-2 hover:text-white transition-colors">
+                         <Mail className="h-4 w-4 text-primary" />
+                         contacto@masseguro.com
+                       </a>
+                       <a href="tel:+524521234567" className="flex items-center gap-2 hover:text-white transition-colors">
+                         <Phone className="h-4 w-4 text-primary" />
+                         +52 (452) 123-4567 {/* Example number */}
+                       </a>
+                       <p className="flex items-center gap-2">
+                         <MapPin className="h-4 w-4 text-primary" />
+                         Uruapan, Michoacán, México
+                       </p>
+                     </div>
+
+                     {/* Social Media Links */}
+                     <div className="flex items-center justify-start sm:justify-end space-x-3">
+                         <motion.a href="#" aria-label="Facebook" className="bg-white/10 p-2 rounded-full hover:bg-white/20 transition-colors" whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.9 }}>
+                           <Facebook className="h-5 w-5" />
+                         </motion.a>
+                         <motion.a href="#" aria-label="Twitter" className="bg-white/10 p-2 rounded-full hover:bg-white/20 transition-colors" whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.9 }}>
+                           <Twitter className="h-5 w-5" />
+                         </motion.a>
+                         <motion.a href="#" aria-label="Instagram" className="bg-white/10 p-2 rounded-full hover:bg-white/20 transition-colors" whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.9 }}>
+                           <Instagram className="h-5 w-5" />
+                         </motion.a>
+                     </div>
+                 </div>
              </div>
 
-             {/* Contact Section */}
-             <div className="space-y-4">
-               <h3 className="text-lg font-semibold text-white">Contáctanos</h3>
-               <p className="text-sm">
-                 ¿Tienes alguna pregunta o sugerencia? Escríbenos y te responderemos lo antes posible.
-               </p>
-               <div className="space-y-3 mt-3">
-                 <Input
-                     type="email"
-                     placeholder="Tu correo electrónico"
-                     className="bg-white/5 border-white/20 text-white placeholder:text-gray-400 focus:border-primary focus:ring-primary h-11"
-                  />
-                 <Button className="w-full bg-destructive hover:bg-destructive/90 text-destructive-foreground h-11"> {/* Use destructive color for button */}
-                   Enviar mensaje
-                 </Button>
-                 <p className="text-xs text-center text-gray-400">
-                   También puedes llamarnos al <a href="tel:+1234567890" className="underline hover:text-white">(123) 456-7890</a>
-                 </p>
-               </div>
-             </div>
+             {/* Removed Contact Form Section */}
+
            </div>
 
            {/* Bottom Footer */}
-           <div className="border-t border-white/10 mt-8 pt-6 flex flex-col md:flex-row justify-between items-center text-xs text-gray-400">
+           <div className="border-t border-white/10 mt-8 pt-6 text-center text-xs text-gray-400">
              <p>
                © {new Date().getFullYear()} +Seguro Uruapan. Todos los derechos reservados.
              </p>
-             <div className="flex gap-4 mt-3 md:mt-0">
-               <a href="#" className="hover:text-white transition-colors">Términos</a>
-               <a href="#" className="hover:text-white transition-colors">Privacidad</a>
-               <a href="#" className="hover:text-white transition-colors">Cookies</a>
-             </div>
            </div>
          </div>
        </motion.footer>
@@ -647,3 +681,5 @@ const HomePage: FC = () => {
 };
 
 export default HomePage;
+
+    
