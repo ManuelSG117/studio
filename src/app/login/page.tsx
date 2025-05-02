@@ -12,7 +12,8 @@ import { signInWithEmailAndPassword, setPersistence, browserLocalPersistence, br
 import { auth } from "@/lib/firebase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+// Import CardFooter along with other Card components
+import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"; // Import Tabs components
 import { Separator } from "@/components/ui/separator"; // Import Separator
@@ -273,5 +274,3 @@ const LoginPage: FC = () => {
 };
 
 export default LoginPage;
-
-    
