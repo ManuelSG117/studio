@@ -19,7 +19,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 // Correctly import FormDescription
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage, FormDescription } from "@/components/ui/form";
 import { Skeleton } from "@/components/ui/skeleton";
-import { ArrowLeft, Send, Loader2, Upload, Image as ImageIcon, Trash2, UserCog, TriangleAlert } from "lucide-react"; // Use Send for submit, Upload/ImageIcon for media, UserCog, TriangleAlert
+import { ArrowLeft, Send, Loader2, Upload, Image as ImageIcon, Trash2, UserCog, TriangleAlert, LocateFixed } from "lucide-react"; // Use Send for submit, Upload/ImageIcon for media, UserCog, TriangleAlert, LocateFixed
 import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
 import Image from "next/image"; // Import Image
@@ -32,6 +32,9 @@ const reportFormSchema = z.object({
   title: z.string().min(5, { message: "El título debe tener al menos 5 caracteres." }).max(100, { message: "El título no puede exceder los 100 caracteres."}),
   description: z.string().min(10, { message: "La descripción debe tener al menos 10 caracteres." }).max(1000, { message: "La descripción no puede exceder los 1000 caracteres."}),
   location: z.string().min(3, { message: "La ubicación es requerida." }).max(150, { message: "La ubicación no puede exceder los 150 caracteres."}),
+  // Optional latitude and longitude fields (will be set by location button)
+  latitude: z.number().optional(),
+  longitude: z.number().optional(),
   // mediaFile is handled separately
 });
 
@@ -43,6 +46,7 @@ const NewReportPage: FC = () => {
   const [isAuthLoading, setIsAuthLoading] = useState(true);
   const [isUploading, setIsUploading] = useState(false); // For media upload specifically
   const [isCompressing, setIsCompressing] = useState(false); // For media compression
+  const [isFetchingLocation, setIsFetchingLocation] = useState(false); // For location fetching
   const [user, setUser] = useState<User | null>(null);
   const { toast } = useToast();
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -57,6 +61,8 @@ const NewReportPage: FC = () => {
       title: "",
       description: "",
       location: "",
+      latitude: undefined,
+      longitude: undefined,
     },
   });
 
@@ -74,7 +80,7 @@ const NewReportPage: FC = () => {
     return () => unsubscribe();
   }, [router]);
 
-  // Handle file selection and COMPRESSION (remains the same)
+  // Handle file selection and COMPRESSION
   const handleFileChange = async (event: ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (!file) return;
@@ -145,19 +151,71 @@ const NewReportPage: FC = () => {
     }
   };
 
-  // Trigger hidden file input click (remains the same)
+  // Trigger hidden file input click
   const handleUploadClick = () => {
     if (!isCompressing && !isUploading && !isLoading) {
         fileInputRef.current?.click();
     }
   };
 
-   // Remove selected file (remains the same)
+   // Remove selected file
    const handleRemoveFile = () => {
        if (isCompressing || isUploading || isLoading) return;
        setSelectedFile(null);
        setPreviewUrl(null);
    };
+
+   // Get Current Location Handler
+    const handleGetCurrentLocation = () => {
+        if (!navigator.geolocation) {
+            toast({
+                variant: "destructive",
+                title: "Geolocalización no soportada",
+                description: "Tu navegador no soporta la geolocalización.",
+            });
+            return;
+        }
+
+        setIsFetchingLocation(true);
+        navigator.geolocation.getCurrentPosition(
+            (position) => {
+                const { latitude, longitude } = position.coords;
+                const locationString = `Ubicación actual (Lat: ${latitude.toFixed(4)}, Lon: ${longitude.toFixed(4)})`;
+                // Ideally, use reverse geocoding here to get a street address
+                form.setValue("location", locationString, { shouldValidate: true });
+                form.setValue("latitude", latitude);
+                form.setValue("longitude", longitude);
+                toast({
+                    title: "Ubicación obtenida",
+                    description: "Se ha establecido tu ubicación actual.",
+                });
+                setIsFetchingLocation(false);
+            },
+            (error) => {
+                console.error("Geolocation error:", error);
+                let description = "No se pudo obtener tu ubicación.";
+                if (error.code === error.PERMISSION_DENIED) {
+                    description = "Permiso de ubicación denegado.";
+                } else if (error.code === error.POSITION_UNAVAILABLE) {
+                    description = "La información de ubicación no está disponible.";
+                } else if (error.code === error.TIMEOUT) {
+                    description = "Se agotó el tiempo de espera para obtener la ubicación.";
+                }
+                toast({
+                    variant: "destructive",
+                    title: "Error de Ubicación",
+                    description: description,
+                });
+                setIsFetchingLocation(false);
+            },
+            {
+                enableHighAccuracy: true, // Request high accuracy
+                timeout: 10000, // 10 seconds timeout
+                maximumAge: 0 // Don't use cached location
+            }
+        );
+    };
+
 
   // Form submission handler
   const onSubmit = async (values: ReportFormData) => {
@@ -179,7 +237,7 @@ const NewReportPage: FC = () => {
     console.log("Submitting report data:", { ...values, reportType: selectedReportType });
     let mediaDownloadURL: string | null = null;
 
-    // 1. Upload Media if selected (remains the same)
+    // 1. Upload Media if selected
     if (selectedFile) {
       setIsUploading(true);
       const fileName = `${user.uid}_${Date.now()}_${selectedFile.name}`;
@@ -212,10 +270,10 @@ const NewReportPage: FC = () => {
         description: values.description,
         location: values.location,
         mediaUrl: mediaDownloadURL,
+        latitude: values.latitude ?? null, // Save coordinates if available
+        longitude: values.longitude ?? null,
         status: 'Pendiente',
         createdAt: Timestamp.now(),
-        // latitude: ...,
-        // longitude: ...,
       };
 
       const docRef = await addDoc(reportsCollectionRef, reportData);
@@ -237,7 +295,7 @@ const NewReportPage: FC = () => {
     }
   };
 
-   // Loading state skeleton (remains the same)
+   // Loading state skeleton
    if (isAuthLoading) {
       return (
         <main className="flex min-h-screen flex-col items-center justify-center py-8 px-4 sm:px-8 bg-secondary">
@@ -260,7 +318,7 @@ const NewReportPage: FC = () => {
       );
     }
 
-    const disableForm = isLoading || isUploading || isCompressing;
+    const disableForm = isLoading || isUploading || isCompressing || isFetchingLocation;
 
 
   return (
@@ -409,18 +467,36 @@ const NewReportPage: FC = () => {
                 name="location"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Ubicación</FormLabel>
-                    <FormControl>
-                      <Input
-                        placeholder="Ej: Esquina de Av. Juárez y Calle Madero, Col. Centro"
-                        {...field}
-                        disabled={disableForm}
-                        aria-required="true"
-                        className="h-11"
-                      />
-                      {/* TODO: Add map interaction button later? */}
-                    </FormControl>
-                    <FormMessage />
+                     <FormLabel>Ubicación</FormLabel>
+                     <div className="flex items-center space-x-2">
+                         <FormControl>
+                           <Input
+                             placeholder="Ej: Esquina de Av. Juárez y Calle Madero, Col. Centro"
+                             {...field}
+                             disabled={disableForm}
+                             aria-required="true"
+                             className="h-11 flex-grow"
+                             />
+                         </FormControl>
+                         {/* Use Current Location Button */}
+                         <Button
+                             type="button"
+                             variant="outline"
+                             size="icon"
+                             onClick={handleGetCurrentLocation}
+                             disabled={disableForm}
+                             aria-label="Usar ubicación actual"
+                             className="h-11 w-11 flex-shrink-0 border-primary text-primary hover:bg-primary/10"
+                             title="Usar mi ubicación actual"
+                         >
+                             {isFetchingLocation ? (
+                                 <Loader2 className="h-5 w-5 animate-spin" />
+                             ) : (
+                                 <LocateFixed className="h-5 w-5" />
+                             )}
+                         </Button>
+                     </div>
+                     <FormMessage />
                   </FormItem>
                 )}
               />
@@ -497,12 +573,12 @@ const NewReportPage: FC = () => {
                     !selectedReportType // Also disable if report type not selected
                  }
               >
-                 {isLoading || isUploading || isCompressing ? (
+                 {isLoading || isUploading || isCompressing || isFetchingLocation ? (
                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                  ) : (
                     <Send className="mr-2 h-4 w-4" />
                  )}
-                {isLoading ? "Enviando..." : isUploading ? "Subiendo..." : isCompressing ? "Procesando..." : "Enviar Reporte"}
+                {isLoading ? "Enviando..." : isUploading ? "Subiendo..." : isCompressing ? "Procesando..." : isFetchingLocation ? "Obteniendo Ubicación..." : "Enviar Reporte"}
               </Button>
             </form>
           </Form>
@@ -513,3 +589,5 @@ const NewReportPage: FC = () => {
 };
 
 export default NewReportPage;
+
+    
