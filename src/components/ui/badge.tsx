@@ -15,6 +15,10 @@ const badgeVariants = cva(
         destructive:
           "border-transparent bg-destructive text-destructive-foreground hover:bg-destructive/80",
         outline: "text-foreground",
+        // Add custom variants if needed, e.g., for status colors
+        // pending: "border-transparent bg-yellow-100 text-yellow-800",
+        // inProcess: "border-transparent bg-blue-100 text-blue-800",
+        // resolved: "border-transparent bg-green-100 text-green-800",
       },
     },
     defaultVariants: {
