@@ -1,3 +1,4 @@
+
 import type { Config } from "tailwindcss";
 
 export default {
@@ -8,8 +9,18 @@ export default {
     "./src/app/**/*.{js,ts,jsx,tsx,mdx}",
   ],
   theme: {
+    container: { // Add container settings
+       center: true,
+       padding: "2rem",
+       screens: {
+         "2xl": "1400px",
+       },
+     },
   	extend: {
   		colors: {
+            // Mapped theme colors
+            authority: 'hsl(var(--primary))', // Map authority to primary
+            alert: 'hsl(var(--destructive))', // Map alert to destructive
   			background: 'hsl(var(--background))',
   			foreground: 'hsl(var(--foreground))',
   			card: {
@@ -40,6 +51,10 @@ export default {
   				DEFAULT: 'hsl(var(--destructive))',
   				foreground: 'hsl(var(--destructive-foreground))'
   			},
+            warning: { // Ensure warning exists
+                DEFAULT: 'hsl(var(--warning))',
+                foreground: 'hsl(var(--warning-foreground))'
+             },
   			border: 'hsl(var(--border))',
   			input: 'hsl(var(--input))',
   			ring: 'hsl(var(--ring))',

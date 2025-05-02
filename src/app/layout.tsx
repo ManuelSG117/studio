@@ -4,6 +4,7 @@ import {Geist, Geist_Mono} from 'next/font/google';
 import './globals.css';
 import 'leaflet/dist/leaflet.css'; // Import Leaflet CSS globally
 import { Toaster } from "@/components/ui/toaster"; // Import Toaster
+import { AuthProvider } from '@/context/AuthContext'; // Import AuthProvider
 
 const geistSans = Geist({
   variable: '--font-geist-sans',
@@ -28,8 +29,10 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className={`${geistSans.variable} ${geistMono.variable} antialiased bg-secondary`}> {/* Use secondary as body background */}
-        {children}
-        <Toaster /> {/* Add Toaster here */}
+        <AuthProvider> {/* Wrap the entire application with AuthProvider */}
+          {children}
+          <Toaster /> {/* Add Toaster here */}
+        </AuthProvider>
       </body>
     </html>
   );
