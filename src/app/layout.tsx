@@ -1,3 +1,4 @@
+
 import type {Metadata} from 'next';
 import {Geist, Geist_Mono} from 'next/font/google';
 import './globals.css';
@@ -14,8 +15,8 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: 'AuthFlow App', // Updated title
-  description: 'User registration app with Firebase Auth', // Updated description
+  title: '+Seguro App', // Updated title
+  description: 'Plataforma de reportes de seguridad y prevención', // Updated description
 };
 
 export default function RootLayout({
@@ -25,7 +26,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
+      <body className={`${geistSans.variable} ${geistMono.variable} antialiased bg-secondary`}> {/* Use secondary as body background */}
         {children}
         <Toaster /> {/* Add Toaster here */}
       </body>
