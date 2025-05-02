@@ -513,4 +513,3 @@ const NewReportPage: FC = () => {
 };
 
 export default NewReportPage;
-```
