@@ -18,7 +18,7 @@ import { Input } from "@/components/ui/input";
 // Removed unused Label import
 // import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage, FormDescription } from "@/components/ui/form"; // Import FormDescription
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 // Removed unused RadioGroup imports
 // import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
