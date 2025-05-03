@@ -1,3 +1,4 @@
+
 "use client";
 
 import type { FC } from 'react';
@@ -7,7 +8,8 @@ import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import { useEffect, useState } from 'react';
-import { LogIn } from 'lucide-react'; // Import LogIn icon
+// Import icons for the navbar links
+import { LogIn, Home, HelpCircle, Workflow, MapPin, Shield } from 'lucide-react';
 
 const LandingNavBar: FC = () => {
   const router = useRouter();
@@ -16,12 +18,18 @@ const LandingNavBar: FC = () => {
 
   // Function to calculate section offsets
   const getSectionOffsets = () => {
-    const sections = ['what-we-do', 'how-it-works', 'risk-map'];
+    // Include 'top' for the +Seguro link
+    const sections = ['top', 'what-we-do', 'how-it-works', 'risk-map'];
     const offsets: { [key: string]: number } = {};
     sections.forEach(id => {
-      const element = document.getElementById(id);
-      if (element) {
-        offsets[id] = element.offsetTop;
+      if (id === 'top') {
+        offsets[id] = 0; // Top of the page
+      } else {
+        const element = document.getElementById(id);
+        if (element) {
+            // Adjust offset slightly to account for navbar height if needed
+            offsets[id] = element.offsetTop - 80; // 80px is navbar height
+        }
       }
     });
     return offsets;
@@ -34,18 +42,25 @@ const LandingNavBar: FC = () => {
 
       // Determine active section based on scroll position
       const offsets = getSectionOffsets();
-      let currentSection: string | null = null;
-      const buffer = 150; // Adjust buffer as needed for better detection
+      let currentSection: string | null = 'top'; // Default to top
+      const buffer = 100; // Adjust buffer as needed
 
       // Check sections in reverse order to prioritize lower sections
-      const sortedSections = Object.entries(offsets).sort(([, a], [, b]) => b - a);
+      const sortedSections = Object.entries(offsets).sort(([, a], [, b]) => a - b); // Sort by offset ascending
 
-      for (const [id, offset] of sortedSections) {
-        if (scrollPosition >= offset - buffer) {
-          currentSection = id;
-          break; // Found the lowest section in view
+       for (const [id, offset] of sortedSections) {
+         if (scrollPosition >= offset - buffer) {
+           currentSection = id;
+         } else {
+             break; // Stop checking once we are above a section
+         }
+       }
+
+       // Handle edge case where scroll is exactly 0
+        if (scrollPosition < buffer) {
+           currentSection = 'top';
         }
-      }
+
        setActiveSection(currentSection);
     };
 
@@ -59,15 +74,19 @@ const LandingNavBar: FC = () => {
   const handleScrollTo = (id: string) => (e: React.MouseEvent<HTMLAnchorElement>) => {
     e.preventDefault();
     setActiveSection(id); // Immediately set active section on click
-    const element = document.getElementById(id);
-    if (element) {
-      window.scrollTo({
-        top: element.offsetTop - 80, // Adjust for fixed navbar height + potential margin
-        behavior: 'smooth',
-      });
-       // Update hash in URL without triggering full navigation (optional)
-       // history.pushState(null, '', `#${id}`);
+    if (id === 'top') {
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+    } else {
+        const element = document.getElementById(id);
+        if (element) {
+          window.scrollTo({
+            top: element.offsetTop - 80, // Adjust for fixed navbar height + potential margin
+            behavior: 'smooth',
+          });
+        }
     }
+     // Update hash in URL without triggering full navigation (optional)
+     // history.pushState(null, '', `#${id}`);
   };
 
   // Helper to determine if a link is active
@@ -92,17 +111,35 @@ const LandingNavBar: FC = () => {
              // Apply background/shadow only when scrolled for the inner nav
              scrolled ? "bg-background/80 shadow-md border border-border" : "bg-transparent"
          )}>
+
+            {/* +Seguro Link (Home/Top) */}
+             <Link
+               href="#top" // Link to top of the page
+               onClick={handleScrollTo('top')}
+               className={cn(
+                 "transition-colors px-4 py-1.5 rounded-full flex items-center gap-1.5",
+                 isLinkActive('top')
+                   ? "bg-primary/10 text-primary font-medium" // Active state style
+                   : "text-muted-foreground hover:text-primary hover:bg-primary/5" // Inactive state style
+               )}
+             >
+                <Shield className="h-4 w-4 opacity-80" /> {/* Changed Icon */}
+                +Seguro
+             </Link>
+
+
           {/* What We Do Link */}
           <Link
             href="#what-we-do"
             onClick={handleScrollTo('what-we-do')}
             className={cn(
-              "transition-colors px-4 py-1.5 rounded-full",
+              "transition-colors px-4 py-1.5 rounded-full flex items-center gap-1.5",
               isLinkActive('what-we-do')
                 ? "bg-primary/10 text-primary font-medium" // Active state style
                 : "text-muted-foreground hover:text-primary hover:bg-primary/5" // Inactive state style
             )}
           >
+             <HelpCircle className="h-4 w-4 opacity-80" /> {/* Added Icon */}
             ¿Qué hacemos?
           </Link>
 
@@ -111,12 +148,13 @@ const LandingNavBar: FC = () => {
             href="#how-it-works"
             onClick={handleScrollTo('how-it-works')}
              className={cn(
-              "transition-colors px-4 py-1.5 rounded-full",
+              "transition-colors px-4 py-1.5 rounded-full flex items-center gap-1.5",
               isLinkActive('how-it-works')
                 ? "bg-primary/10 text-primary font-medium" // Active state style
                 : "text-muted-foreground hover:text-primary hover:bg-primary/5" // Inactive state style
             )}
           >
+             <Workflow className="h-4 w-4 opacity-80" /> {/* Added Icon */}
             ¿Cómo funciona?
           </Link>
 
@@ -125,12 +163,13 @@ const LandingNavBar: FC = () => {
             href="#risk-map"
             onClick={handleScrollTo('risk-map')}
              className={cn(
-              "transition-colors px-4 py-1.5 rounded-full",
+              "transition-colors px-4 py-1.5 rounded-full flex items-center gap-1.5",
               isLinkActive('risk-map')
                 ? "bg-primary/10 text-primary font-medium" // Active state style
                 : "text-muted-foreground hover:text-primary hover:bg-primary/5" // Inactive state style
             )}
           >
+             <MapPin className="h-4 w-4 opacity-80" /> {/* Added Icon */}
             Zonas de Riesgo
           </Link>
 
