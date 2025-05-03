@@ -8,6 +8,7 @@ import L from 'leaflet'; // Import Leaflet library
 
 // Define the props for the component
 interface MapPreviewProps {
+  mapId: string; // Add a unique ID for the map instance
   latitude: number;
   longitude: number;
   locationName?: string; // Optional name for the popup/tooltip
@@ -23,6 +24,7 @@ L.Icon.Default.mergeOptions({
 });
 
 const MapPreview: FC<MapPreviewProps> = ({
+    mapId, // Use the mapId
     latitude,
     longitude,
     locationName = "Ubicación del reporte",
@@ -41,6 +43,7 @@ const MapPreview: FC<MapPreviewProps> = ({
 
     return (
         <MapContainer
+            key={mapId} // Add the key prop here
             center={position}
             zoom={zoom}
             scrollWheelZoom={false} // Disable zoom for preview usually

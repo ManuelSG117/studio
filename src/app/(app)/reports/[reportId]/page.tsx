@@ -279,6 +279,7 @@ const ReportDetailPage: FC = () => {
                                  <Map className="h-5 w-5 mr-2 opacity-70" /> Ubicación en Mapa
                              </h3>
                              <MapPreview
+                                 mapId={`report-map-${report.id}`} // Pass a unique ID
                                  latitude={report.latitude}
                                  longitude={report.longitude}
                                  locationName={report.location}
