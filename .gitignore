@@ -8,9 +8,9 @@
 # Testing
 /coverage
 
-# Next.js build files
-/.next/
-/out/
+# Next.js compilation output
+/.next
+/out
 
 # Production
 /build
@@ -19,14 +19,14 @@
 .DS_Store
 *.pem
 
-# Logs
+# Debug log files
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 
-# Local env files
-.env.local
+# Local environment variables
 .env*.local
+.env
 
 # Editor directories and files
 .idea
@@ -36,3 +36,6 @@ yarn-error.log*
 *.njsproj
 *.sln
 *.sw?
+
+# Patch Package
+/patches
