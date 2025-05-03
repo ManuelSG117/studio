@@ -173,7 +173,7 @@ const AuthScreen: FC = () => {
   };
 
   const onLoginSubmit = async (values: LoginFormData) => {
-    setIsSubmitting(true);
+    setIsSubmitting(true); // Start submitting state
     setIsGoogleLoading(false);
     setAuthError(null);
     try {
@@ -201,12 +201,12 @@ const AuthScreen: FC = () => {
       console.error("Firebase Login Error:", authError);
       setAuthError(friendlyError);
     } finally {
-        setIsSubmitting(false);
+        setIsSubmitting(false); // Stop submitting state regardless of success/failure
     }
   };
 
   const onRegisterSubmit = async (values: RegisterFormData) => {
-    setIsSubmitting(true);
+    setIsSubmitting(true); // Start submitting state
     setIsGoogleLoading(false);
     setAuthError(null);
     try {
@@ -247,7 +247,7 @@ const AuthScreen: FC = () => {
       console.error("Registration Error:", authError);
       setAuthError(friendlyError);
     } finally {
-        setIsSubmitting(false);
+        setIsSubmitting(false); // Stop submitting state
     }
   };
 
@@ -319,7 +319,7 @@ const AuthScreen: FC = () => {
                                    type="email"
                                    placeholder="tu@correo.com"
                                    {...field}
-                                   disabled={isSubmitting || isGoogleLoading}
+                                   disabled={isSubmitting || isGoogleLoading} // Disable during submission
                                    className="h-11"
                                  />
                                </FormControl>
@@ -341,7 +341,7 @@ const AuthScreen: FC = () => {
                                    type="password"
                                    placeholder="••••••••"
                                    {...field}
-                                   disabled={isSubmitting || isGoogleLoading}
+                                   disabled={isSubmitting || isGoogleLoading} // Disable during submission
                                    className="h-11"
                                   />
                                </FormControl>
@@ -360,7 +360,7 @@ const AuthScreen: FC = () => {
                                           <Checkbox
                                               checked={field.value}
                                               onCheckedChange={field.onChange}
-                                              disabled={isSubmitting || isGoogleLoading}
+                                              disabled={isSubmitting || isGoogleLoading} // Disable during submission
                                               aria-label="Recordar sesión"
                                               id="rememberMe"
                                           />
@@ -375,7 +375,7 @@ const AuthScreen: FC = () => {
                                   )}
                               />
                              <Link href="/forgot-password"
-                                   className="text-accent hover:text-accent/90 underline"
+                                   className={cn("text-accent hover:text-accent/90 underline", (isSubmitting || isGoogleLoading) && "pointer-events-none opacity-50")} // Disable link visually
                                    tabIndex={-1}
                              >
                                  ¿Olvidaste tu contraseña?
@@ -386,10 +386,19 @@ const AuthScreen: FC = () => {
                            type="submit"
                            size="lg"
                            className="w-full bg-primary hover:bg-primary/90 h-12 rounded-md text-base font-medium"
-                           disabled={isSubmitting || isGoogleLoading}
+                           disabled={isSubmitting || isGoogleLoading} // Disable during submission
                          >
-                           {isSubmitting && !isGoogleLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <LogIn className="mr-2 h-4 w-4"/>}
-                           {isSubmitting && !isGoogleLoading ? "Iniciando..." : "Iniciar Sesión"}
+                           {isSubmitting && !isGoogleLoading ? (
+                                <>
+                                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                                    Uniéndote a un Uruapan más seguro... {/* Updated loading message */}
+                                </>
+                            ) : (
+                                <>
+                                    <LogIn className="mr-2 h-4 w-4"/>
+                                    Iniciar Sesión
+                                </>
+                            )}
                          </Button>
                     </form>
                 </Form>
@@ -451,7 +460,7 @@ const AuthScreen: FC = () => {
                            type="submit"
                            size="lg"
                            className="w-full bg-primary hover:bg-primary/90 h-12 rounded-md text-base font-medium"
-                           disabled={isSubmitting || isGoogleLoading || !registerForm.formState.isValid}
+                           disabled={isSubmitting || isGoogleLoading || !registerForm.formState.isValid} // Disable during submission
                          >
                            {isSubmitting && !isGoogleLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <UserPlus className="mr-2 h-4 w-4"/>}
                            {isSubmitting && !isGoogleLoading ? "Registrando..." : "Registrarme"}
@@ -477,7 +486,7 @@ const AuthScreen: FC = () => {
                  variant="outline"
                  className="w-full h-12 rounded-md text-base font-medium border-input hover:bg-accent/10"
                  size="lg"
-                 disabled={isSubmitting || isGoogleLoading}
+                 disabled={isSubmitting || isGoogleLoading} // Disable during submission
                  type="button"
                >
                  {isGoogleLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <GoogleIcon className="mr-2 h-5 w-5" />}
@@ -487,7 +496,7 @@ const AuthScreen: FC = () => {
              {/* Footer with Terms Link */}
              <CardFooter className="text-center text-xs text-muted-foreground justify-center pt-6 pb-0 px-0">
                 Al continuar, aceptas nuestros{' '}
-                <Link href="/terms" className="text-accent hover:text-accent/90 underline ml-1">
+                <Link href="/terms" className={cn("text-accent hover:text-accent/90 underline ml-1", (isSubmitting || isGoogleLoading) && "pointer-events-none opacity-50")}>
                    Términos y Condiciones
                 </Link>
              </CardFooter>
@@ -501,5 +510,6 @@ const AuthScreen: FC = () => {
 };
 
 export default AuthScreen;
+
 
     
