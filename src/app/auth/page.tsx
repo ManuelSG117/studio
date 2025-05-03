@@ -40,6 +40,8 @@ const AuthScreen: FC = () => {
     setIsGoogleLoading(true); // Start Google loading indicator
     const provider = new GoogleAuthProvider();
     try {
+       // Persist locally for Google Sign-in
+      await auth.setPersistence(browserLocalPersistence);
       await signInWithPopup(auth, provider);
       // On successful sign-in, the useEffect hook will handle redirection based on profile completeness
       toast({
@@ -48,16 +50,24 @@ const AuthScreen: FC = () => {
       });
       // Let the useEffect handle the redirect logic based on profile status
     } catch (error) {
-      console.error("Google Sign-In Error:", error);
-      toast({
-        variant: "destructive",
-        title: "Fallo al Iniciar con Google",
-        description: "No se pudo iniciar sesión con Google. Por favor, inténtalo de nuevo.",
-      });
-      setIsGoogleLoading(false); // Stop Google loading on error
+       console.error("Google Sign-In Error:", error);
+       let friendlyError = "No se pudo iniciar sesión con Google. Por favor, inténtalo de nuevo.";
+       if (error instanceof Error) {
+           const firebaseError = error as AuthError;
+           if (firebaseError.code === 'auth/popup-closed-by-user') {
+               friendlyError = "Se cerró la ventana de inicio de sesión antes de completar.";
+           } else if (firebaseError.code === 'auth/cancelled-popup-request') {
+                friendlyError = "Se canceló la solicitud de inicio de sesión.";
+           } else if (firebaseError.code === 'auth/unauthorized-domain') {
+                friendlyError = "Este dominio no está autorizado para iniciar sesión con Google.";
+           }
+       }
+       setAuthError(friendlyError); // Set the error state
+       setIsGoogleLoading(false); // Stop Google loading on error
     }
     // Don't set isLoading(false) here, let the useEffect handle it
   };
+
 
   // Show loading state while checking auth or redirecting
   if (loading || isLoading) {
@@ -76,13 +86,13 @@ const AuthScreen: FC = () => {
       <Card className="w-full max-w-sm shadow-xl border-none rounded-xl bg-card">
         <CardHeader className="text-center pt-8 pb-4">
           <Image
-            src="/icon.png" // Assuming your logo is in the public folder
+            src="/logo.png" // Assuming your logo is in the public folder
             alt="App Logo"
             width={80} // Adjusted size
             height={80}
             className="mx-auto mb-4 rounded-lg" // Removed rounded-full
             priority // Load logo quickly
-            data-ai-hint="app logo"
+            data-ai-hint="app logo safety shield"
           />
           <CardTitle className="text-3xl font-bold text-primary">+Seguro</CardTitle> {/* Updated title */}
           <CardDescription className="text-muted-foreground px-4">
