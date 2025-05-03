@@ -24,11 +24,13 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import { cn } from "@/lib/utils";
+import { Checkbox } from "@/components/ui/checkbox"; // Import Checkbox
 
 // --- Schemas ---
 const loginSchema = z.object({
   email: z.string().email({ message: "Dirección de correo inválida." }),
   password: z.string().min(1, { message: "La contraseña es requerida." }),
+  rememberMe: z.boolean().default(false).optional(), // Added rememberMe
 });
 
 // Password validation criteria
@@ -83,6 +85,7 @@ const AuthScreen: FC = () => {
     defaultValues: {
       email: "",
       password: "",
+      rememberMe: false, // Initialize rememberMe
     },
   });
 
@@ -135,6 +138,7 @@ const AuthScreen: FC = () => {
     setAuthError(null);
     const provider = new GoogleAuthProvider();
     try {
+      // Use local persistence for Google Sign-In for a more persistent session
       await setPersistence(auth, browserLocalPersistence);
       await signInWithPopup(auth, provider);
       toast({
@@ -173,7 +177,9 @@ const AuthScreen: FC = () => {
     setIsGoogleLoading(false);
     setAuthError(null);
     try {
-       await setPersistence(auth, browserSessionPersistence);
+       // Set persistence based on rememberMe checkbox
+       const persistence = values.rememberMe ? browserLocalPersistence : browserSessionPersistence;
+       await setPersistence(auth, persistence);
        await signInWithEmailAndPassword(auth, values.email, values.password);
       toast({
         title: "Inicio de Sesión Exitoso",
@@ -183,7 +189,7 @@ const AuthScreen: FC = () => {
     } catch (err) {
       const authError = err as AuthError;
       let friendlyError = "Verifica tu correo y contraseña e intenta de nuevo.";
-      if (authError.code === 'auth/invalid-credential') {
+      if (authError.code === 'auth/invalid-credential' || authError.code === 'auth/user-not-found' || authError.code === 'auth/wrong-password') {
           friendlyError = "Correo o contraseña incorrectos. Intenta de nuevo.";
       } else if (authError.code === 'auth/invalid-email') {
          friendlyError = 'El formato del correo electrónico no es válido.';
@@ -207,9 +213,18 @@ const AuthScreen: FC = () => {
       const userCredential = await createUserWithEmailAndPassword(auth, values.registerEmail, values.registerPassword);
       const user = userCredential.user;
 
+      // Create user document in Firestore immediately after registration
       await setDoc(doc(db, "users", user.uid), {
         email: values.registerEmail,
         createdAt: Timestamp.now(),
+        // Initialize other fields as null or default values if needed
+        fullName: null,
+        address: null,
+        phoneNumber: null,
+        gender: null,
+        dob: null,
+        photoURL: null,
+        lastUpdatedAt: Timestamp.now(),
       });
 
       toast({
@@ -263,7 +278,7 @@ const AuthScreen: FC = () => {
             />
             <CardTitle className="text-3xl font-bold text-primary">+Seguro</CardTitle>
             <CardDescription className="text-muted-foreground px-4 pt-1">
-                Tu plataforma ciudadana para reportar incidentes y construir un entorno más seguro.
+                Tu plataforma para reportar incidentes y construir un Uruapan más seguro.
             </CardDescription>
          </CardHeader>
 
@@ -319,12 +334,7 @@ const AuthScreen: FC = () => {
                              <FormItem>
                                 <div className="flex justify-between items-center">
                                     <FormLabel>Contraseña</FormLabel>
-                                    <Link href="/forgot-password"
-                                          className="text-xs text-accent hover:text-accent/90 underline"
-                                          tabIndex={-1}
-                                    >
-                                        ¿Olvidaste tu contraseña?
-                                    </Link>
+                                    {/* Link moved below */}
                                 </div>
                                <FormControl>
                                  <Input
@@ -339,6 +349,39 @@ const AuthScreen: FC = () => {
                              </FormItem>
                            )}
                          />
+                         {/* Remember Me & Forgot Password */}
+                         <div className="flex items-center justify-between text-xs">
+                              <FormField
+                                  control={loginForm.control}
+                                  name="rememberMe"
+                                  render={({ field }) => (
+                                  <FormItem className="flex flex-row items-center space-x-2 space-y-0">
+                                      <FormControl>
+                                          <Checkbox
+                                              checked={field.value}
+                                              onCheckedChange={field.onChange}
+                                              disabled={isSubmitting || isGoogleLoading}
+                                              aria-label="Recordar sesión"
+                                              id="rememberMe"
+                                          />
+                                      </FormControl>
+                                      <FormLabel
+                                         htmlFor="rememberMe"
+                                         className="font-normal text-muted-foreground cursor-pointer"
+                                       >
+                                          Recordar sesión
+                                      </FormLabel>
+                                  </FormItem>
+                                  )}
+                              />
+                             <Link href="/forgot-password"
+                                   className="text-accent hover:text-accent/90 underline"
+                                   tabIndex={-1}
+                             >
+                                 ¿Olvidaste tu contraseña?
+                             </Link>
+                         </div>
+
                          <Button
                            type="submit"
                            size="lg"
@@ -401,6 +444,9 @@ const AuthScreen: FC = () => {
                              </FormItem>
                            )}
                          />
+                         <FormDescription className="text-xs text-muted-foreground text-center pt-1">
+                             Únete a +Seguro para contribuir a un Uruapan más seguro.
+                         </FormDescription>
                          <Button
                            type="submit"
                            size="lg"
@@ -455,3 +501,5 @@ const AuthScreen: FC = () => {
 };
 
 export default AuthScreen;
+
+    
