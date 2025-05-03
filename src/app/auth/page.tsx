@@ -5,20 +5,22 @@ import type { FC } from 'react';
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/context/AuthContext'; // Import AuthContext
-import { signInWithPopup, GoogleAuthProvider } from "firebase/auth"; // Import Google Auth provider
+import { signInWithPopup, GoogleAuthProvider, setPersistence, browserLocalPersistence, type AuthError } from "firebase/auth"; // Import Google Auth provider and persistence
 import { auth } from '@/lib/firebase/client';
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { GoogleIcon } from '@/components/icons/google-icon'; // Import Google Icon
-import { Mail, Loader2 } from 'lucide-react'; // Icons for email login/signup
+import { Mail, Loader2, Terminal } from 'lucide-react'; // Icons for email login/signup, Loader, Terminal
 import { useToast } from '@/hooks/use-toast'; // Import toast
 import Image from 'next/image'; // Import Next Image
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"; // Import Alert components
 
 const AuthScreen: FC = () => {
   const router = useRouter();
   const { isAuthenticated, user, loading } = useAuth(); // Get auth state and loading status
   const [isLoading, setIsLoading] = useState(true); // For initial loading and potentially Google Sign-In loading
   const [isGoogleLoading, setIsGoogleLoading] = useState(false); // Specific loading state for Google Sign-In
+  const [authError, setAuthError] = useState<string | null>(null); // State for displaying errors
   const { toast } = useToast(); // Initialize toast
 
   useEffect(() => {
@@ -38,10 +40,11 @@ const AuthScreen: FC = () => {
 
   const handleGoogleSignIn = async () => {
     setIsGoogleLoading(true); // Start Google loading indicator
+    setAuthError(null); // Clear previous errors
     const provider = new GoogleAuthProvider();
     try {
        // Persist locally for Google Sign-in
-      await auth.setPersistence(browserLocalPersistence);
+      await setPersistence(auth, browserLocalPersistence);
       await signInWithPopup(auth, provider);
       // On successful sign-in, the useEffect hook will handle redirection based on profile completeness
       toast({
@@ -60,9 +63,17 @@ const AuthScreen: FC = () => {
                 friendlyError = "Se canceló la solicitud de inicio de sesión.";
            } else if (firebaseError.code === 'auth/unauthorized-domain') {
                 friendlyError = "Este dominio no está autorizado para iniciar sesión con Google.";
+                 toast({ // Use toast for this specific error
+                    variant: "destructive",
+                    title: "Dominio no Autorizado",
+                    description: "Este dominio no está autorizado para usar Google Sign-In. Contacta al administrador.",
+                 });
+                 friendlyError = null; // Don't show in alert if shown in toast
+           } else if (firebaseError.code === 'auth/account-exists-with-different-credential') {
+                friendlyError = 'Ya existe una cuenta con este correo, pero con diferente método de inicio de sesión (ej. correo/contraseña).';
            }
        }
-       setAuthError(friendlyError); // Set the error state
+       if(friendlyError) setAuthError(friendlyError); // Set the error state if not handled by toast
        setIsGoogleLoading(false); // Stop Google loading on error
     }
     // Don't set isLoading(false) here, let the useEffect handle it
@@ -84,26 +95,37 @@ const AuthScreen: FC = () => {
   return (
     <main className="flex min-h-screen flex-col items-center justify-center p-4 sm:p-8 bg-secondary">
       <Card className="w-full max-w-sm shadow-xl border-none rounded-xl bg-card">
-        <CardHeader className="text-center pt-8 pb-4">
+        <CardHeader className="text-center pt-10 pb-6"> {/* Increased top padding */}
           <Image
             src="/logo.png" // Assuming your logo is in the public folder
             alt="App Logo"
-            width={80} // Adjusted size
-            height={80}
-            className="mx-auto mb-4 rounded-lg" // Removed rounded-full
+            width={100} // Increased size
+            height={100} // Increased size
+            className="mx-auto mb-5 rounded-lg shadow-sm" // Added shadow, increased margin bottom
             priority // Load logo quickly
             data-ai-hint="app logo safety shield"
           />
-          <CardTitle className="text-3xl font-bold text-primary">+Seguro</CardTitle> {/* Updated title */}
-          <CardDescription className="text-muted-foreground px-4">
+          <CardTitle className="text-3xl font-bold text-primary">+Seguro</CardTitle> {/* Kept size, but adjusted spacing */}
+          <CardDescription className="text-muted-foreground px-4 pt-1"> {/* Added padding top */}
             Tu plataforma ciudadana para reportar incidentes y construir un entorno más seguro.
           </CardDescription>
         </CardHeader>
-        <CardContent className="px-6 sm:px-8 pb-6 pt-4 space-y-4">
+        <CardContent className="px-6 sm:px-8 pb-6 pt-2 space-y-4"> {/* Adjusted padding */}
+           {/* Error Alert */}
+           {authError && (
+              <Alert variant="destructive" className="bg-destructive/10 border-destructive/20 text-destructive">
+                <Terminal className="h-4 w-4" />
+                <AlertTitle className="font-semibold">Error de Autenticación</AlertTitle>
+                <AlertDescription className="text-xs">
+                  {authError}
+                </AlertDescription>
+              </Alert>
+           )}
+
            {/* Google Sign-In Button */}
           <Button
              onClick={handleGoogleSignIn}
-             className="w-full h-12 rounded-full bg-[#4285F4] hover:bg-[#4285F4]/90 text-white text-base font-medium" // Google Blue, rounded-full
+             className="w-full h-12 rounded-md bg-[#4285F4] hover:bg-[#4285F4]/90 text-white text-base font-medium border border-transparent" // Adjusted style, ensure border for consistency
              size="lg"
              disabled={isGoogleLoading} // Disable while Google loading
           >
@@ -112,14 +134,14 @@ const AuthScreen: FC = () => {
              ) : (
                <GoogleIcon className="mr-2 h-5 w-5" />
              )}
-             {isGoogleLoading ? 'Iniciando...' : 'Iniciar sesión con Google'}
+             {isGoogleLoading ? 'Iniciando...' : 'Continuar con Google'}
           </Button>
 
           {/* Email Login Button */}
           <Button
             onClick={() => router.push('/login')}
             variant="outline" // Use outline style for contrast
-            className="w-full h-12 rounded-full border-primary text-primary hover:bg-primary/10 text-base font-medium" // Rounded full
+            className="w-full h-12 rounded-md border-input hover:bg-accent/10 text-base font-medium" // Adjusted style
             size="lg"
             disabled={isGoogleLoading} // Also disable if Google is loading
           >
@@ -127,7 +149,7 @@ const AuthScreen: FC = () => {
             Iniciar sesión con correo
           </Button>
         </CardContent>
-        <CardFooter className="text-center text-sm text-muted-foreground justify-center pt-2 pb-8">
+        <CardFooter className="text-center text-sm text-muted-foreground justify-center pt-2 pb-8 flex-col gap-2"> {/* Use flex-col and gap */}
            <p>¿No tienes cuenta?{' '}
              <button
                onClick={() => router.push('/register')}
@@ -137,9 +159,10 @@ const AuthScreen: FC = () => {
                Regístrate aquí
              </button>
            </p>
+           <p className="text-xs text-muted-foreground mt-4">v1.0.0</p> {/* Moved version here */}
          </CardFooter>
       </Card>
-       <p className="text-xs text-muted-foreground mt-8">v1.0.0</p>
+       {/* Removed version from bottom of main */}
     </main>
   );
 };

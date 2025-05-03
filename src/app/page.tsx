@@ -120,7 +120,7 @@ const HomePage: FC = () => {
             >
               <motion.div className="space-y-2" variants={itemVariants}>
                  <Image
-                    src="/icon.png" // Path to your logo in the public folder
+                    src="/logo.png" // Path to your logo in the public folder
                     alt="App Logo"
                     width={100}
                     height={100}
