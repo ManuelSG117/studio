@@ -65,8 +65,6 @@ const ForgotPasswordPage: FC = () => {
         description: friendlyError,
       });
     } finally {
-       // Keep loading false after success or error, but don't reset email sent state here
-       // Let the user see the success message or error toast
        setIsLoading(false);
     }
   };
@@ -80,7 +78,7 @@ const ForgotPasswordPage: FC = () => {
             variant="ghost"
             size="icon"
             className="absolute left-4 top-6 text-muted-foreground hover:text-primary rounded-full"
-            onClick={() => router.push('/login')} // Navigate back to login
+            onClick={() => router.push('/auth')} // Navigate back to unified auth page
             aria-label="Volver a Inicio de Sesión"
             type="button"
           >
@@ -103,9 +101,9 @@ const ForgotPasswordPage: FC = () => {
                <Button
                   variant="link"
                   className="mt-4 text-accent hover:text-accent/90"
-                  onClick={() => router.push('/login')}
+                  onClick={() => router.push('/auth')} // Navigate back to unified auth page
                 >
-                  Volver a Iniciar Sesión
+                  Volver a Inicio de Sesión
                 </Button>
             </div>
           ) : (
@@ -147,7 +145,7 @@ const ForgotPasswordPage: FC = () => {
         {!isEmailSent && (
            <CardFooter className="text-center text-sm text-muted-foreground justify-center pt-2 pb-8">
              <p>¿Recordaste tu contraseña?{' '}
-               <Link href="/login" className="text-accent hover:text-accent/90 font-medium underline">
+               <Link href="/auth" className="text-accent hover:text-accent/90 font-medium underline">
                  Inicia sesión aquí
                </Link>
              </p>

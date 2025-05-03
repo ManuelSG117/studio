@@ -1,3 +1,4 @@
+
 "use client";
 
 import type { FC } from 'react';
@@ -5,91 +6,38 @@ import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/context/AuthContext';
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"; // Removed unused CardHeader, CardTitle
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Shield, AlertTriangle, ChevronRight, MapPin, Check, Navigation, ExternalLink, Heart, HelpCircle, Mail, Phone, Facebook, Twitter, Instagram } from 'lucide-react'; // Added Mail, Phone, Facebook, Twitter, Instagram
-import { Loader2 } from 'lucide-react'; // Keep Loader2 for loading state
-import { motion, useScroll, useTransform } from 'framer-motion'; // Import motion
+import { Shield, AlertTriangle, ChevronRight, MapPin, Check, Navigation, ExternalLink, Heart, HelpCircle, Mail, Phone, Facebook, Twitter, Instagram } from 'lucide-react';
+import { Loader2 } from 'lucide-react';
+import { motion, useScroll, useTransform } from 'framer-motion';
 import Image from 'next/image';
-import { Input } from '@/components/ui/input'; // Keep Input if needed elsewhere, removed from footer
-import { RiskMap } from '@/components/RiskMap'; // Import RiskMap
-import { HoverCard, HoverCardTrigger, HoverCardContent } from "@/components/ui/hover-card"; // Keep hover card
+import { Input } from '@/components/ui/input';
+import { RiskMap } from '@/components/RiskMap';
+import { HoverCard, HoverCardTrigger, HoverCardContent } from "@/components/ui/hover-card";
 
 const HomePage: FC = () => {
   const router = useRouter();
-  const { isAuthenticated, user, loading } = useAuth(); // Get auth state
-  const { scrollYProgress } = useScroll(); // Added for progress bar
-  const scaleX = useTransform(scrollYProgress, [0, 1], ["0%", "100%"]); // Correct transform for progress
+  const { isAuthenticated, user, loading } = useAuth();
+  const { scrollYProgress } = useScroll();
+  const scaleX = useTransform(scrollYProgress, [0, 1], ["0%", "100%"]);
 
   useEffect(() => {
-    // Redirect logged-in users away from the landing page
     if (!loading && isAuthenticated) {
-      // Redirect based on profile completeness
       if (user?.isProfileComplete) {
-        router.replace('/welcome'); // Redirect to welcome if logged in and profile complete
+        router.replace('/welcome');
       } else {
-        router.replace('/profile/edit'); // Redirect to edit profile if logged in but profile incomplete
+        router.replace('/profile/edit');
       }
     }
   }, [isAuthenticated, user, loading, router]);
 
   // Animation variants
-  const containerVariants = {
-    hidden: {
-      opacity: 0
-    },
-    visible: {
-      opacity: 1,
-      transition: {
-        when: "beforeChildren",
-        staggerChildren: 0.3,
-        duration: 0.5
-      }
-    }
-  };
-  const itemVariants = {
-    hidden: {
-      y: 20,
-      opacity: 0
-    },
-    visible: {
-      y: 0,
-      opacity: 1,
-      transition: {
-        duration: 0.5
-      }
-    }
-  };
-  const reportCardVariants = {
-    hidden: {
-      opacity: 0,
-      y: 30
-    },
-    visible: {
-      opacity: 1,
-      y: 0,
-      transition: {
-        duration: 0.6
-      }
-    }
-  };
-  const scrollRevealVariants = {
-    offscreen: {
-      y: 50,
-      opacity: 0
-    },
-    onscreen: {
-      y: 0,
-      opacity: 1,
-      transition: {
-        type: "spring",
-        bounce: 0.4,
-        duration: 0.8
-      }
-    }
-  };
+  const containerVariants = { hidden: { opacity: 0 }, visible: { opacity: 1, transition: { when: "beforeChildren", staggerChildren: 0.3, duration: 0.5 } } };
+  const itemVariants = { hidden: { y: 20, opacity: 0 }, visible: { y: 0, opacity: 1, transition: { duration: 0.5 } } };
+  const reportCardVariants = { hidden: { opacity: 0, y: 30 }, visible: { opacity: 1, y: 0, transition: { duration: 0.6 } } };
+  const scrollRevealVariants = { offscreen: { y: 50, opacity: 0 }, onscreen: { y: 0, opacity: 1, transition: { type: "spring", bounce: 0.4, duration: 0.8 } } };
 
-  // Show loading state while checking auth
   if (loading) {
     return (
       <main className="flex min-h-screen flex-col items-center justify-center p-4 sm:p-8 bg-secondary">
@@ -99,38 +47,30 @@ const HomePage: FC = () => {
     );
   }
 
-  // Render landing page if not loading and not authenticated
   return (
-    <div className="min-h-screen flex flex-col bg-background"> {/* Use theme background */}
-       {/* Progress Bar */}
+    <div className="min-h-screen flex flex-col bg-background">
        <motion.div
-         className="fixed top-0 left-0 right-0 h-1 bg-primary z-50" // Adjusted height and color
-         style={{ scaleX, transformOrigin: "0%" }} // Apply scaleX transform
+         className="fixed top-0 left-0 right-0 h-1 bg-primary z-50"
+         style={{ scaleX, transformOrigin: "0%" }}
         />
 
       <main className="flex-1">
         {/* Hero Section */}
         <section className="w-full py-16 md:py-24 lg:py-32 bg-gradient-to-b from-white to-secondary">
           <div className="container px-4 md:px-6">
-             <motion.div
-                className="flex flex-col items-center justify-center space-y-4 text-center"
-                initial="hidden"
-                animate="visible"
-                variants={containerVariants}
-            >
+             <motion.div className="flex flex-col items-center justify-center space-y-4 text-center" initial="hidden" animate="visible" variants={containerVariants}>
               <motion.div className="space-y-2" variants={itemVariants}>
                  <Image
-                    src="/logo.png" // Path to your logo in the public folder
+                    src="/logo.png"
                     alt="App Logo"
                     width={150}
                     height={150}
-                    className="mx-auto mb-6 rounded-full shadow-lg" // Style logo
-                    priority // Load logo faster
+                    className="mx-auto mb-6 rounded-full shadow-lg"
+                    priority
                     data-ai-hint="app logo safety shield"
                  />
                 <h1 className="text-4xl font-bold tracking-tighter sm:text-5xl md:text-6xl">
-                  <span className="text-primary">+Seguro</span> {/* Updated title */}
-                  {/* <span className="text-destructive ml-2">Uruapan</span> Removed location */}
+                  <span className="text-primary">+Seguro</span>
                 </h1>
                 <p className="mx-auto max-w-[700px] text-muted-foreground md:text-xl/relaxed lg:text-base/relaxed xl:text-xl/relaxed">
                    Tu plataforma ciudadana para reportar incidentes y construir un entorno más seguro.
@@ -141,11 +81,11 @@ const HomePage: FC = () => {
                   Reporta funcionarios públicos o incidentes delictivos de forma segura y anónima.
                 </p>
               </motion.div>
-               <motion.div className="w-full max-w-xs sm:max-w-sm space-y-2" variants={itemVariants}> {/* Adjusted max-width */}
+               <motion.div className="w-full max-w-xs sm:max-w-sm space-y-2" variants={itemVariants}>
                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                   <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
                       <Button
-                        onClick={() => router.push('/auth')}
+                        onClick={() => router.push('/auth')} // Navigate to the unified auth page
                         variant="outline"
                         className="w-full transition-all border-2 border-primary text-primary hover:bg-primary/10 h-11 rounded-full"
                         size="lg"
@@ -155,10 +95,9 @@ const HomePage: FC = () => {
                    </motion.div>
                    <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
                       <Button
-                        onClick={() => router.push('/register')}
-                        className="w-full transition-all bg-destructive hover:bg-destructive/90 text-destructive-foreground h-11 rounded-full" // Use destructive color
+                        onClick={() => router.push('/auth')} // Navigate to the unified auth page
+                        className="w-full transition-all bg-destructive hover:bg-destructive/90 text-destructive-foreground h-11 rounded-full"
                         size="lg"
-                        // variant="default" // Explicitly default, but destructive overrides color
                        >
                         Registrarse
                       </Button>
@@ -179,7 +118,7 @@ const HomePage: FC = () => {
         >
           <div className="container px-4 md:px-6">
              <motion.div className="text-center mb-12 max-w-3xl mx-auto" variants={scrollRevealVariants}>
-               <Badge variant="secondary" className="mb-4 bg-primary/10 text-primary hover:bg-primary/20"> {/* Adjusted badge style */}
+               <Badge variant="secondary" className="mb-4 bg-primary/10 text-primary hover:bg-primary/20">
                  ¿QUÉ HACEMOS?
                </Badge>
                <h2 className="text-3xl md:text-4xl font-bold mb-4 text-foreground">Reporta incidentes en tu comunidad</h2>
@@ -216,7 +155,7 @@ const HomePage: FC = () => {
                               <Button
                                 variant="outline"
                                 className="w-full border-2 border-primary text-primary hover:bg-primary hover:text-primary-foreground transition-colors duration-300 group-hover:shadow-md flex items-center justify-center gap-2 h-11 rounded-full"
-                                onClick={() => router.push('/auth')} // Go to login/register first
+                                onClick={() => router.push('/auth')}
                               >
                                 Reportar Funcionario
                                 <ChevronRight className="h-4 w-4 opacity-70 group-hover:translate-x-1 transition-transform" />
@@ -267,7 +206,7 @@ const HomePage: FC = () => {
                             <Button
                               variant="outline"
                               className="w-full border-2 border-destructive text-destructive hover:bg-destructive hover:text-destructive-foreground transition-colors duration-300 group-hover:shadow-md flex items-center justify-center gap-2 h-11 rounded-full"
-                              onClick={() => router.push('/auth')} // Go to login/register first
+                              onClick={() => router.push('/auth')}
                             >
                               Reportar Incidente
                               <ChevronRight className="h-4 w-4 opacity-70 group-hover:translate-x-1 transition-transform" />
@@ -316,33 +255,15 @@ const HomePage: FC = () => {
               </p>
             </motion.div>
 
-            {/* Steps with timeline */}
             <div className="relative max-w-5xl mx-auto">
-              {/* Timeline line - Reverted to simpler line */}
               <div className="absolute left-4 md:left-1/2 transform md:-translate-x-1/2 h-full w-1 bg-border rounded-full z-0 hidden md:block"></div>
 
               {/* Step 1 */}
-              <motion.div
-                className="relative mb-16 md:mb-24"
-                initial={{ opacity: 0, y: 50 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true, amount: 0.2 }}
-                transition={{ duration: 0.6, delay: 0.1 }}
-              >
+              <motion.div className="relative mb-16 md:mb-24" initial={{ opacity: 0, y: 50 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true, amount: 0.2 }} transition={{ duration: 0.6, delay: 0.1 }}>
                 <div className="md:grid md:grid-cols-2 gap-8 md:gap-12 items-center">
-                  <motion.div
-                    className="md:text-right mb-8 md:mb-0 md:pr-12"
-                    whileHover={{ scale: 1.02 }}
-                    transition={{ type: "spring", stiffness: 300 }}
-                  >
+                  <motion.div className="md:text-right mb-8 md:mb-0 md:pr-12" whileHover={{ scale: 1.02 }} transition={{ type: "spring", stiffness: 300 }}>
                     <div className="flex items-center justify-start md:justify-end mb-4">
-                       <motion.div
-                        className="flex-shrink-0 inline-flex items-center justify-center h-12 w-12 rounded-full bg-primary text-white text-xl font-bold z-10 shadow-md"
-                        whileHover={{ rotate: 5, scale: 1.1 }}
-                      >
-                        1
-                      </motion.div>
-                      {/* Timeline dot - Reverted styling */}
+                       <motion.div className="flex-shrink-0 inline-flex items-center justify-center h-12 w-12 rounded-full bg-primary text-white text-xl font-bold z-10 shadow-md" whileHover={{ rotate: 5, scale: 1.1 }}>1</motion.div>
                        <div className="absolute left-4 top-6 transform -translate-x-1/2 md:left-auto md:right-0 md:translate-x-1/2 h-4 w-4 bg-card border-4 border-primary rounded-full z-20 hidden md:block"></div>
                     </div>
                     <h3 className="text-2xl md:text-3xl font-semibold text-primary mb-3">Crea una cuenta</h3>
@@ -356,12 +277,7 @@ const HomePage: FC = () => {
                       </Button>
                     </motion.div>
                   </motion.div>
-
-                  <motion.div
-                    className="bg-card p-4 rounded-xl shadow-lg border border-border relative z-10"
-                    whileHover={{ y: -8, boxShadow: "0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05)" }}
-                    transition={{ type: "spring", stiffness: 300 }}
-                  >
+                  <motion.div className="bg-card p-4 rounded-xl shadow-lg border border-border relative z-10" whileHover={{ y: -8, boxShadow: "0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05)" }} transition={{ type: "spring", stiffness: 300 }}>
                       <Card className="overflow-hidden bg-background shadow-sm border-none">
                          <CardContent className="p-4 sm:p-6">
                            <div className="flex justify-between items-center mb-4">
@@ -385,19 +301,9 @@ const HomePage: FC = () => {
               </motion.div>
 
               {/* Step 2 */}
-              <motion.div
-                className="relative mb-16 md:mb-24"
-                initial={{ opacity: 0, y: 50 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true, amount: 0.2 }}
-                transition={{ duration: 0.6, delay: 0.2 }}
-              >
+              <motion.div className="relative mb-16 md:mb-24" initial={{ opacity: 0, y: 50 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true, amount: 0.2 }} transition={{ duration: 0.6, delay: 0.2 }}>
                 <div className="md:grid md:grid-cols-2 gap-8 md:gap-12 items-center">
-                  <motion.div
-                    className="order-2 md:order-1 mb-8 md:mb-0 bg-card p-4 rounded-xl shadow-lg border border-border relative z-10"
-                    whileHover={{ y: -8, boxShadow: "0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05)" }}
-                    transition={{ type: "spring", stiffness: 300 }}
-                  >
+                  <motion.div className="order-2 md:order-1 mb-8 md:mb-0 bg-card p-4 rounded-xl shadow-lg border border-border relative z-10" whileHover={{ y: -8, boxShadow: "0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05)" }} transition={{ type: "spring", stiffness: 300 }}>
                      <Card className="overflow-hidden bg-background shadow-sm border-none">
                        <CardContent className="p-4 sm:p-6">
                           <div className="flex justify-between items-center mb-4">
@@ -424,20 +330,9 @@ const HomePage: FC = () => {
                        </CardContent>
                      </Card>
                   </motion.div>
-
-                  <motion.div
-                    className="md:text-left md:pl-12 order-1 md:order-2"
-                    whileHover={{ scale: 1.02 }}
-                    transition={{ type: "spring", stiffness: 300 }}
-                  >
+                  <motion.div className="md:text-left md:pl-12 order-1 md:order-2" whileHover={{ scale: 1.02 }} transition={{ type: "spring", stiffness: 300 }}>
                      <div className="flex items-center justify-start mb-4">
-                       <motion.div
-                        className="flex-shrink-0 inline-flex items-center justify-center h-12 w-12 rounded-full bg-destructive text-white text-xl font-bold z-10 shadow-md"
-                        whileHover={{ rotate: -5, scale: 1.1 }}
-                      >
-                        2
-                      </motion.div>
-                      {/* Timeline dot */}
+                       <motion.div className="flex-shrink-0 inline-flex items-center justify-center h-12 w-12 rounded-full bg-destructive text-white text-xl font-bold z-10 shadow-md" whileHover={{ rotate: -5, scale: 1.1 }}>2</motion.div>
                        <div className="absolute left-4 top-6 transform -translate-x-1/2 md:left-1/2 md:-translate-x-1/2 h-4 w-4 bg-card border-4 border-destructive rounded-full z-20 hidden md:block"></div>
                      </div>
                     <h3 className="text-2xl md:text-3xl font-semibold text-destructive mb-3">Crea un reporte detallado</h3>
@@ -455,27 +350,11 @@ const HomePage: FC = () => {
               </motion.div>
 
               {/* Step 3 */}
-              <motion.div
-                className="relative"
-                initial={{ opacity: 0, y: 50 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true, amount: 0.2 }}
-                transition={{ duration: 0.6, delay: 0.3 }}
-              >
+              <motion.div className="relative" initial={{ opacity: 0, y: 50 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true, amount: 0.2 }} transition={{ duration: 0.6, delay: 0.3 }}>
                 <div className="md:grid md:grid-cols-2 gap-8 md:gap-12 items-center">
-                  <motion.div
-                    className="md:text-right mb-8 md:mb-0 md:pr-12"
-                    whileHover={{ scale: 1.02 }}
-                    transition={{ type: "spring", stiffness: 300 }}
-                  >
+                  <motion.div className="md:text-right mb-8 md:mb-0 md:pr-12" whileHover={{ scale: 1.02 }} transition={{ type: "spring", stiffness: 300 }}>
                      <div className="flex items-center justify-start md:justify-end mb-4">
-                       <motion.div
-                        className="flex-shrink-0 inline-flex items-center justify-center h-12 w-12 rounded-full bg-accent text-white text-xl font-bold z-10 shadow-md"
-                        whileHover={{ rotate: 5, scale: 1.1 }}
-                      >
-                        3
-                      </motion.div>
-                       {/* Timeline dot */}
+                       <motion.div className="flex-shrink-0 inline-flex items-center justify-center h-12 w-12 rounded-full bg-accent text-white text-xl font-bold z-10 shadow-md" whileHover={{ rotate: 5, scale: 1.1 }}>3</motion.div>
                        <div className="absolute left-4 top-6 transform -translate-x-1/2 md:left-auto md:right-0 md:translate-x-1/2 h-4 w-4 bg-card border-4 border-accent rounded-full z-20 hidden md:block"></div>
                      </div>
                     <h3 className="text-2xl md:text-3xl font-semibold text-accent mb-3">Da seguimiento</h3>
@@ -489,12 +368,7 @@ const HomePage: FC = () => {
                       </Button>
                     </motion.div>
                   </motion.div>
-
-                  <motion.div
-                    className="bg-card p-4 rounded-xl shadow-lg border border-border relative z-10"
-                    whileHover={{ y: -8, boxShadow: "0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05)" }}
-                    transition={{ type: "spring", stiffness: 300 }}
-                  >
+                  <motion.div className="bg-card p-4 rounded-xl shadow-lg border border-border relative z-10" whileHover={{ y: -8, boxShadow: "0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05)" }} transition={{ type: "spring", stiffness: 300 }}>
                      <Card className="overflow-hidden bg-background shadow-sm border-none">
                          <CardContent className="p-4 sm:p-6">
                            <div className="flex justify-between items-center mb-4">
@@ -532,13 +406,7 @@ const HomePage: FC = () => {
               </motion.div>
             </div>
 
-             <motion.div
-                className="text-center mt-16 md:mt-24"
-                initial={{ opacity: 0, y: 30 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ duration: 0.6, delay: 0.4 }}
-            >
+             <motion.div className="text-center mt-16 md:mt-24" initial={{ opacity: 0, y: 30 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ duration: 0.6, delay: 0.4 }}>
               <Button className="bg-primary hover:bg-primary/90 text-primary-foreground px-8 py-3 text-lg rounded-full shadow-lg hover:shadow-xl transition-all" onClick={() => router.push('/auth')}>
                 Comenzar ahora
               </Button>
@@ -547,12 +415,7 @@ const HomePage: FC = () => {
         </motion.section>
 
          {/* Risk Map Section */}
-          <motion.section className="w-full py-16 md:py-24 bg-gradient-to-b from-secondary to-white"
-            initial="offscreen"
-            whileInView="onscreen"
-            viewport={{ once: true, amount: 0.2 }}
-            variants={scrollRevealVariants}
-          >
+          <motion.section className="w-full py-16 md:py-24 bg-gradient-to-b from-secondary to-white" initial="offscreen" whileInView="onscreen" viewport={{ once: true, amount: 0.2 }} variants={scrollRevealVariants}>
             <div className="container px-4 md:px-6">
               <motion.div className="text-center mb-12 max-w-3xl mx-auto" variants={scrollRevealVariants}>
                   <Badge className="mb-4 bg-destructive/10 text-destructive hover:bg-destructive/20">
@@ -565,18 +428,11 @@ const HomePage: FC = () => {
                       Explora las áreas con mayor número de reportes para mantenerte informado y tomar precauciones
                   </p>
               </motion.div>
-
-              <motion.div className="rounded-2xl overflow-hidden shadow-xl border border-border"
-                  variants={scrollRevealVariants}
-                  whileHover={{ scale: 1.01 }}
-                  transition={{ type: "spring", stiffness: 300 }}
-              >
+              <motion.div className="rounded-2xl overflow-hidden shadow-xl border border-border" variants={scrollRevealVariants} whileHover={{ scale: 1.01 }} transition={{ type: "spring", stiffness: 300 }}>
                   <div className="relative h-[500px] w-full">
                       <RiskMap />
                   </div>
               </motion.div>
-
-              {/* Legend (Consider making this more dynamic or interactive) */}
               <motion.div className="mt-8 grid grid-cols-2 md:grid-cols-4 gap-4 max-w-3xl mx-auto" variants={scrollRevealVariants}>
                   <div className="flex items-center gap-2 justify-center p-3 rounded-lg bg-card shadow-sm border border-border">
                       <div className="h-4 w-4 rounded-full bg-red-500"></div>
@@ -597,29 +453,19 @@ const HomePage: FC = () => {
               </motion.div>
             </div>
           </motion.section>
-
       </main>
 
       {/* Footer */}
-       <motion.footer
-           className="bg-[#1C2B41] text-gray-300 py-12" // Dark blue-gray background, lighter text
-           initial={{ opacity: 0, y: 20 }}
-           whileInView={{ opacity: 1, y: 0 }}
-           viewport={{ once: true }}
-           transition={{ duration: 0.6 }}
-       >
+       <motion.footer className="bg-[#1C2B41] text-gray-300 py-12" initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ duration: 0.6 }}>
          <div className="container mx-auto px-4">
-           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 items-start"> {/* Adjusted grid and alignment */}
-             {/* About Section */}
+           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 items-start">
              <div className="space-y-4">
                  <h3 className="text-xl font-semibold text-white flex items-center">
                    <span className="text-primary">+</span>Seguro
-                   {/* <span className="text-destructive ml-1">Uruapan</span> Removed location */}
                  </h3>
                  <p className="text-sm leading-relaxed">
                    Plataforma ciudadana para reportar incidentes y crear una ciudad más segura para todos. Tu participación es clave para el cambio y la transformación de nuestra comunidad.
                  </p>
-                 {/* Useful Links */}
                  <div className="flex flex-wrap gap-x-4 gap-y-1 text-xs">
                    <a href="#" className="hover:text-white transition-colors">Preguntas frecuentes</a>
                    <a href="#" className="hover:text-white transition-colors">Términos</a>
@@ -628,11 +474,9 @@ const HomePage: FC = () => {
                  </div>
              </div>
 
-             {/* Contact & Social Media Section */}
-             <div className="space-y-4 md:col-span-1 lg:col-span-2"> {/* Span 2 columns on larger screens */}
+             <div className="space-y-4 md:col-span-1 lg:col-span-2">
                  <h3 className="text-lg font-semibold text-white">Contacto y Redes Sociales</h3>
                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                     {/* Contact Info */}
                      <div className="space-y-2 text-sm">
                        <a href="mailto:contacto@masseguro.com" className="flex items-center gap-2 hover:text-white transition-colors">
                          <Mail className="h-4 w-4 text-primary" />
@@ -640,7 +484,7 @@ const HomePage: FC = () => {
                        </a>
                        <a href="tel:+524521234567" className="flex items-center gap-2 hover:text-white transition-colors">
                          <Phone className="h-4 w-4 text-primary" />
-                         +52 (452) 123-4567 {/* Example number */}
+                         +52 (452) 123-4567
                        </a>
                        <p className="flex items-center gap-2">
                          <MapPin className="h-4 w-4 text-primary" />
@@ -648,7 +492,6 @@ const HomePage: FC = () => {
                        </p>
                      </div>
 
-                     {/* Social Media Links */}
                      <div className="flex items-center justify-start sm:justify-end space-x-3">
                          <motion.a href="#" aria-label="Facebook" className="bg-white/10 p-2 rounded-full hover:bg-white/20 transition-colors" whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.9 }}>
                            <Facebook className="h-5 w-5" />
@@ -662,15 +505,11 @@ const HomePage: FC = () => {
                      </div>
                  </div>
              </div>
-
-             {/* Removed Contact Form Section */}
-
            </div>
 
-           {/* Bottom Footer */}
            <div className="border-t border-white/10 mt-8 pt-6 text-center text-xs text-gray-400">
              <p>
-               © {new Date().getFullYear()} +Seguro. Todos los derechos reservados. {/* Updated name */}
+               © {new Date().getFullYear()} +Seguro. Todos los derechos reservados.
              </p>
            </div>
          </div>

@@ -4,54 +4,144 @@
 import type { FC } from 'react';
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { useAuth } from '@/context/AuthContext'; // Import AuthContext
-import { signInWithPopup, GoogleAuthProvider, setPersistence, browserLocalPersistence, type AuthError } from "firebase/auth"; // Import Google Auth provider and persistence
-import { auth } from '@/lib/firebase/client';
+import Link from "next/link"; // Import Link
+import { useAuth } from '@/context/AuthContext';
+import { signInWithPopup, GoogleAuthProvider, setPersistence, browserLocalPersistence, type AuthError, signInWithEmailAndPassword, browserSessionPersistence, createUserWithEmailAndPassword } from "firebase/auth";
+import { doc, setDoc, Timestamp } from "firebase/firestore";
+import { auth, db } from '@/lib/firebase/client';
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { GoogleIcon } from '@/components/icons/google-icon'; // Import Google Icon
-import { Mail, Loader2, Terminal } from 'lucide-react'; // Icons for email login/signup, Loader, Terminal
-import { useToast } from '@/hooks/use-toast'; // Import toast
-import Image from 'next/image'; // Import Next Image
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"; // Import Alert components
+import { GoogleIcon } from '@/components/icons/google-icon';
+import { Mail, Loader2, Terminal, UserPlus, LogIn, Check, X } from 'lucide-react';
+import { useToast } from '@/hooks/use-toast';
+import Image from 'next/image';
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"; // Import Tabs components
+import { Separator } from "@/components/ui/separator"; // Import Separator
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage, FormDescription } from "@/components/ui/form"; // Import Form components
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import * as z from "zod";
+import { cn } from "@/lib/utils";
+
+// --- Schemas ---
+const loginSchema = z.object({
+  email: z.string().email({ message: "Dirección de correo inválida." }),
+  password: z.string().min(1, { message: "La contraseña es requerida." }),
+});
+
+// Password validation criteria
+const MIN_LENGTH = 8;
+const HAS_UPPERCASE = /[A-Z]/;
+const HAS_SPECIAL_CHAR = /[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/;
+
+const registerSchema = z.object({
+    registerEmail: z.string().email({ message: "Dirección de correo inválida." }),
+    registerPassword: z.string()
+      .min(MIN_LENGTH, { message: `Mínimo ${MIN_LENGTH} caracteres.` })
+      .regex(HAS_UPPERCASE, { message: "Requiere mayúscula." })
+      .regex(HAS_SPECIAL_CHAR, { message: "Requiere caracter especial." }),
+    confirmPassword: z.string().min(1, { message: "Confirma tu contraseña." }),
+}).refine((data) => data.registerPassword === data.confirmPassword, {
+    message: "Las contraseñas no coinciden.",
+    path: ["confirmPassword"],
+});
+
+type LoginFormData = z.infer<typeof loginSchema>;
+type RegisterFormData = z.infer<typeof registerSchema>;
+
+// Helper component for password requirements
+const RequirementItem: FC<{ met: boolean; text: string }> = ({ met, text }) => (
+  <li className={cn(
+    "flex items-center text-xs transition-colors duration-200",
+    met ? "text-green-600 dark:text-green-400" : "text-muted-foreground"
+  )}>
+    {met ? (
+      <Check className="h-3.5 w-3.5 mr-1.5 flex-shrink-0" />
+    ) : (
+      <X className="h-3.5 w-3.5 mr-1.5 flex-shrink-0" />
+    )}
+    {text}
+  </li>
+);
+
 
 const AuthScreen: FC = () => {
   const router = useRouter();
-  const { isAuthenticated, user, loading } = useAuth(); // Get auth state and loading status
-  const [isLoading, setIsLoading] = useState(true); // For initial loading and potentially Google Sign-In loading
-  const [isGoogleLoading, setIsGoogleLoading] = useState(false); // Specific loading state for Google Sign-In
-  const [authError, setAuthError] = useState<string | null>(null); // State for displaying errors
-  const { toast } = useToast(); // Initialize toast
+  const { isAuthenticated, user, loading } = useAuth();
+  const [isLoading, setIsLoading] = useState(true); // Overall loading (auth check)
+  const [isSubmitting, setIsSubmitting] = useState(false); // For email/pass submit loading
+  const [isGoogleLoading, setIsGoogleLoading] = useState(false);
+  const [authError, setAuthError] = useState<string | null>(null);
+  const { toast } = useToast();
+  const [activeTab, setActiveTab] = useState("login"); // Default to login tab
+
+  // Login Form
+  const loginForm = useForm<LoginFormData>({
+    resolver: zodResolver(loginSchema),
+    defaultValues: {
+      email: "",
+      password: "",
+    },
+  });
+
+  // Register Form
+  const registerForm = useForm<RegisterFormData>({
+    resolver: zodResolver(registerSchema),
+    mode: "onChange", // Validate on change for password checklist
+    defaultValues: {
+      registerEmail: "",
+      registerPassword: "",
+      confirmPassword: "",
+    },
+  });
+
+  const registerPasswordValue = registerForm.watch("registerPassword");
+  const [metMinLength, setMetMinLength] = useState(false);
+  const [metUppercase, setMetUppercase] = useState(false);
+  const [metSpecialChar, setMetSpecialChar] = useState(false);
 
   useEffect(() => {
-    // Only proceed once auth state is confirmed (loading is false)
+    if (registerPasswordValue) {
+        setMetMinLength(registerPasswordValue.length >= MIN_LENGTH);
+        setMetUppercase(HAS_UPPERCASE.test(registerPasswordValue));
+        setMetSpecialChar(HAS_SPECIAL_CHAR.test(registerPasswordValue));
+    } else {
+        setMetMinLength(false);
+        setMetUppercase(false);
+        setMetSpecialChar(false);
+    }
+  }, [registerPasswordValue]);
+
+  // Authentication redirection logic
+  useEffect(() => {
     if (!loading) {
       if (isAuthenticated && user?.isProfileComplete) {
-        router.replace('/welcome'); // Redirect to welcome if logged in and profile complete
+        router.replace('/welcome');
       } else if (isAuthenticated && !user?.isProfileComplete) {
-        router.replace('/profile/edit'); // Redirect to edit profile if logged in but profile incomplete
+        router.replace('/profile/edit');
       } else {
-        setIsLoading(false); // If not authenticated, stop loading and show the auth screen
+        setIsLoading(false);
       }
     }
-    // Keep isLoading true while auth context is loading
-    // Or if we are already authenticated and waiting for redirect
   }, [isAuthenticated, user, loading, router]);
 
+  // --- Handlers ---
+
   const handleGoogleSignIn = async () => {
-    setIsGoogleLoading(true); // Start Google loading indicator
-    setAuthError(null); // Clear previous errors
+    setIsGoogleLoading(true);
+    setIsSubmitting(false);
+    setAuthError(null);
     const provider = new GoogleAuthProvider();
     try {
-       // Persist locally for Google Sign-in
       await setPersistence(auth, browserLocalPersistence);
       await signInWithPopup(auth, provider);
-      // On successful sign-in, the useEffect hook will handle redirection based on profile completeness
       toast({
-        title: "Inicio de Sesión con Google Exitoso",
+        title: "Inicio con Google Exitoso",
         description: "Verificando perfil...",
       });
-      // Let the useEffect handle the redirect logic based on profile status
+      // useEffect will handle redirect
     } catch (error) {
        console.error("Google Sign-In Error:", error);
        let friendlyError = "No se pudo iniciar sesión con Google. Por favor, inténtalo de nuevo.";
@@ -62,25 +152,91 @@ const AuthScreen: FC = () => {
            } else if (firebaseError.code === 'auth/cancelled-popup-request') {
                 friendlyError = "Se canceló la solicitud de inicio de sesión.";
            } else if (firebaseError.code === 'auth/unauthorized-domain') {
-                friendlyError = "Este dominio no está autorizado para iniciar sesión con Google.";
-                 toast({ // Use toast for this specific error
+               friendlyError = "Dominio no autorizado para Google Sign-In.";
+                 toast({
                     variant: "destructive",
                     title: "Dominio no Autorizado",
-                    description: "Este dominio no está autorizado para usar Google Sign-In. Contacta al administrador.",
+                    description: "Este dominio no está autorizado. Contacta al administrador.",
                  });
-                 friendlyError = null; // Don't show in alert if shown in toast
+                 friendlyError = null; // Don't show in alert
            } else if (firebaseError.code === 'auth/account-exists-with-different-credential') {
-                friendlyError = 'Ya existe una cuenta con este correo, pero con diferente método de inicio de sesión (ej. correo/contraseña).';
+                friendlyError = 'Ya existe una cuenta con este correo, pero con diferente método de inicio de sesión.';
            }
        }
-       if(friendlyError) setAuthError(friendlyError); // Set the error state if not handled by toast
-       setIsGoogleLoading(false); // Stop Google loading on error
+       if(friendlyError) setAuthError(friendlyError);
+       setIsGoogleLoading(false);
     }
-    // Don't set isLoading(false) here, let the useEffect handle it
   };
 
+  const onLoginSubmit = async (values: LoginFormData) => {
+    setIsSubmitting(true);
+    setIsGoogleLoading(false);
+    setAuthError(null);
+    try {
+       await setPersistence(auth, browserSessionPersistence);
+       await signInWithEmailAndPassword(auth, values.email, values.password);
+      toast({
+        title: "Inicio de Sesión Exitoso",
+        description: "Redirigiendo...",
+      });
+      // useEffect handles redirect
+    } catch (err) {
+      const authError = err as AuthError;
+      let friendlyError = "Verifica tu correo y contraseña e intenta de nuevo.";
+      if (authError.code === 'auth/invalid-credential') {
+          friendlyError = "Correo o contraseña incorrectos. Intenta de nuevo.";
+      } else if (authError.code === 'auth/invalid-email') {
+         friendlyError = 'El formato del correo electrónico no es válido.';
+      } else if (authError.code === 'auth/user-disabled') {
+         friendlyError = 'Esta cuenta ha sido deshabilitada.';
+      } else if (authError.code === 'auth/too-many-requests') {
+          friendlyError = 'Demasiados intentos. Por favor, intenta más tarde o recupera tu contraseña.';
+      }
+      console.error("Firebase Login Error:", authError);
+      setAuthError(friendlyError);
+    } finally {
+        setIsSubmitting(false);
+    }
+  };
 
-  // Show loading state while checking auth or redirecting
+  const onRegisterSubmit = async (values: RegisterFormData) => {
+    setIsSubmitting(true);
+    setIsGoogleLoading(false);
+    setAuthError(null);
+    try {
+      const userCredential = await createUserWithEmailAndPassword(auth, values.registerEmail, values.registerPassword);
+      const user = userCredential.user;
+
+      await setDoc(doc(db, "users", user.uid), {
+        email: values.registerEmail,
+        createdAt: Timestamp.now(),
+      });
+
+      toast({
+        title: "Registro Exitoso!",
+        description: "Ahora completa tu perfil.",
+      });
+      // useEffect will handle redirect to /profile/edit
+    } catch (err) {
+      const authError = err as AuthError;
+      let friendlyError = "El registro falló. Por favor, inténtalo de nuevo.";
+       if (authError.code === "auth/email-already-in-use") {
+           friendlyError = "Esta dirección de correo ya está en uso. Intenta iniciar sesión.";
+       } else if (authError.code === "auth/weak-password") {
+           friendlyError = "La contraseña es demasiado débil.";
+       } else if (authError.code === 'auth/invalid-email') {
+           friendlyError = 'El formato del correo electrónico no es válido.';
+       } else if (authError.code === 'auth/operation-not-allowed') {
+           friendlyError = 'Registro por correo/contraseña deshabilitado.';
+       }
+      console.error("Registration Error:", authError);
+      setAuthError(friendlyError);
+    } finally {
+        setIsSubmitting(false);
+    }
+  };
+
+  // Show loading state
   if (loading || isLoading) {
     return (
       <main className="flex min-h-screen flex-col items-center justify-center p-4 sm:p-8 bg-secondary">
@@ -90,79 +246,210 @@ const AuthScreen: FC = () => {
     );
   }
 
-
-  // If not loading and not authenticated, show the Auth Screen
+  // Auth Screen Content
   return (
     <main className="flex min-h-screen flex-col items-center justify-center p-4 sm:p-8 bg-secondary">
-      <Card className="w-full max-w-sm shadow-xl border-none rounded-xl bg-card">
-        <CardHeader className="text-center pt-10 pb-6"> {/* Increased top padding */}
-          <Image
-            src="/logo.png" // Assuming your logo is in the public folder
-            alt="App Logo"
-            width={100} // Increased size
-            height={100} // Increased size
-            className="mx-auto mb-5 rounded-lg shadow-sm" // Added shadow, increased margin bottom
-            priority // Load logo quickly
-            data-ai-hint="app logo safety shield"
-          />
-          <CardTitle className="text-3xl font-bold text-primary">+Seguro</CardTitle> {/* Kept size, but adjusted spacing */}
-          <CardDescription className="text-muted-foreground px-4 pt-1"> {/* Added padding top */}
-            Tu plataforma ciudadana para reportar incidentes y construir un entorno más seguro.
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="px-6 sm:px-8 pb-6 pt-2 space-y-4"> {/* Adjusted padding */}
-           {/* Error Alert */}
+      <Card className="w-full max-w-sm shadow-xl border-none rounded-xl bg-card overflow-hidden">
+         {/* Header */}
+         <CardHeader className="text-center pt-10 pb-6 bg-gradient-to-b from-card to-background"> {/* Subtle gradient */}
+            <Image
+                src="/logo.png"
+                alt="App Logo"
+                width={100}
+                height={100}
+                className="mx-auto mb-5 rounded-lg shadow-sm"
+                priority
+                data-ai-hint="app logo safety shield"
+            />
+            <CardTitle className="text-3xl font-bold text-primary">+Seguro</CardTitle>
+            <CardDescription className="text-muted-foreground px-4 pt-1">
+                Tu plataforma ciudadana para reportar incidentes y construir un entorno más seguro.
+            </CardDescription>
+         </CardHeader>
+
+        {/* Tabs for Login/Register */}
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full px-6 sm:px-8 pb-6 pt-2">
+            <TabsList className="grid w-full grid-cols-2 h-auto mb-6 bg-muted">
+                <TabsTrigger value="login" className="py-2.5 data-[state=active]:bg-background data-[state=active]:shadow-sm">
+                    <LogIn className="mr-2 h-4 w-4 opacity-70"/> Iniciar Sesión
+                </TabsTrigger>
+                <TabsTrigger value="register" className="py-2.5 data-[state=active]:bg-background data-[state=active]:shadow-sm">
+                    <UserPlus className="mr-2 h-4 w-4 opacity-70"/> Registrarse
+                </TabsTrigger>
+            </TabsList>
+
+            {/* Error Alert */}
            {authError && (
-              <Alert variant="destructive" className="bg-destructive/10 border-destructive/20 text-destructive">
+              <Alert variant="destructive" className="mb-4 bg-destructive/10 border-destructive/20 text-destructive text-sm">
                 <Terminal className="h-4 w-4" />
-                <AlertTitle className="font-semibold">Error de Autenticación</AlertTitle>
+                <AlertTitle className="font-semibold">Error</AlertTitle>
                 <AlertDescription className="text-xs">
                   {authError}
                 </AlertDescription>
               </Alert>
            )}
 
-           {/* Google Sign-In Button */}
-          <Button
-             onClick={handleGoogleSignIn}
-             className="w-full h-12 rounded-md bg-[#4285F4] hover:bg-[#4285F4]/90 text-white text-base font-medium border border-transparent" // Adjusted style, ensure border for consistency
-             size="lg"
-             disabled={isGoogleLoading} // Disable while Google loading
-          >
-             {isGoogleLoading ? (
-               <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-             ) : (
-               <GoogleIcon className="mr-2 h-5 w-5" />
-             )}
-             {isGoogleLoading ? 'Iniciando...' : 'Continuar con Google'}
-          </Button>
+            {/* Login Form */}
+            <TabsContent value="login">
+                <Form {...loginForm}>
+                    <form onSubmit={loginForm.handleSubmit(onLoginSubmit)} className="space-y-4">
+                         <FormField
+                           control={loginForm.control}
+                           name="email"
+                           render={({ field }) => (
+                             <FormItem>
+                               <FormLabel>Correo Electrónico</FormLabel>
+                               <FormControl>
+                                 <Input
+                                   type="email"
+                                   placeholder="tu@correo.com"
+                                   {...field}
+                                   disabled={isSubmitting || isGoogleLoading}
+                                   className="h-11"
+                                 />
+                               </FormControl>
+                               <FormMessage />
+                             </FormItem>
+                           )}
+                         />
+                         <FormField
+                           control={loginForm.control}
+                           name="password"
+                           render={({ field }) => (
+                             <FormItem>
+                                <div className="flex justify-between items-center">
+                                    <FormLabel>Contraseña</FormLabel>
+                                    <Link href="/forgot-password"
+                                          className="text-xs text-accent hover:text-accent/90 underline"
+                                          tabIndex={-1}
+                                    >
+                                        ¿Olvidaste tu contraseña?
+                                    </Link>
+                                </div>
+                               <FormControl>
+                                 <Input
+                                   type="password"
+                                   placeholder="••••••••"
+                                   {...field}
+                                   disabled={isSubmitting || isGoogleLoading}
+                                   className="h-11"
+                                  />
+                               </FormControl>
+                               <FormMessage />
+                             </FormItem>
+                           )}
+                         />
+                         <Button
+                           type="submit"
+                           size="lg"
+                           className="w-full bg-primary hover:bg-primary/90 h-12 rounded-md text-base font-medium"
+                           disabled={isSubmitting || isGoogleLoading}
+                         >
+                           {isSubmitting && !isGoogleLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <LogIn className="mr-2 h-4 w-4"/>}
+                           {isSubmitting && !isGoogleLoading ? "Iniciando..." : "Iniciar Sesión"}
+                         </Button>
+                    </form>
+                </Form>
+            </TabsContent>
 
-          {/* Email Login Button */}
-          <Button
-            onClick={() => router.push('/login')}
-            variant="outline" // Use outline style for contrast
-            className="w-full h-12 rounded-md border-input hover:bg-accent/10 text-base font-medium" // Adjusted style
-            size="lg"
-            disabled={isGoogleLoading} // Also disable if Google is loading
-          >
-            <Mail className="mr-2 h-5 w-5" />
-            Iniciar sesión con correo
-          </Button>
-        </CardContent>
-        <CardFooter className="text-center text-sm text-muted-foreground justify-center pt-2 pb-8 flex-col gap-2"> {/* Use flex-col and gap */}
-           <p>¿No tienes cuenta?{' '}
-             <button
-               onClick={() => router.push('/register')}
-               className="text-accent hover:text-accent/90 font-medium underline disabled:opacity-50 disabled:cursor-not-allowed"
-               disabled={isGoogleLoading} // Disable if Google is loading
-             >
-               Regístrate aquí
-             </button>
-           </p>
-           <p className="text-xs text-muted-foreground mt-4">v1.0.0</p> {/* Moved version here */}
-         </CardFooter>
+            {/* Register Form */}
+            <TabsContent value="register">
+                 <Form {...registerForm}>
+                    <form onSubmit={registerForm.handleSubmit(onRegisterSubmit)} className="space-y-4">
+                        <FormField
+                           control={registerForm.control}
+                           name="registerEmail"
+                           render={({ field }) => (
+                             <FormItem>
+                               <FormLabel>Correo Electrónico</FormLabel>
+                               <FormControl>
+                                 <Input type="email" placeholder="tu@correo.com" {...field} disabled={isSubmitting || isGoogleLoading} className="h-11"/>
+                               </FormControl>
+                               <FormMessage />
+                             </FormItem>
+                           )}
+                         />
+                         <FormField
+                           control={registerForm.control}
+                           name="registerPassword"
+                           render={({ field }) => (
+                             <FormItem>
+                               <FormLabel>Contraseña</FormLabel>
+                               <FormControl>
+                                 <Input type="password" placeholder="Crea una contraseña segura" {...field} disabled={isSubmitting || isGoogleLoading} className="h-11"/>
+                               </FormControl>
+                               {/* Password Requirements Checklist */}
+                                <ul className="grid grid-cols-1 sm:grid-cols-3 gap-x-4 gap-y-1 mt-2 pl-1">
+                                    <RequirementItem met={metMinLength} text={`Mín. ${MIN_LENGTH} chars`} />
+                                    <RequirementItem met={metUppercase} text="Mayúscula" />
+                                    <RequirementItem met={metSpecialChar} text="Especial (!@#)" />
+                                </ul>
+                               <FormMessage />
+                             </FormItem>
+                           )}
+                         />
+                         <FormField
+                           control={registerForm.control}
+                           name="confirmPassword"
+                           render={({ field }) => (
+                             <FormItem>
+                               <FormLabel>Confirmar Contraseña</FormLabel>
+                               <FormControl>
+                                 <Input type="password" placeholder="Vuelve a escribir tu contraseña" {...field} disabled={isSubmitting || isGoogleLoading} className="h-11"/>
+                               </FormControl>
+                               <FormMessage />
+                             </FormItem>
+                           )}
+                         />
+                         <Button
+                           type="submit"
+                           size="lg"
+                           className="w-full bg-primary hover:bg-primary/90 h-12 rounded-md text-base font-medium"
+                           disabled={isSubmitting || isGoogleLoading || !registerForm.formState.isValid}
+                         >
+                           {isSubmitting && !isGoogleLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <UserPlus className="mr-2 h-4 w-4"/>}
+                           {isSubmitting && !isGoogleLoading ? "Registrando..." : "Registrarme"}
+                         </Button>
+                    </form>
+                 </Form>
+            </TabsContent>
+
+            {/* Divider and Google Sign-In (Common to both tabs) */}
+             <div className="relative my-6">
+                <div className="absolute inset-0 flex items-center">
+                   <Separator />
+                </div>
+                <div className="relative flex justify-center text-xs uppercase">
+                   <span className="bg-card px-2 text-muted-foreground">
+                      O continúa con
+                   </span>
+                </div>
+             </div>
+
+              <Button
+                 onClick={handleGoogleSignIn}
+                 variant="outline"
+                 className="w-full h-12 rounded-md text-base font-medium border-input hover:bg-accent/10"
+                 size="lg"
+                 disabled={isSubmitting || isGoogleLoading}
+                 type="button"
+               >
+                 {isGoogleLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <GoogleIcon className="mr-2 h-5 w-5" />}
+                 {isGoogleLoading ? 'Iniciando...' : 'Continuar con Google'}
+              </Button>
+
+             {/* Footer with Terms Link */}
+             <CardFooter className="text-center text-xs text-muted-foreground justify-center pt-6 pb-0 px-0">
+                Al continuar, aceptas nuestros{' '}
+                <Link href="/terms" className="text-accent hover:text-accent/90 underline ml-1">
+                   Términos y Condiciones
+                </Link>
+             </CardFooter>
+
+        </Tabs>
+
       </Card>
-       {/* Removed version from bottom of main */}
+       <p className="text-xs text-muted-foreground mt-6">v1.0.0</p>
     </main>
   );
 };
