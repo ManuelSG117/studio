@@ -8,6 +8,7 @@ import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import { useEffect, useState } from 'react';
+import { LogIn } from 'lucide-react'; // Import LogIn icon
 
 const LandingNavBar: FC = () => {
   const router = useRouter();
@@ -35,28 +36,16 @@ const LandingNavBar: FC = () => {
   return (
     <header
       className={cn(
-        'fixed top-0 left-0 right-0 z-50 flex h-20 items-center justify-between px-4 md:px-8 transition-all duration-300', // Increased height and padding
-        // Remove background/shadow from header itself when scrolled, let the nav pill handle it
-        scrolled ? ' ' : ' ' // Keep structure, but remove conditional background/shadow here
+        'fixed top-0 left-0 right-0 z-50 flex h-20 items-center justify-center px-4 md:px-8 transition-all duration-300', // Center justify content
+        scrolled ? ' ' : ' '
       )}
     >
-      {/* Logo */}
-      <Link href="/" className="flex items-center gap-2 z-10"> {/* Ensure logo is above nav pill */}
-        <Image
-          src="/logo.png"
-          alt="+Seguro Logo"
-          width={36} // Slightly larger logo
-          height={36}
-          className="rounded-md"
-          data-ai-hint="app logo safety shield"
-        />
-        <span className="text-xl font-bold text-primary">+Seguro</span>
-      </Link>
+      {/* Logo and Title Removed */}
 
       {/* Desktop Navigation in Pill Container - Centered */}
       <div className={cn(
         "absolute left-1/2 top-1/2 transform -translate-x-1/2 -translate-y-1/2 transition-all duration-300 hidden md:flex",
-        scrolled ? "opacity-100 scale-100" : "opacity-0 scale-95 pointer-events-none" // Fade and scale in on scroll
+        scrolled ? "opacity-100 scale-100" : "opacity-0 scale-95 pointer-events-none"
       )}>
         <nav className="flex items-center gap-1 text-sm font-medium bg-muted/80 backdrop-blur-sm rounded-full p-1.5 shadow-md border border-border">
           <Link
@@ -80,30 +69,28 @@ const LandingNavBar: FC = () => {
           >
             Zonas de Riesgo
           </Link>
-          {/* Consider adding Contact link if needed */}
+          {/* Sign In Link */}
+           <Link
+               href="/auth"
+               className="text-muted-foreground transition-colors hover:text-primary px-4 py-1.5 rounded-full hover:bg-background/70 flex items-center gap-1.5"
+           >
+               <LogIn className="h-4 w-4 opacity-80" />
+               Iniciar Sesión
+           </Link>
         </nav>
       </div>
 
 
-      {/* Action Buttons */}
-      <div className="flex items-center gap-2 z-10"> {/* Ensure buttons are above nav pill */}
-        <Button
-          onClick={() => router.push('/auth')}
-          variant="outline"
-          size="sm"
-          className="hidden sm:inline-flex rounded-full border-primary text-primary hover:bg-primary/10"
-        >
-          Iniciar Sesión
-        </Button>
-        <Button
-          onClick={() => router.push('/auth')}
-          size="sm"
-          className="rounded-full bg-primary hover:bg-primary/90 text-primary-foreground"
-        >
-          Registrarse
-        </Button>
-        {/* TODO: Add Mobile Menu Trigger */}
-      </div>
+      {/* Action Buttons Removed */}
+
+      {/* TODO: Add Mobile Menu Trigger if needed, maybe on the right */}
+       <div className="absolute right-4 top-1/2 transform -translate-y-1/2 md:hidden">
+           {/* Mobile Menu Button Placeholder */}
+           <Button size="icon" variant="ghost">
+               <LogIn className="h-5 w-5" />
+               <span className="sr-only">Iniciar Sesión / Menú</span>
+           </Button>
+       </div>
     </header>
   );
 };
