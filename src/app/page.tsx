@@ -1,3 +1,5 @@
+// Suggested code may be subject to a license. Learn more: ~LicenseLog:3832980065.
+// Suggested code may be subject to a license. Learn more: ~LicenseLog:2128573500.
 
 "use client";
 
@@ -355,13 +357,13 @@ const HomePage: FC = () => {
                        <motion.div className="flex-shrink-0 inline-flex items-center justify-center h-12 w-12 rounded-full bg-accent text-white text-xl font-bold z-10 shadow-md" whileHover={{ rotate: 5, scale: 1.1 }}>3</motion.div>
                        <div className="absolute left-4 top-6 transform -translate-x-1/2 md:left-auto md:right-0 md:translate-x-1/2 h-4 w-4 bg-card border-4 border-accent rounded-full z-20 hidden md:block"></div>
                      </div>
-                    <h3 className="text-2xl md:text-3xl font-semibold text-accent mb-3">Da seguimiento</h3>
+                    <h3 className="text-2xl md:text-3xl font-semibold text-accent mb-3">Visualiza los reportes</h3>
                     <p className="text-muted-foreground">
-                      Monitorea el estado de tu reporte y recibe notificaciones sobre actualizaciones. Observa cómo tu contribución ayuda a crear conciencia y a mejorar la seguridad en las áreas afectadas. Tu participación es clave para generar cambio.
+                      Visualiza los reportes de los demás y observa cómo contribuye tu reporte, visualiza las zonas de riesgo.
                     </p>
                      <motion.div className="mt-5 flex justify-start md:justify-end" whileTap={{ scale: 0.95 }}>
                       <Button variant="outline" className="border-accent text-accent hover:bg-accent/10 flex items-center rounded-full" onClick={() => router.push('/auth')}>
-                        Ver seguimiento
+                        Visualizar reportes
                         <ChevronRight className="ml-1 h-4 w-4" />
                       </Button>
                     </motion.div>
@@ -371,31 +373,26 @@ const HomePage: FC = () => {
                      <Card className="overflow-hidden bg-transparent shadow-none border-none">
                          <CardContent className="p-4 sm:p-6 relative z-10">
                            <div className="flex justify-between items-center mb-4">
-                             <h4 className="text-base font-medium text-accent">Seguimiento de Reporte</h4>
+                             <h4 className="text-base font-medium text-accent">Ve los reportes de los demás</h4>
                              <span className="inline-flex items-center justify-center h-6 w-6 rounded-full bg-accent/10 text-accent">
                                 <Navigation className="h-3 w-3" />
                               </span>
                            </div>
                            <div className="space-y-3">
-                             <div className="rounded-lg bg-muted p-3 border border-border/50">
-                               <div className="flex justify-between items-center mb-1.5">
-                                 <span className="text-xs font-medium text-foreground">Reporte #12345</span>
-                                 <Badge className="bg-green-100 text-green-800 text-[10px] px-1.5 py-0.5 rounded-full border border-green-200">Activo</Badge>
+                             <div className="h-9 w-full bg-muted rounded animate-pulse"></div>
+                             <div className="h-9 w-full bg-muted rounded animate-pulse"></div>
+                             <div className="flex justify-between">
+                               <div className="h-9 w-1/3 bg-muted rounded animate-pulse"></div>
+                               <div className="h-9 w-1/4 bg-muted rounded animate-pulse"></div>
                                </div>
-                               <div className="h-2 w-full bg-muted-foreground/10 rounded-full overflow-hidden">
-                                 <motion.div
-                                    className="h-full bg-green-500 rounded-full"
-                                    initial={{ width: "0%" }}
-                                    whileInView={{ width: "75%" }}
-                                    transition={{ duration: 1, delay: 0.5 }}
-                                />
-                               </div>
-                               <div className="mt-1 text-[10px] text-right text-muted-foreground">75% completado</div>
+                             <div className="flex gap-2 mt-2">
+                               <div className="h-4 w-4 rounded-full bg-red-500"></div>
+                               <div className="h-4 w-4 rounded-full bg-yellow-500"></div>
+                               <div className="h-4 w-4 rounded-full bg-green-500"></div>
+                               <div className="h-4 w-4 rounded-full bg-orange-500"></div>
                              </div>
-                             <div className="h-16 w-full rounded bg-muted border border-border/50 p-2 flex flex-col justify-between animate-pulse">
-                               <div className="h-2.5 w-3/4 bg-muted-foreground/10 rounded"></div>
-                               <div className="h-2.5 w-full bg-muted-foreground/10 rounded"></div>
-                               <div className="h-2.5 w-2/3 bg-muted-foreground/10 rounded"></div>
+                             <div className="flex justify-end mt-4">
+                               <div className="h-8 w-24 bg-accent/20 rounded-full animate-pulse"></div>
                              </div>
                            </div>
                          </CardContent>
