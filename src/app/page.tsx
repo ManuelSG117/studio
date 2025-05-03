@@ -73,14 +73,10 @@ const HomePage: FC = () => {
                   <span className="text-primary">+Seguro</span>
                 </h1>
                 <p className="mx-auto max-w-[700px] text-muted-foreground md:text-xl/relaxed lg:text-base/relaxed xl:text-xl/relaxed">
-                   Tu plataforma ciudadana para reportar incidentes y construir un entorno más seguro.
+                   Tu plataforma  para reportar incidentes y construir un Uruapan más seguro.
                 </p>
               </motion.div>
-               <motion.div className="space-y-2" variants={itemVariants}>
-                <p className="mx-auto max-w-[700px] text-muted-foreground text-sm">
-                  Reporta funcionarios públicos o incidentes delictivos de forma segura y anónima.
-                </p>
-              </motion.div>
+              
                <motion.div className="w-full max-w-xs sm:max-w-sm space-y-2" variants={itemVariants}>
                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                   <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
@@ -121,9 +117,9 @@ const HomePage: FC = () => {
                <Badge variant="secondary" className="mb-4 bg-primary/10 text-primary hover:bg-primary/20">
                  ¿QUÉ HACEMOS?
                </Badge>
-               <h2 className="text-3xl md:text-4xl font-bold mb-4 text-foreground">Reporta incidentes en tu comunidad</h2>
+               <h2 className="text-3xl md:text-4xl font-bold mb-4 text-foreground">Reporta incidentes en Uruapan</h2>
                <p className="text-muted-foreground text-lg">
-                 +Seguro te permite contribuir a una comunidad más segura. Elige el tipo de reporte:
+                 +Seguro te permite contribuir a una comunidad más segura.
                </p>
             </motion.div>
 
@@ -268,7 +264,7 @@ const HomePage: FC = () => {
                     </div>
                     <h3 className="text-2xl md:text-3xl font-semibold text-primary mb-3">Crea una cuenta</h3>
                     <p className="text-muted-foreground">
-                      Regístrate rápidamente con tu correo o usa tu cuenta de Google. Tu información permanecerá privada y segura en todo momento. Toma solo unos minutos y te da acceso a todas las funcionalidades de la plataforma.
+                      Regístrate rápidamente con tu correo electrónico o usa tu cuenta de Google. En pocos minutos podrás añadir tu información y personalizar tu perfil, además de obtener mayor confianza al verificarlo.
                     </p>
                     <motion.div className="mt-5 flex justify-start md:justify-end" whileTap={{ scale: 0.95 }}>
                       <Button variant="outline" className="border-primary text-primary hover:bg-primary/10 flex items-center rounded-full" onClick={() => router.push('/auth')}>
@@ -277,9 +273,10 @@ const HomePage: FC = () => {
                       </Button>
                     </motion.div>
                   </motion.div>
-                  <motion.div className="bg-card p-4 rounded-xl shadow-lg border border-border relative z-10" whileHover={{ y: -8, boxShadow: "0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05)" }} transition={{ type: "spring", stiffness: 300 }}>
-                      <Card className="overflow-hidden bg-background shadow-sm border-none">
-                         <CardContent className="p-4 sm:p-6">
+                  <motion.div className="bg-card p-4 rounded-2xl shadow-xl border border-border relative z-10 overflow-hidden" whileHover={{ y: -8, boxShadow: "0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05)" }} transition={{ type: "spring", stiffness: 300 }}>
+                     <div className="absolute inset-0 bg-gradient-to-br from-primary/50 to-primary/20 opacity-30 pointer-events-none"></div>
+                     <Card className="overflow-hidden bg-transparent shadow-none border-none">
+                        <CardContent className="p-4 sm:p-6 relative z-10">
                            <div className="flex justify-between items-center mb-4">
                              <h4 className="text-base font-medium text-primary">Crear Cuenta</h4>
                              <span className="inline-flex items-center justify-center h-6 w-6 rounded-full bg-primary/10 text-primary">
@@ -303,9 +300,10 @@ const HomePage: FC = () => {
               {/* Step 2 */}
               <motion.div className="relative mb-16 md:mb-24" initial={{ opacity: 0, y: 50 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true, amount: 0.2 }} transition={{ duration: 0.6, delay: 0.2 }}>
                 <div className="md:grid md:grid-cols-2 gap-8 md:gap-12 items-center">
-                  <motion.div className="order-2 md:order-1 mb-8 md:mb-0 bg-card p-4 rounded-xl shadow-lg border border-border relative z-10" whileHover={{ y: -8, boxShadow: "0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05)" }} transition={{ type: "spring", stiffness: 300 }}>
-                     <Card className="overflow-hidden bg-background shadow-sm border-none">
-                       <CardContent className="p-4 sm:p-6">
+                  <motion.div className="order-2 md:order-1 mb-8 md:mb-0 bg-card p-4 rounded-2xl shadow-xl border border-border relative z-10 overflow-hidden" whileHover={{ y: -8, boxShadow: "0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05)" }} transition={{ type: "spring", stiffness: 300 }}>
+                     <div className="absolute inset-0 bg-gradient-to-br from-destructive/50 to-destructive/20 opacity-30 pointer-events-none"></div>
+                     <Card className="overflow-hidden bg-transparent shadow-none border-none">
+                        <CardContent className="p-4 sm:p-6 relative z-10">
                           <div className="flex justify-between items-center mb-4">
                              <h4 className="text-base font-medium text-destructive">Crear Reporte</h4>
                              <span className="inline-flex items-center justify-center h-6 w-6 rounded-full bg-destructive/10 text-destructive">
@@ -368,9 +366,10 @@ const HomePage: FC = () => {
                       </Button>
                     </motion.div>
                   </motion.div>
-                  <motion.div className="bg-card p-4 rounded-xl shadow-lg border border-border relative z-10" whileHover={{ y: -8, boxShadow: "0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05)" }} transition={{ type: "spring", stiffness: 300 }}>
-                     <Card className="overflow-hidden bg-background shadow-sm border-none">
-                         <CardContent className="p-4 sm:p-6">
+                  <motion.div className="bg-card p-4 rounded-2xl shadow-xl border border-border relative z-10 overflow-hidden" whileHover={{ y: -8, boxShadow: "0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05)" }} transition={{ type: "spring", stiffness: 300 }}>
+                     <div className="absolute inset-0 bg-gradient-to-br from-accent/50 to-accent/20 opacity-30 pointer-events-none"></div>
+                     <Card className="overflow-hidden bg-transparent shadow-none border-none">
+                         <CardContent className="p-4 sm:p-6 relative z-10">
                            <div className="flex justify-between items-center mb-4">
                              <h4 className="text-base font-medium text-accent">Seguimiento de Reporte</h4>
                              <span className="inline-flex items-center justify-center h-6 w-6 rounded-full bg-accent/10 text-accent">
