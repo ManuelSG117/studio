@@ -1,5 +1,3 @@
-// Suggested code may be subject to a license. Learn more: ~LicenseLog:3832980065.
-// Suggested code may be subject to a license. Learn more: ~LicenseLog:2128573500.
 
 "use client";
 
@@ -17,6 +15,7 @@ import Image from 'next/image';
 import { Input } from '@/components/ui/input';
 import { RiskMap } from '@/components/RiskMap';
 import { HoverCard, HoverCardTrigger, HoverCardContent } from "@/components/ui/hover-card";
+import LandingNavBar from '@/components/layout/landing-nav-bar'; // Import the new navbar
 
 const HomePage: FC = () => {
   const router = useRouter();
@@ -51,12 +50,13 @@ const HomePage: FC = () => {
 
   return (
     <div className="min-h-screen flex flex-col bg-background">
+       <LandingNavBar /> {/* Add the landing navbar */}
        <motion.div
-         className="fixed top-0 left-0 right-0 h-1 bg-primary z-50"
+         className="fixed top-0 left-0 right-0 h-1 bg-primary z-50 mt-16" // Adjust margin-top for navbar
          style={{ scaleX, transformOrigin: "0%" }}
         />
 
-      <main className="flex-1">
+      <main className="flex-1 pt-16"> {/* Add padding-top to prevent content overlap */}
         {/* Hero Section */}
         <section className="w-full py-16 md:py-24 lg:py-32 bg-gradient-to-b from-white to-secondary">
           <div className="container px-4 md:px-6">
@@ -67,7 +67,7 @@ const HomePage: FC = () => {
                     alt="App Logo"
                     width={150}
                     height={150}
-                    className="mx-auto mb-6 rounded-full shadow-lg"
+                    className="mx-auto mb-6 rounded-lg shadow-lg"
                     priority
                     data-ai-hint="app logo safety shield"
                  />
@@ -75,10 +75,10 @@ const HomePage: FC = () => {
                   <span className="text-primary">+Seguro</span>
                 </h1>
                 <p className="mx-auto max-w-[700px] text-muted-foreground md:text-xl/relaxed lg:text-base/relaxed xl:text-xl/relaxed">
-                   Tu plataforma  para reportar incidentes y construir un Uruapan más seguro.
+                   Tu plataforma para reportar incidentes y construir un Uruapan más seguro.
                 </p>
               </motion.div>
-              
+
                <motion.div className="w-full max-w-xs sm:max-w-sm space-y-2" variants={itemVariants}>
                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                   <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
@@ -94,7 +94,7 @@ const HomePage: FC = () => {
                    <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
                       <Button
                         onClick={() => router.push('/auth')} // Navigate to the unified auth page
-                        className="w-full transition-all bg-destructive hover:bg-destructive/90 text-destructive-foreground h-11 rounded-full"
+                        className="w-full transition-all bg-primary hover:bg-primary/90 text-primary-foreground h-11 rounded-full"
                         size="lg"
                        >
                         Registrarse
@@ -108,6 +108,7 @@ const HomePage: FC = () => {
 
         {/* Report Types Section */}
          <motion.section
+            id="what-we-do" // Add ID for navigation
             className="w-full py-16 md:py-24 bg-secondary"
             initial="offscreen"
             whileInView="onscreen"
@@ -233,12 +234,12 @@ const HomePage: FC = () => {
 
         {/* How it Works Section */}
         <motion.section
+          id="how-it-works" // Add ID for navigation
           className="w-full py-16 md:py-24 lg:py-32 bg-gradient-to-b from-white to-secondary overflow-hidden"
           initial="offscreen"
           whileInView="onscreen"
           viewport={{ once: true, amount: 0.1 }}
           variants={scrollRevealVariants}
-          id="how-it-works"
         >
           <div className="container px-4 md:px-6">
             <motion.div className="text-center mb-16 max-w-3xl mx-auto" variants={scrollRevealVariants}>
@@ -411,7 +412,14 @@ const HomePage: FC = () => {
         </motion.section>
 
          {/* Risk Map Section */}
-          <motion.section className="w-full py-16 md:py-24 bg-gradient-to-b from-secondary to-white" initial="offscreen" whileInView="onscreen" viewport={{ once: true, amount: 0.2 }} variants={scrollRevealVariants}>
+          <motion.section
+            id="risk-map" // Add ID for navigation
+            className="w-full py-16 md:py-24 bg-gradient-to-b from-secondary to-white"
+            initial="offscreen"
+            whileInView="onscreen"
+            viewport={{ once: true, amount: 0.2 }}
+            variants={scrollRevealVariants}
+          >
             <div className="container px-4 md:px-6">
               <motion.div className="text-center mb-12 max-w-3xl mx-auto" variants={scrollRevealVariants}>
                   <Badge className="mb-4 bg-destructive/10 text-destructive hover:bg-destructive/20">
