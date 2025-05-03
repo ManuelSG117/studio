@@ -8,16 +8,16 @@ import Link from 'next/link';
 import Image from 'next/image'; // Import next/image
 import dynamic from 'next/dynamic'; // Import dynamic
 import { onAuthStateChanged, type User } from 'firebase/auth'; // Import User type
-import { auth } from '@/lib/firebase/client';
-// Updated import path due to moving welcome page
-import { getReportById, type Report } from '@/app/(app)/welcome/page';
+import { auth, db } from '@/lib/firebase/client';
+import { doc, getDoc, Timestamp } from 'firebase/firestore'; // Import Firestore functions
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
-// Removed ArrowLeft as back nav is handled by bottom bar
-import { CalendarDays, MapPin, Tag, UserCog, TriangleAlert, Image as ImageIcon, Map, Video } from 'lucide-react';
-// Removed: import 'leaflet/dist/leaflet.css'; // Leaflet CSS will be imported globally
+import { CalendarDays, MapPin, Tag, UserCog, TriangleAlert, Image as ImageIcon, Map, Video, Loader2 } from 'lucide-react'; // Added Loader2
+import type { Report } from '@/app/(app)/welcome/page'; // Import Report type
+import { format } from 'date-fns'; // Import format for date display
+import { es } from 'date-fns/locale'; // Import Spanish locale for date formatting
 
 // Dynamically import the Map Preview component
 const MapPreview = dynamic(() => import('@/components/map-preview'), {
@@ -34,35 +34,64 @@ const MapPreview = dynamic(() => import('@/components/map-preview'), {
 const ReportDetailPage: FC = () => {
     const router = useRouter();
     const params = useParams();
-    const reportId = params?.reportId as string; // Get reportId from URL
-    const [report, setReport] = useState<Report | null | undefined>(undefined); // Initial state undefined for loading
-    const [isAuthLoading, setIsAuthLoading] = useState(true);
-    const [user, setUser] = useState<User | null>(null); // Use User type
+    const reportId = params?.reportId as string;
+    const [report, setReport] = useState<Report | null>(null); // Start with null
+    const [isLoading, setIsLoading] = useState(true); // Combined loading state
+    const [user, setUser] = useState<User | null>(null);
 
     useEffect(() => {
-        const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
+        setIsLoading(true); // Start loading
+        const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
             if (!currentUser) {
-                router.replace("/login"); // Redirect if not logged in
+                router.replace("/login");
             } else {
-                setUser(currentUser); // Set user if logged in
-                 // Fetch report data after confirming authentication
-                 // TODO: Fetch real report data including coordinates from Firestore/backend
-                 const foundReport = getReportById(reportId); // Using placeholder fetcher
+                setUser(currentUser);
+                if (reportId) {
+                    try {
+                         console.log("Fetching report with ID:", reportId);
+                         const reportDocRef = doc(db, "reports", reportId);
+                         const reportDocSnap = await getDoc(reportDocRef);
 
-                 // Ensure foundReport is treated as Report | null
-                 const typedFoundReport = foundReport ? foundReport as Report : null;
+                         if (reportDocSnap.exists()) {
+                            const data = reportDocSnap.data();
+                             // Convert Firestore Timestamp to Date object
+                            const createdAtDate = data.createdAt instanceof Timestamp
+                              ? data.createdAt.toDate()
+                              : new Date(); // Fallback
 
-                 // Mock coordinates if not present in placeholder data
-                 const reportWithCoords = typedFoundReport
-                   ? {
-                       ...typedFoundReport,
-                       latitude: typedFoundReport.latitude ?? 19.4326, // Example default coords
-                       longitude: typedFoundReport.longitude ?? -99.1332,
-                     }
-                   : null;
-                 setReport(reportWithCoords); // Set report data or null if not found
+                            const fetchedReport: Report = {
+                                 id: reportDocSnap.id,
+                                 userId: data.userId,
+                                 userEmail: data.userEmail || null,
+                                 reportType: data.reportType,
+                                 title: data.title,
+                                 description: data.description,
+                                 location: data.location,
+                                 mediaUrl: data.mediaUrl || null,
+                                 latitude: data.latitude || null,
+                                 longitude: data.longitude || null,
+                                 status: data.status,
+                                 createdAt: createdAtDate,
+                            };
+                            console.log("Report data found:", fetchedReport);
+                            setReport(fetchedReport);
+                         } else {
+                             console.log("No report found with ID:", reportId);
+                             setReport(null); // Set to null if document doesn't exist
+                         }
+                    } catch (error) {
+                        console.error("Error fetching report details:", error);
+                        setReport(null); // Set to null on error
+                        // Optionally show toast
+                    } finally {
+                         setIsLoading(false); // Stop loading after fetch attempt
+                    }
+                } else {
+                    console.error("Report ID is missing.");
+                    setReport(null);
+                    setIsLoading(false);
+                }
             }
-            setIsAuthLoading(false);
         });
 
         return () => unsubscribe();
@@ -94,12 +123,11 @@ const ReportDetailPage: FC = () => {
     }
 
      // Loading state for authentication check and data fetching
-    if (isAuthLoading || report === undefined) {
+    if (isLoading) { // Use the single isLoading state
         return (
-            <main className="flex flex-col items-center p-4 sm:p-8 bg-secondary">
+            <main className="flex flex-col items-center p-4 sm:p-8 bg-secondary min-h-screen">
                 <Card className="w-full max-w-2xl shadow-lg border-none rounded-xl bg-card">
                     <CardHeader className="relative pb-4 pt-8">
-                        {/* Removed back button skeleton */}
                         <Skeleton className="h-7 w-3/5 mx-auto" />
                         <Skeleton className="h-4 w-2/5 mx-auto mt-2" />
                     </CardHeader>
@@ -128,10 +156,10 @@ const ReportDetailPage: FC = () => {
                              <Skeleton className="h-5 w-24" />
                              <Skeleton className="aspect-video w-full rounded-lg" />
                           </div>
-                         <div className="flex justify-end pt-4">
-                            <Skeleton className="h-10 w-24 rounded-full" />
-                         </div>
                     </CardContent>
+                     <CardFooter className="flex justify-end pt-4 pb-6 px-6 sm:px-8">
+                         <Skeleton className="h-10 w-24 rounded-full" />
+                     </CardFooter>
                 </Card>
             </main>
         );
@@ -147,9 +175,8 @@ const ReportDetailPage: FC = () => {
                      </CardHeader>
                      <CardContent>
                          <p className="text-muted-foreground mb-6">
-                             No pudimos encontrar el reporte que buscas. Puede que haya sido eliminado o el enlace sea incorrecto.
+                             No pudimos encontrar el reporte que buscas (ID: {reportId}). Puede que haya sido eliminado o el enlace sea incorrecto.
                          </p>
-                          {/* Changed button to link to /welcome */}
                          <Button asChild variant="outline" className="rounded-full">
                              <Link href="/welcome">
                                  Volver a Reportes
@@ -167,7 +194,6 @@ const ReportDetailPage: FC = () => {
         <main className="flex flex-col items-center p-4 sm:p-8 bg-secondary">
             <Card className="w-full max-w-2xl shadow-lg border-none rounded-xl bg-card">
                 <CardHeader className="relative pb-4 pt-8">
-                     {/* Back Button removed */}
                     <CardTitle className="text-2xl font-bold text-primary text-center pt-2">{report.title}</CardTitle>
                     <CardDescription className="text-muted-foreground text-center">
                         Detalles del reporte #{report.id}
@@ -177,16 +203,18 @@ const ReportDetailPage: FC = () => {
                     {/* Report Metadata */}
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-4 text-sm">
                         <div className="flex items-center space-x-3 text-foreground">
-                            {report.type === 'funcionario' ? (
+                            {report.reportType === 'funcionario' ? (
                               <UserCog className="h-5 w-5 text-blue-600 flex-shrink-0" />
                              ) : (
                               <TriangleAlert className="h-5 w-5 text-red-600 flex-shrink-0" />
                              )}
-                            <span className="font-medium">Tipo:</span> <span className="capitalize">{report.type === 'funcionario' ? 'Funcionario' : 'Incidente'}</span>
+                            <span className="font-medium">Tipo:</span> <span className="capitalize">{report.reportType === 'funcionario' ? 'Funcionario' : 'Incidente'}</span>
                         </div>
                         <div className="flex items-center space-x-3 text-foreground">
                             <CalendarDays className="h-5 w-5 text-muted-foreground flex-shrink-0" />
-                            <span className="font-medium">Fecha:</span> <span>{report.date}</span>
+                            <span className="font-medium">Fecha:</span>
+                             {/* Format the date */}
+                            <span>{format(report.createdAt, "PPP 'a las' p", { locale: es })}</span>
                         </div>
                          <div className="flex items-center space-x-3 text-foreground">
                              <MapPin className="h-5 w-5 text-muted-foreground flex-shrink-0" />
@@ -209,7 +237,7 @@ const ReportDetailPage: FC = () => {
                     {/* Report Description */}
                     <div className="pt-2"> {/* Adjusted padding */}
                         <h3 className="text-base font-semibold text-primary mb-2">Descripción</h3>
-                        <p className="text-foreground/90 leading-relaxed">{report.description}</p>
+                        <p className="text-foreground/90 leading-relaxed whitespace-pre-wrap">{report.description}</p> {/* Added whitespace-pre-wrap */}
                     </div>
 
                     {/* Media Evidence */}
@@ -218,49 +246,59 @@ const ReportDetailPage: FC = () => {
                              <h3 className="text-base font-semibold text-primary mb-2 flex items-center">
                                  <ImageIcon className="h-5 w-5 mr-2 opacity-70" /> Evidencia Multimedia
                              </h3>
-                             {/* Basic Image display for now */}
-                             <div className="relative aspect-video w-full overflow-hidden rounded-lg border border-border">
-                                 <Image
-                                     src={report.mediaUrl}
-                                     alt={`Evidencia para reporte ${report.id}`}
-                                     fill // Use fill for responsive images within a relative container
-                                     style={{ objectFit: 'contain' }} // Use style prop for object-fit
-                                     data-ai-hint="report evidence media"
-                                     unoptimized // Consider adding if media is externally hosted and optimization isn't needed/possible
-                                     className="bg-muted" // Add a background color for letterboxing
-                                 />
-                                 {/* TODO: Add video player logic if needed */}
-                                 {/* Example check for video based on common extensions */}
-                                 {/\.(mp4|webm|ogg)$/i.test(report.mediaUrl) && (
-                                     <div className="absolute inset-0 bg-black/50 flex items-center justify-center">
-                                         <Video className="h-12 w-12 text-white" />
-                                         <span className="sr-only">Es un video</span>
-                                     </div>
+                             <div className="relative aspect-video w-full overflow-hidden rounded-lg border border-border bg-muted">
+                                 {/* Simple check for video based on common extensions or content type if available */}
+                                 {/\.(mp4|webm|ogg|mov)$/i.test(report.mediaUrl) ? (
+                                      <video
+                                         controls
+                                         src={report.mediaUrl}
+                                         className="absolute inset-0 w-full h-full object-contain"
+                                         preload="metadata" // Load only metadata initially
+                                       >
+                                         Tu navegador no soporta videos HTML5.
+                                      </video>
+                                  ) : (
+                                      <Image
+                                         src={report.mediaUrl}
+                                         alt={`Evidencia para reporte ${report.id}`}
+                                         fill
+                                         style={{ objectFit: 'contain' }}
+                                         data-ai-hint="report evidence media"
+                                         className="bg-muted"
+                                         sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw" // Example sizes
+                                      />
                                   )}
                              </div>
                          </div>
                     )}
 
                     {/* Location Map Preview */}
-                     {report.latitude && report.longitude && (
+                     {report.latitude && report.longitude ? ( // Check both lat and lon
                         <div className="pt-2">
                              <h3 className="text-base font-semibold text-primary mb-2 flex items-center">
                                  <Map className="h-5 w-5 mr-2 opacity-70" /> Ubicación en Mapa
                              </h3>
-                             {/* Use the dynamic MapPreview component */}
                              <MapPreview
                                  latitude={report.latitude}
                                  longitude={report.longitude}
                                  locationName={report.location}
                               />
                         </div>
+                     ) : (
+                        <div className="pt-2">
+                           <h3 className="text-base font-semibold text-primary mb-2 flex items-center">
+                               <Map className="h-5 w-5 mr-2 opacity-70" /> Ubicación en Mapa
+                           </h3>
+                            <p className="text-sm text-muted-foreground italic">No se proporcionaron coordenadas para este reporte.</p>
+                         </div>
                      )}
 
-
-                     {/* TODO: Add Actions (e.g., Edit, Change Status, Delete) if needed */}
-                     {/* <CardFooter className="pt-6 justify-end">
-                       <Button variant="outline" className="rounded-full">Editar</Button>
-                     </CardFooter> */}
+                     {/* Back Button */}
+                     <CardFooter className="pt-6 justify-start px-0"> {/* Changed justify-end to justify-start */}
+                       <Button variant="outline" className="rounded-full" onClick={() => router.back()}>
+                           Volver a Reportes
+                       </Button>
+                     </CardFooter>
                 </CardContent>
             </Card>
         </main>
