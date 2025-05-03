@@ -122,9 +122,9 @@ const HomePage: FC = () => {
                  <Image
                     src="/logo.png" // Path to your logo in the public folder
                     alt="App Logo"
-                    width={100}
-                    height={100}
-                    className="mx-auto mb-4 rounded-lg shadow-md" // Style logo
+                    width={150}
+                    height={150}
+                    className="mx-auto mb-6 rounded-full shadow-lg" // Style logo
                     priority // Load logo faster
                     data-ai-hint="app logo safety shield"
                  />
@@ -137,7 +137,7 @@ const HomePage: FC = () => {
                 </p>
               </motion.div>
                <motion.div className="space-y-2" variants={itemVariants}>
-                <p className="mx-auto max-w-[700px] text-muted-foreground">
+                <p className="mx-auto max-w-[700px] text-muted-foreground text-sm">
                   Reporta funcionarios públicos o incidentes delictivos de forma segura y anónima.
                 </p>
               </motion.div>
