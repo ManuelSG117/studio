@@ -9,7 +9,7 @@ import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import { useEffect, useState } from 'react';
 // Import icons for the navbar links
-import { LogIn, Home, HelpCircle, Workflow, MapPin, Shield } from 'lucide-react';
+import { LogIn } from 'lucide-react';
 
 const LandingNavBar: FC = () => {
   const router = useRouter();
@@ -125,7 +125,7 @@ const LandingNavBar: FC = () => {
                )}
                aria-current={isLinkActive('top') ? 'page' : undefined}
              >
-                <Shield className="h-4 w-4 opacity-80" /> {/* Changed Icon */}
+                {/* Icon removed */}
                 +Seguro
              </Link>
 
@@ -142,7 +142,7 @@ const LandingNavBar: FC = () => {
             )}
             aria-current={isLinkActive('what-we-do') ? 'page' : undefined}
           >
-             <HelpCircle className="h-4 w-4 opacity-80" /> {/* Added Icon */}
+             {/* Icon removed */}
             ¿Qué hacemos?
           </Link>
 
@@ -158,7 +158,7 @@ const LandingNavBar: FC = () => {
             )}
             aria-current={isLinkActive('how-it-works') ? 'page' : undefined}
           >
-             <Workflow className="h-4 w-4 opacity-80" /> {/* Added Icon */}
+             {/* Icon removed */}
             ¿Cómo funciona?
           </Link>
 
@@ -174,7 +174,7 @@ const LandingNavBar: FC = () => {
             )}
             aria-current={isLinkActive('risk-map') ? 'page' : undefined}
           >
-             <MapPin className="h-4 w-4 opacity-80" /> {/* Added Icon */}
+             {/* Icon removed */}
             Zonas de Riesgo
           </Link>
 
@@ -186,7 +186,7 @@ const LandingNavBar: FC = () => {
                  "text-muted-foreground hover:text-primary hover:bg-primary/5" // Consistent inactive style
              )}
           >
-            <LogIn className="h-4 w-4 opacity-80" />
+            {/* Icon removed */}
             Iniciar Sesión
           </Link>
         </nav>

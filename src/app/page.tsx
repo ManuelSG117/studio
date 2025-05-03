@@ -21,7 +21,7 @@ const HomePage: FC = () => {
   const router = useRouter();
   const { isAuthenticated, user, loading } = useAuth();
   const { scrollYProgress } = useScroll();
-  const scaleX = useTransform(scrollYProgress, [0, 1], ["0%", "100%"]);
+  // Removed scaleX transform for progress bar
 
   useEffect(() => {
     if (!loading && isAuthenticated) {
@@ -49,12 +49,9 @@ const HomePage: FC = () => {
   }
 
   return (
-    <div className="min-h-screen flex flex-col bg-background">
+    <div className="min-h-screen flex flex-col bg-background"> {/* Use theme background */}
        <LandingNavBar /> {/* Add the landing navbar */}
-       <motion.div
-         className="fixed top-0 left-0 right-0 h-1 bg-primary z-50" // Removed mt-16, progress bar at very top
-         style={{ scaleX, transformOrigin: "0%" }}
-        />
+       {/* Removed Progress Bar */}
 
       <main className="flex-1 pt-0"> {/* Remove padding-top, sections will handle their own padding */}
         {/* Hero Section */}
@@ -151,6 +148,8 @@ const HomePage: FC = () => {
                      </p>
                       <HoverCard>
                           <HoverCardTrigger asChild>
+                            {/* Wrap Button in a div for HoverCardTrigger when asChild is used */}
+                            <div>
                               <Button
                                 variant="outline"
                                 className="w-full border-2 border-primary text-primary hover:bg-primary hover:text-primary-foreground transition-colors duration-300 group-hover:shadow-md flex items-center justify-center gap-2 h-11 rounded-full"
@@ -159,6 +158,7 @@ const HomePage: FC = () => {
                                 Reportar Funcionario
                                 <ChevronRight className="h-4 w-4 opacity-70 group-hover:translate-x-1 transition-transform" />
                               </Button>
+                             </div>
                           </HoverCardTrigger>
                          <HoverCardContent className="w-80 bg-card p-4 shadow-lg rounded-lg border border-primary/20">
                             <div className="flex justify-between space-x-4">
@@ -202,6 +202,8 @@ const HomePage: FC = () => {
                      </p>
                       <HoverCard>
                         <HoverCardTrigger asChild>
+                           {/* Wrap Button in a div for HoverCardTrigger when asChild is used */}
+                           <div>
                             <Button
                               variant="outline"
                               className="w-full border-2 border-destructive text-destructive hover:bg-destructive hover:text-destructive-foreground transition-colors duration-300 group-hover:shadow-md flex items-center justify-center gap-2 h-11 rounded-full"
@@ -210,6 +212,7 @@ const HomePage: FC = () => {
                               Reportar Incidente
                               <ChevronRight className="h-4 w-4 opacity-70 group-hover:translate-x-1 transition-transform" />
                             </Button>
+                           </div>
                         </HoverCardTrigger>
                          <HoverCardContent className="w-80 bg-card p-4 shadow-lg rounded-lg border border-destructive/20">
                             <div className="flex justify-between space-x-4">
