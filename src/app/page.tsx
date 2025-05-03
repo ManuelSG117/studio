@@ -52,13 +52,13 @@ const HomePage: FC = () => {
     <div className="min-h-screen flex flex-col bg-background">
        <LandingNavBar /> {/* Add the landing navbar */}
        <motion.div
-         className="fixed top-0 left-0 right-0 h-1 bg-primary z-50 mt-16" // Adjust margin-top for navbar
+         className="fixed top-0 left-0 right-0 h-1 bg-primary z-50" // Removed mt-16, progress bar at very top
          style={{ scaleX, transformOrigin: "0%" }}
         />
 
-      <main className="flex-1 pt-16"> {/* Add padding-top to prevent content overlap */}
+      <main className="flex-1 pt-0"> {/* Remove padding-top, sections will handle their own padding */}
         {/* Hero Section */}
-        <section className="w-full py-16 md:py-24 lg:py-32 bg-gradient-to-b from-white to-secondary">
+        <section className="w-full py-16 md:py-24 lg:py-32 bg-gradient-to-b from-white to-secondary pt-24 md:pt-32 lg:pt-40"> {/* Added more padding-top to hero */}
           <div className="container px-4 md:px-6">
              <motion.div className="flex flex-col items-center justify-center space-y-4 text-center" initial="hidden" animate="visible" variants={containerVariants}>
               <motion.div className="space-y-2" variants={itemVariants}>

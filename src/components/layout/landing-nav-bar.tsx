@@ -28,7 +28,7 @@ const LandingNavBar: FC = () => {
         const element = document.getElementById(id);
         if (element) {
             // Adjust offset slightly to account for navbar height if needed
-            offsets[id] = element.offsetTop - 80; // 80px is navbar height
+            offsets[id] = element.offsetTop - 80; // 80px is navbar height + buffer
         }
       }
     });
@@ -38,6 +38,7 @@ const LandingNavBar: FC = () => {
   useEffect(() => {
     const handleScroll = () => {
       const scrollPosition = window.scrollY;
+      // Navbar becomes visible after scrolling down more than 10px
       setScrolled(scrollPosition > 10);
 
       // Determine active section based on scroll position
@@ -56,8 +57,8 @@ const LandingNavBar: FC = () => {
          }
        }
 
-       // Handle edge case where scroll is exactly 0
-        if (scrollPosition < buffer) {
+       // Handle edge case where scroll is exactly 0 or near top
+        if (scrollPosition < buffer / 2) { // Use smaller buffer for top detection
            currentSection = 'top';
         }
 
@@ -95,16 +96,16 @@ const LandingNavBar: FC = () => {
   return (
     <header
       className={cn(
-        'fixed top-0 left-0 right-0 z-50 flex h-20 items-center justify-center px-4 md:px-8 transition-all duration-300',
+        'fixed top-0 left-0 right-0 z-50 flex h-20 items-center justify-center px-4 md:px-8 transition-all duration-300 pointer-events-none', // Add pointer-events-none to header
         // Apply background/blur only when scrolled for the container
-        scrolled ? 'bg-muted/80 backdrop-blur-sm shadow-sm border-b border-border' : 'bg-transparent'
+        scrolled ? 'bg-muted/80 backdrop-blur-sm shadow-sm border-b border-border pointer-events-auto' : 'bg-transparent' // Re-enable pointer-events when scrolled
       )}
     >
       {/* Desktop Navigation in Pill Container - Centered */}
-      {/* Always visible, styling changes on scroll handled by parent */}
+      {/* Visibility controlled by opacity and pointer-events based on scroll */}
       <div className={cn(
         "absolute left-1/2 top-1/2 transform -translate-x-1/2 -translate-y-1/2 transition-opacity duration-300 hidden md:flex",
-        scrolled ? "opacity-100" : "opacity-100" // Keep nav visible, parent handles background
+        scrolled ? "opacity-100 pointer-events-auto" : "opacity-0 pointer-events-none" // Control visibility of inner nav
       )}>
         <nav className={cn(
              "flex items-center gap-1 text-sm font-medium rounded-full p-1.5 transition-all duration-300",
@@ -122,6 +123,7 @@ const LandingNavBar: FC = () => {
                    ? "bg-primary/10 text-primary font-medium" // Active state style
                    : "text-muted-foreground hover:text-primary hover:bg-primary/5" // Inactive state style
                )}
+               aria-current={isLinkActive('top') ? 'page' : undefined}
              >
                 <Shield className="h-4 w-4 opacity-80" /> {/* Changed Icon */}
                 +Seguro
@@ -138,6 +140,7 @@ const LandingNavBar: FC = () => {
                 ? "bg-primary/10 text-primary font-medium" // Active state style
                 : "text-muted-foreground hover:text-primary hover:bg-primary/5" // Inactive state style
             )}
+            aria-current={isLinkActive('what-we-do') ? 'page' : undefined}
           >
              <HelpCircle className="h-4 w-4 opacity-80" /> {/* Added Icon */}
             ¿Qué hacemos?
@@ -153,6 +156,7 @@ const LandingNavBar: FC = () => {
                 ? "bg-primary/10 text-primary font-medium" // Active state style
                 : "text-muted-foreground hover:text-primary hover:bg-primary/5" // Inactive state style
             )}
+            aria-current={isLinkActive('how-it-works') ? 'page' : undefined}
           >
              <Workflow className="h-4 w-4 opacity-80" /> {/* Added Icon */}
             ¿Cómo funciona?
@@ -168,6 +172,7 @@ const LandingNavBar: FC = () => {
                 ? "bg-primary/10 text-primary font-medium" // Active state style
                 : "text-muted-foreground hover:text-primary hover:bg-primary/5" // Inactive state style
             )}
+            aria-current={isLinkActive('risk-map') ? 'page' : undefined}
           >
              <MapPin className="h-4 w-4 opacity-80" /> {/* Added Icon */}
             Zonas de Riesgo
@@ -187,8 +192,8 @@ const LandingNavBar: FC = () => {
         </nav>
       </div>
 
-      {/* Mobile Menu Trigger */}
-       <div className="absolute right-4 top-1/2 transform -translate-y-1/2 md:hidden">
+      {/* Mobile Menu Trigger - Always visible if needed */}
+       <div className="absolute right-4 top-1/2 transform -translate-y-1/2 md:hidden pointer-events-auto"> {/* Ensure this can always be clicked */}
             {/* Use Link to navigate to auth page on mobile */}
             <Button asChild size="icon" variant="ghost" className="text-muted-foreground hover:text-primary hover:bg-primary/10">
                  <Link href="/auth">
