@@ -58,7 +58,7 @@ const WelcomePage: FC = () => {
           console.log("Fetching reports from Firestore...");
           // Query reports collection, ordered by creation date descending
           const reportsCollectionRef = collection(db, "reports");
-          const q = query(reportsCollectionRef, orderBy("createdAt", "desc")); // Order by newest first
+          const q = query(reportsCollectionRef, where("userId", "==", currentUser.uid), orderBy("createdAt", "desc")); // Filter by user ID and Order by newest first
           const querySnapshot = await getDocs(q);
 
           const fetchedReports: Report[] = querySnapshot.docs.map(doc => {
@@ -119,11 +119,6 @@ const WelcomePage: FC = () => {
     });
   }, [reports, searchTerm, filter]);
 
-  // Function to get status badge variant (remains the same) - REMOVED
-  // const getStatusVariant = (status: Report['status']): "default" | "secondary" | "outline" | "destructive" | null | undefined => { ... }
-
-   // Function to get status badge colors (remains the same) - REMOVED
-   // const getStatusClasses = (status: Report['status']): string => { ... }
 
    // Helper function to extract street and neighborhood from location string
    const formatLocation = (location: string): string => {
@@ -145,13 +140,7 @@ const WelcomePage: FC = () => {
     return (
       <main className="flex min-h-screen flex-col items-center p-4 sm:p-6 bg-secondary">
         <div className="w-full max-w-2xl space-y-4">
-           {/* Header Skeleton */}
-           <div className="flex justify-between items-center mb-4">
-              <div className="flex-1">
-                <Skeleton className="h-8 w-1/3" />
-              </div>
-              <Skeleton className="h-9 w-9 rounded-full ml-2 flex-shrink-0" />
-           </div>
+           {/* Header Skeleton Removed */}
            <Skeleton className="h-11 w-full mb-4 rounded-full" />
            <div className="flex space-x-3 mb-6">
              <Skeleton className="h-9 w-24 rounded-full" />
@@ -166,7 +155,6 @@ const WelcomePage: FC = () => {
                      <Skeleton className="h-5 w-5 rounded-full flex-shrink-0" />
                      <Skeleton className="h-5 w-3/5" />
                   </div>
-                 {/* <Skeleton className="absolute top-4 right-4 h-6 w-20 rounded-full" /> // Skeleton for Badge removed */}
                </CardHeader>
                <CardContent className="space-y-2 pt-1 pb-4 px-4 sm:px-5">
                  <Skeleton className="h-4 w-full" />
@@ -189,24 +177,7 @@ const WelcomePage: FC = () => {
   return (
     <main className="flex flex-col items-center p-4 sm:p-6 bg-secondary">
       <div className="w-full max-w-2xl">
-        {/* Header */}
-        <header className="flex justify-between items-center mb-4 gap-4"> {/* Added gap */}
-          <h1 className="text-2xl font-semibold text-primary flex-1">Mis Reportes</h1>
-          <div className="flex items-center space-x-2"> {/* Container for right-side buttons */}
-               {/* Profile Link Button */}
-               <Button
-                    asChild
-                    variant="ghost"
-                    size="icon"
-                    className="text-muted-foreground hover:text-primary hover:bg-primary/10 rounded-full"
-                    aria-label="Ver Perfil"
-                >
-                  <Link href="/profile">
-                    <UserIcon className="h-5 w-5" />
-                  </Link>
-              </Button>
-          </div>
-        </header>
+        {/* Header Removed */}
 
         {/* Search Input */}
         <div className="relative mb-4">
@@ -307,5 +278,4 @@ const WelcomePage: FC = () => {
 };
 
 export default WelcomePage;
-// Removed export type { Report }; - It's already exported inline
-    
+

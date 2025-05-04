@@ -127,7 +127,7 @@ const ProfilePage: FC = () => {
       <main className="flex flex-col items-center p-4 sm:p-8 bg-secondary">
         <Card className="w-full max-w-lg shadow-lg border-none rounded-xl bg-card">
           <CardHeader className="relative pb-4 pt-8 items-center text-center">
-             {/* Removed back button skeleton */}
+             {/* Header Skeleton Removed */}
             <Skeleton className="h-20 w-20 rounded-full mb-4" />
             <Skeleton className="h-6 w-3/4 mb-1" />
             <Skeleton className="h-4 w-1/2" />
@@ -175,7 +175,7 @@ const ProfilePage: FC = () => {
     <main className="flex flex-col items-center p-4 sm:p-8 bg-secondary">
       <Card className="w-full max-w-lg shadow-lg border-none rounded-xl bg-card">
         <CardHeader className="relative pb-4 pt-8 items-center text-center">
-           {/* Back Button removed, navigation handled by bottom bar */}
+           {/* Header section removed */}
 
           <Avatar className="w-20 h-20 mb-4 border-2 border-primary">
              {/* Use combined photoURL */}
@@ -283,4 +283,3 @@ const ProfilePage: FC = () => {
 };
 
 export default ProfilePage;
-

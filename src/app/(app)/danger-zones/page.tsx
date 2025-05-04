@@ -61,9 +61,7 @@ const DangerZonesPage: FC = () => {
     return (
       <main className="flex flex-col items-center p-4 sm:p-6 bg-secondary">
          <div className="w-full max-w-4xl space-y-4">
-            <div className="flex justify-between items-center mb-4">
-                <Skeleton className="h-8 w-1/3" />
-            </div>
+            {/* Header Skeleton Removed */}
             <Skeleton className="h-10 w-full mb-4" />
             <Card className="w-full shadow-sm rounded-lg overflow-hidden border border-border bg-card mb-6">
                  <CardHeader className="pb-2 pt-4 px-4 sm:px-5">
@@ -85,11 +83,7 @@ const DangerZonesPage: FC = () => {
   return (
     <main className="flex flex-col items-center p-4 sm:p-6 bg-secondary">
         <div className="w-full max-w-4xl">
-             {/* Header */}
-            <header className="flex justify-between items-center mb-4">
-                <h1 className="text-2xl font-semibold text-primary">Zonas de Peligro</h1>
-                {/* Add any header actions if needed, e.g., filters */}
-            </header>
+             {/* Header Removed */}
 
             {/* Search/Filter Input (Optional) */}
             {/* <div className="relative mb-4"> ... </div> */}
@@ -154,4 +148,3 @@ const DangerZonesPage: FC = () => {
 };
 
 export default DangerZonesPage;
-

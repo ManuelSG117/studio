@@ -113,13 +113,7 @@ const CommunityReportsPage: FC = () => {
     return (
       <main className="flex min-h-screen flex-col items-center p-4 sm:p-6 bg-secondary">
         <div className="w-full max-w-2xl space-y-4">
-           {/* Header Skeleton */}
-           <div className="flex justify-between items-center mb-4">
-              <div className="flex-1">
-                 <Skeleton className="h-8 w-2/5" /> {/* Adjust width for title */}
-              </div>
-              {/* Optional: Add skeleton for profile/logout button if needed */}
-           </div>
+           {/* Header Skeleton Removed */}
            <Skeleton className="h-11 w-full mb-4 rounded-full" />
            <div className="flex space-x-3 mb-6">
              <Skeleton className="h-9 w-24 rounded-full" />
@@ -156,13 +150,7 @@ const CommunityReportsPage: FC = () => {
   return (
     <main className="flex flex-col items-center p-4 sm:p-6 bg-secondary">
       <div className="w-full max-w-2xl">
-        {/* Header */}
-        <header className="flex justify-between items-center mb-4 gap-4">
-          <h1 className="text-2xl font-semibold text-primary flex items-center gap-2">
-            <Globe className="h-6 w-6" /> Reportes de la Comunidad
-          </h1>
-          {/* Optional: Add profile/logout button here if needed */}
-        </header>
+        {/* Header Removed */}
 
         {/* Search Input */}
         <div className="relative mb-4">
@@ -252,4 +240,3 @@ const CommunityReportsPage: FC = () => {
 };
 
 export default CommunityReportsPage;
-    
