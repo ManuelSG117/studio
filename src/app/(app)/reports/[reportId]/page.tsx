@@ -1,33 +1,48 @@
-
 "use client";
 
 import type { FC } from 'react';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react'; // Added useCallback
 import { useRouter, useParams } from 'next/navigation';
 import Link from 'next/link';
 import Image from 'next/image'; // Import next/image
 import { onAuthStateChanged, type User } from 'firebase/auth'; // Import User type
 import { auth, db } from '@/lib/firebase/client';
-import { doc, getDoc, Timestamp } from 'firebase/firestore'; // Import Firestore functions
+import { doc, getDoc, Timestamp, runTransaction } from 'firebase/firestore'; // Import Firestore functions including transaction
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
+// import { Badge } from '@/components/ui/badge'; // Badge removed
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
-import { CalendarDays, MapPin, Tag, UserCog, TriangleAlert, Image as ImageIcon, Loader2, ArrowLeft } from 'lucide-react'; // Added ArrowLeft and ImageIcon
+import { CalendarDays, MapPin, Tag, UserCog, TriangleAlert, Image as ImageIcon, Loader2, ArrowLeft, ArrowUp, ArrowDown } from 'lucide-react'; // Added ArrowLeft, ImageIcon, ArrowUp, ArrowDown
 import type { Report } from '@/app/(app)/welcome/page'; // Import Report type
 import { format } from 'date-fns'; // Import format for date display
 import { es } from 'date-fns/locale'; // Import Spanish locale for date formatting
 import { ReportsMap } from '@/components/reports-map'; // Import the ReportsMap component
-
+import { useToast } from '@/hooks/use-toast'; // Import useToast
+import { cn } from '@/lib/utils'; // Import cn
 
 const ReportDetailPage: FC = () => {
     const router = useRouter();
     const params = useParams();
     const reportId = params?.reportId as string;
+    const { toast } = useToast();
     const [report, setReport] = useState<Report | null>(null); // Start with null
     const [isLoading, setIsLoading] = useState(true); // Combined loading state
     const [user, setUser] = useState<User | null>(null);
     const [isClient, setIsClient] = useState(false); // State to track client-side mounting
+    const [votingState, setVotingState] = useState<boolean>(false); // Track voting status for this report
+
+    // Function to fetch user's vote for this specific report
+    const fetchUserVote = useCallback(async (userId: string, reportId: string) => {
+        console.log(`Simulating fetch for user vote for report ${reportId}`);
+        // In a real app, fetch from Firestore 'votes' subcollection:
+        // const voteDocRef = doc(db, `reports/${reportId}/votes/${userId}`);
+        // const voteDocSnap = await getDoc(voteDocRef);
+        // if (voteDocSnap.exists()) {
+        //   return voteDocSnap.data().type as 'up' | 'down';
+        // }
+        return null;
+    }, []);
+
 
     useEffect(() => {
         setIsClient(true); // Component has mounted
@@ -45,10 +60,12 @@ const ReportDetailPage: FC = () => {
 
                          if (reportDocSnap.exists()) {
                             const data = reportDocSnap.data();
-                             // Convert Firestore Timestamp to Date object
                             const createdAtDate = data.createdAt instanceof Timestamp
                               ? data.createdAt.toDate()
-                              : new Date(); // Fallback
+                              : new Date();
+
+                            // Fetch the current user's vote for this report
+                            const userVote = await fetchUserVote(currentUser.uid, reportId);
 
                             const fetchedReport: Report = {
                                  id: reportDocSnap.id,
@@ -62,6 +79,9 @@ const ReportDetailPage: FC = () => {
                                  latitude: data.latitude || null,
                                  longitude: data.longitude || null,
                                  createdAt: createdAtDate,
+                                 upvotes: data.upvotes || 0, // Default to 0
+                                 downvotes: data.downvotes || 0, // Default to 0
+                                 userVote: userVote, // Add fetched user vote
                             };
                             console.log("Report data found:", fetchedReport);
                             setReport(fetchedReport);
@@ -72,7 +92,7 @@ const ReportDetailPage: FC = () => {
                     } catch (error) {
                         console.error("Error fetching report details:", error);
                         setReport(null); // Set to null on error
-                        // Optionally show toast
+                        toast({ variant: "destructive", title: "Error", description: "No se pudo cargar el reporte." });
                     } finally {
                          setIsLoading(false); // Stop loading after fetch attempt
                     }
@@ -85,7 +105,93 @@ const ReportDetailPage: FC = () => {
         });
 
         return () => unsubscribe();
-    }, [router, reportId]);
+    }, [router, reportId, toast, fetchUserVote]); // Added dependencies
+
+    // Handle Voting Logic
+    const handleVote = async (voteType: 'up' | 'down') => {
+        if (!user || !report) {
+            toast({ variant: "destructive", title: "Error", description: "Debes iniciar sesión y el reporte debe cargarse para votar." });
+            return;
+        }
+        if (votingState) return; // Prevent multiple clicks while processing
+
+        setVotingState(true);
+
+        const currentVote = report.userVote;
+        const originalReport = { ...report }; // Store original state for rollback
+
+        // Optimistic UI Update
+        let optimisticUpvotes = report.upvotes;
+        let optimisticDownvotes = report.downvotes;
+        let optimisticUserVote: 'up' | 'down' | null = null;
+
+        if (currentVote === voteType) { // Removing vote
+            optimisticUserVote = null;
+            if (voteType === 'up') optimisticUpvotes--; else optimisticDownvotes--;
+        } else { // Adding or changing vote
+            optimisticUserVote = voteType;
+            if (voteType === 'up') {
+                optimisticUpvotes++;
+                if (currentVote === 'down') optimisticDownvotes--;
+            } else {
+                optimisticDownvotes++;
+                if (currentVote === 'up') optimisticUpvotes--;
+            }
+        }
+
+        setReport(prevReport => prevReport ? {
+            ...prevReport,
+            upvotes: optimisticUpvotes,
+            downvotes: optimisticDownvotes,
+            userVote: optimisticUserVote,
+        } : null);
+
+
+        // --- Firestore Update ---
+        try {
+            const reportRef = doc(db, "reports", reportId);
+            // const voteRef = doc(db, `reports/${reportId}/votes/${user.uid}`); // Real implementation
+
+            await runTransaction(db, async (transaction) => {
+                const reportSnap = await transaction.get(reportRef);
+                if (!reportSnap.exists()) throw new Error("El reporte ya no existe.");
+
+                const reportData = reportSnap.data();
+                let newUpvotes = reportData.upvotes || 0;
+                let newDownvotes = reportData.downvotes || 0;
+
+                // Logic based on assumed `currentVote`
+                if (currentVote === voteType) {
+                    if (voteType === 'up') newUpvotes = Math.max(0, newUpvotes - 1);
+                    else newDownvotes = Math.max(0, newDownvotes - 1);
+                     // transaction.delete(voteRef);
+                } else {
+                    if (voteType === 'up') {
+                       newUpvotes++;
+                       if (currentVote === 'down') newDownvotes = Math.max(0, newDownvotes - 1);
+                        // transaction.set(voteRef, { type: 'up', timestamp: Timestamp.now() });
+                    } else {
+                       newDownvotes++;
+                       if (currentVote === 'up') newUpvotes = Math.max(0, newUpvotes - 1);
+                        // transaction.set(voteRef, { type: 'down', timestamp: Timestamp.now() });
+                    }
+                }
+                transaction.update(reportRef, { upvotes: newUpvotes, downvotes: newDownvotes });
+            });
+            console.log("Vote updated successfully for report:", reportId);
+            // Optionally refetch the report data here to ensure sync after transaction
+            // const updatedDocSnap = await getDoc(reportRef);
+            // if (updatedDocSnap.exists()) { ... update state ... }
+
+        } catch (error: any) {
+            console.error("Error updating vote:", error);
+            toast({ variant: "destructive", title: "Error", description: `No se pudo registrar el voto: ${error.message}` });
+            // Revert optimistic update on error
+            setReport(originalReport);
+        } finally {
+            setVotingState(false);
+        }
+    };
 
 
      // Loading state for authentication check and data fetching
@@ -129,6 +235,13 @@ const ReportDetailPage: FC = () => {
                              <Skeleton className="h-48 w-full rounded-lg" />
                          </div>
                     </CardContent>
+                     {/* Footer Skeleton for Votes */}
+                    <CardFooter className="px-6 sm:px-8 pt-4 pb-6 border-t">
+                        <div className="flex justify-end items-center space-x-3 w-full">
+                          <Skeleton className="h-6 w-12 rounded-md" />
+                          <Skeleton className="h-6 w-12 rounded-md" />
+                        </div>
+                    </CardFooter>
                 </Card>
             </main>
         );
@@ -273,6 +386,44 @@ const ReportDetailPage: FC = () => {
                     </div>
 
                 </CardContent>
+
+                 {/* Voting Section in Footer */}
+                <CardFooter className="px-6 sm:px-8 pt-4 pb-6 border-t border-border/50">
+                    <div className="flex justify-end items-center space-x-3 w-full">
+                        <Button
+                            variant="ghost"
+                            size="sm"
+                            className={cn(
+                                "flex items-center gap-1.5 h-7 px-2 rounded-md text-xs text-muted-foreground hover:text-green-600 hover:bg-green-100/50 dark:hover:bg-green-900/20",
+                                report.userVote === 'up' && "text-green-600 bg-green-100/60 dark:bg-green-900/30",
+                                votingState && "opacity-50 cursor-not-allowed"
+                             )}
+                            onClick={() => handleVote('up')}
+                            disabled={votingState}
+                            aria-pressed={report.userVote === 'up'}
+                            title="Votar positivamente"
+                        >
+                            {votingState && report.userVote !== 'up' ? <Loader2 className="h-3.5 w-3.5 animate-spin"/> : <ArrowUp className="h-4 w-4"/>}
+                             <span>{report.upvotes}</span>
+                        </Button>
+                         <Button
+                             variant="ghost"
+                             size="sm"
+                             className={cn(
+                                "flex items-center gap-1.5 h-7 px-2 rounded-md text-xs text-muted-foreground hover:text-red-600 hover:bg-red-100/50 dark:hover:bg-red-900/20",
+                                report.userVote === 'down' && "text-red-600 bg-green-100/60 dark:bg-red-900/30",
+                                votingState && "opacity-50 cursor-not-allowed"
+                              )}
+                             onClick={() => handleVote('down')}
+                             disabled={votingState}
+                             aria-pressed={report.userVote === 'down'}
+                             title="Votar negativamente"
+                         >
+                            {votingState && report.userVote !== 'down' ? <Loader2 className="h-3.5 w-3.5 animate-spin"/> : <ArrowDown className="h-4 w-4"/>}
+                            <span>{report.downvotes}</span>
+                        </Button>
+                     </div>
+                </CardFooter>
             </Card>
         </main>
     );

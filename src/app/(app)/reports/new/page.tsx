@@ -1,4 +1,3 @@
-
 "use client";
 
 import type { FC, ChangeEvent } from "react";
@@ -295,8 +294,9 @@ const NewReportPage: FC = () => {
         mediaUrl: mediaDownloadURL,
         latitude: values.latitude ?? null, // Save coordinates if available
         longitude: values.longitude ?? null,
-        // status: 'Pendiente', // Status field removed
         createdAt: Timestamp.now(),
+        upvotes: 0, // Initialize upvotes to 0
+        downvotes: 0, // Initialize downvotes to 0
       };
 
       const docRef = await addDoc(reportsCollectionRef, reportData);

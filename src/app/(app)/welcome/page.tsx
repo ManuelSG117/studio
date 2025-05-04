@@ -1,22 +1,23 @@
-
 "use client";
 
 import type { FC } from "react";
-import { useEffect, useState, useMemo } from "react";
+import { useEffect, useState, useMemo, useCallback } from "react"; // Added useCallback
 import Link from "next/link"; // Import Link
 import { useRouter } from "next/navigation";
 import { onAuthStateChanged, type User } from "firebase/auth";
 import { auth, db } from "@/lib/firebase/client";
-import { collection, getDocs, query, orderBy, Timestamp, where } from "firebase/firestore"; // Import Firestore functions
+import { collection, getDocs, query, orderBy, Timestamp, where, doc, runTransaction, writeBatch } from "firebase/firestore"; // Import Firestore functions including transaction
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Badge } from "@/components/ui/badge";
+// import { Badge } from "@/components/ui/badge"; // Badge removed
 import { Skeleton } from "@/components/ui/skeleton";
-import { LogOut, Search, UserCog, TriangleAlert, MapPin, User as UserIcon, Plus, Loader2, CalendarDays } from "lucide-react"; // Added Loader2, CalendarDays
+import { LogOut, Search, UserCog, TriangleAlert, MapPin, Plus, Loader2, CalendarDays, ThumbsUp, ThumbsDown, ArrowUp, ArrowDown } from "lucide-react"; // Added ThumbsUp, ThumbsDown, ArrowUp, ArrowDown
 import Image from "next/image"; // Import Image
 import { format } from 'date-fns'; // Import format for date display
 import { es } from 'date-fns/locale'; // Import Spanish locale for date formatting
+import { useToast } from "@/hooks/use-toast"; // Import useToast
+import { cn } from "@/lib/utils"; // Import cn
 
 // Define the report type (consider moving to a shared types file if used elsewhere)
 export interface Report {
@@ -30,23 +31,42 @@ export interface Report {
   mediaUrl: string | null;
   latitude: number | null;
   longitude: number | null;
-  // status: 'Pendiente' | 'En proceso' | 'Resuelto'; // Status field removed
   createdAt: Date; // Store as Date object
+  upvotes: number; // Add upvotes field
+  downvotes: number; // Add downvotes field
+  // Add userVote to track current user's vote locally for UI feedback
+  userVote?: 'up' | 'down' | null;
 }
 
 // Removed placeholder data
-// const placeholderReports: Report[] = [...];
-
-// Removed getReportById as it's specific to placeholder data.
-// Fetching specific report will be handled in the detail page.
 
 const WelcomePage: FC = () => {
   const router = useRouter();
+  const { toast } = useToast();
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true); // Combined loading state
   const [reports, setReports] = useState<Report[]>([]); // State for fetched reports
   const [searchTerm, setSearchTerm] = useState("");
   const [filter, setFilter] = useState<'Todos' | 'Funcionarios' | 'Incidentes'>('Todos');
+  const [votingState, setVotingState] = useState<Record<string, boolean>>({}); // Track voting status per report
+
+  // Function to fetch user's votes
+  const fetchUserVotes = useCallback(async (userId: string, reportIds: string[]) => {
+    const votes: Record<string, 'up' | 'down'> = {};
+    // In a real app, you'd fetch this from a 'votes' subcollection or similar
+    // For now, we'll simulate this being empty or fetched from somewhere
+    console.log("Simulating fetch for user votes for reports:", reportIds);
+    // Example: Fetch from Firestore 'votes' subcollection for each report
+    // const votePromises = reportIds.map(async (reportId) => {
+    //   const voteDocRef = doc(db, `reports/${reportId}/votes/${userId}`);
+    //   const voteDocSnap = await getDoc(voteDocRef);
+    //   if (voteDocSnap.exists()) {
+    //     votes[reportId] = voteDocSnap.data().type as 'up' | 'down';
+    //   }
+    // });
+    // await Promise.all(votePromises);
+    return votes;
+  }, []);
 
   useEffect(() => {
     setIsLoading(true); // Start loading
@@ -61,12 +81,13 @@ const WelcomePage: FC = () => {
           const q = query(reportsCollectionRef, where("userId", "==", currentUser.uid), orderBy("createdAt", "desc")); // Filter by user ID and Order by newest first
           const querySnapshot = await getDocs(q);
 
+          const reportIds: string[] = [];
           const fetchedReports: Report[] = querySnapshot.docs.map(doc => {
             const data = doc.data();
-            // Ensure createdAt is converted from Timestamp to Date
             const createdAtDate = data.createdAt instanceof Timestamp
               ? data.createdAt.toDate()
-              : new Date(); // Fallback if conversion fails
+              : new Date();
+            reportIds.push(doc.id); // Collect report IDs
 
             return {
               id: doc.id,
@@ -79,16 +100,28 @@ const WelcomePage: FC = () => {
               mediaUrl: data.mediaUrl || null,
               latitude: data.latitude || null,
               longitude: data.longitude || null,
-              // status: data.status, // Status field removed
               createdAt: createdAtDate,
-            } as Report; // Assert type
+              upvotes: data.upvotes || 0, // Default to 0 if not present
+              downvotes: data.downvotes || 0, // Default to 0 if not present
+              userVote: null, // Initialize userVote as null
+            } as Report;
           });
-          console.log("Fetched user reports:", fetchedReports.length);
-          setReports(fetchedReports);
+
+          // Fetch user votes for the fetched reports
+          const userVotes = await fetchUserVotes(currentUser.uid, reportIds);
+
+          // Merge user votes into the fetched reports
+          const reportsWithVotes = fetchedReports.map(report => ({
+            ...report,
+            userVote: userVotes[report.id] || null,
+          }));
+
+
+          console.log("Fetched user reports:", reportsWithVotes.length);
+          setReports(reportsWithVotes);
         } catch (error) {
           console.error("Error fetching user reports: ", error);
-          // Optionally show a toast message to the user
-          // toast({ variant: "destructive", title: "Error", description: "No se pudiero cargar los reportes." });
+          toast({ variant: "destructive", title: "Error", description: "No se pudieron cargar los reportes." });
         } finally {
            setIsLoading(false); // Stop loading after fetch attempt
         }
@@ -96,11 +129,10 @@ const WelcomePage: FC = () => {
         router.replace("/login"); // Redirect to login if not authenticated
         setIsLoading(false); // Stop loading if no user
       }
-      // Removed timeout based loading stop
     });
 
     return () => unsubscribe();
-  }, [router]);
+  }, [router, toast, fetchUserVotes]); // Added fetchUserVotes dependency
 
   // Memoize filtered reports to avoid recalculation on every render
   const filteredReports = useMemo(() => {
@@ -135,6 +167,113 @@ const WelcomePage: FC = () => {
         return location; // Fallback to the full string if parsing fails
     };
 
+    // Handle Voting Logic
+    const handleVote = async (reportId: string, voteType: 'up' | 'down') => {
+        if (!user) {
+            toast({ variant: "destructive", title: "Error", description: "Debes iniciar sesión para votar." });
+            return;
+        }
+        if (votingState[reportId]) return; // Prevent multiple clicks while processing
+
+        setVotingState(prev => ({ ...prev, [reportId]: true }));
+
+        const reportIndex = reports.findIndex(r => r.id === reportId);
+        if (reportIndex === -1) return;
+
+        const currentReport = reports[reportIndex];
+        const currentVote = currentReport.userVote;
+
+        // Optimistic UI Update
+        const originalReport = { ...currentReport };
+        let optimisticUpvotes = currentReport.upvotes;
+        let optimisticDownvotes = currentReport.downvotes;
+        let optimisticUserVote: 'up' | 'down' | null = null;
+
+        if (currentVote === voteType) { // User is removing their vote
+            optimisticUserVote = null;
+            if (voteType === 'up') optimisticUpvotes--;
+            else optimisticDownvotes--;
+        } else { // New vote or changing vote
+            optimisticUserVote = voteType;
+            if (voteType === 'up') {
+                optimisticUpvotes++;
+                if (currentVote === 'down') optimisticDownvotes--; // Decrement opposite if changing
+            } else { // voteType === 'down'
+                optimisticDownvotes++;
+                if (currentVote === 'up') optimisticUpvotes--; // Decrement opposite if changing
+            }
+        }
+
+        const optimisticReports = [...reports];
+        optimisticReports[reportIndex] = {
+            ...currentReport,
+            upvotes: optimisticUpvotes,
+            downvotes: optimisticDownvotes,
+            userVote: optimisticUserVote,
+        };
+        setReports(optimisticReports);
+
+
+        // --- Firestore Update ---
+        try {
+            const reportRef = doc(db, "reports", reportId);
+            // In a real app, also update a `votes` subcollection document:
+            // const voteRef = doc(db, `reports/${reportId}/votes/${user.uid}`);
+
+            await runTransaction(db, async (transaction) => {
+                const reportSnap = await transaction.get(reportRef);
+                if (!reportSnap.exists()) {
+                    throw new Error("El reporte ya no existe.");
+                }
+
+                const reportData = reportSnap.data();
+                let newUpvotes = reportData.upvotes || 0;
+                let newDownvotes = reportData.downvotes || 0;
+
+                // Logic to determine actual increments/decrements based on currentVote
+                // This should ideally fetch the user's current vote from the subcollection
+                // For simplicity, we use the state `currentVote` which might not be perfectly in sync
+                 if (currentVote === voteType) { // Removing vote
+                    if (voteType === 'up') newUpvotes = Math.max(0, newUpvotes - 1);
+                    else newDownvotes = Math.max(0, newDownvotes - 1);
+                     // In real app: transaction.delete(voteRef);
+                } else { // Adding or changing vote
+                    if (voteType === 'up') {
+                       newUpvotes++;
+                       if (currentVote === 'down') newDownvotes = Math.max(0, newDownvotes - 1);
+                        // In real app: transaction.set(voteRef, { type: 'up', timestamp: Timestamp.now() });
+                    } else { // voteType === 'down'
+                       newDownvotes++;
+                       if (currentVote === 'up') newUpvotes = Math.max(0, newUpvotes - 1);
+                        // In real app: transaction.set(voteRef, { type: 'down', timestamp: Timestamp.now() });
+                    }
+                }
+
+                transaction.update(reportRef, {
+                    upvotes: newUpvotes,
+                    downvotes: newDownvotes,
+                });
+            });
+
+            console.log("Vote updated successfully for report:", reportId);
+            // Update local state *again* after successful transaction only if needed
+            // (usually optimistic update is enough, but refetch or merge if complex)
+            // Example: Refetch the specific report or the whole list if needed
+
+        } catch (error: any) {
+            console.error("Error updating vote:", error);
+            toast({ variant: "destructive", title: "Error", description: `No se pudo registrar el voto: ${error.message}` });
+            // Revert optimistic update on error
+            setReports(prevReports => {
+                const revertedReports = [...prevReports];
+                revertedReports[reportIndex] = originalReport;
+                return revertedReports;
+            });
+        } finally {
+            setVotingState(prev => ({ ...prev, [reportId]: false }));
+        }
+    };
+
 
   if (isLoading) {
     return (
@@ -163,6 +302,11 @@ const WelcomePage: FC = () => {
                     <Skeleton className="h-4 w-1/3" />
                     <Skeleton className="h-4 w-1/4" /> {/* Skeleton for Date */}
                   </div>
+                   {/* Vote Skeletons */}
+                   <div className="flex justify-end items-center space-x-3 pt-2">
+                     <Skeleton className="h-6 w-12 rounded-md" />
+                     <Skeleton className="h-6 w-12 rounded-md" />
+                   </div>
                </CardContent>
              </Card>
            ))}
@@ -214,36 +358,71 @@ const WelcomePage: FC = () => {
         <div className="space-y-4 pb-20"> {/* Add padding-bottom to avoid FAB overlap */}
           {filteredReports.length > 0 ? (
             filteredReports.map((report) => (
-              <Link key={report.id} href={`/reports/${report.id}`} className="block hover:bg-card/50 rounded-lg transition-colors duration-150">
-                <Card className="w-full shadow-sm rounded-lg overflow-hidden border border-border cursor-pointer bg-card">
-                  <CardHeader className="flex flex-row items-start justify-between pb-2 space-y-0 pt-4 px-4 sm:px-5 relative"> {/* Added relative */}
-                      <div className="flex items-center space-x-2 flex-1 pr-4"> {/* Adjusted padding-right */}
-                         {report.reportType === 'funcionario' ? (
-                           <UserCog className="h-5 w-5 text-blue-600 flex-shrink-0" />
-                         ) : (
-                           <TriangleAlert className="h-5 w-5 text-red-600 flex-shrink-0" />
-                         )}
-                        <CardTitle className="text-base font-semibold text-foreground line-clamp-1">{report.title}</CardTitle> {/* Added line-clamp */}
+              <Card key={report.id} className="w-full shadow-sm rounded-lg overflow-hidden border border-border bg-card transition-colors duration-150">
+                <Link href={`/reports/${report.id}`} className="block hover:bg-card/50 ">
+                   <CardHeader className="flex flex-row items-start justify-between pb-2 space-y-0 pt-4 px-4 sm:px-5 relative cursor-pointer"> {/* Cursor pointer on header too */}
+                       <div className="flex items-center space-x-2 flex-1 pr-4"> {/* Adjusted padding-right */}
+                          {report.reportType === 'funcionario' ? (
+                            <UserCog className="h-5 w-5 text-blue-600 flex-shrink-0" />
+                          ) : (
+                            <TriangleAlert className="h-5 w-5 text-red-600 flex-shrink-0" />
+                          )}
+                         <CardTitle className="text-base font-semibold text-foreground line-clamp-1">{report.title}</CardTitle> {/* Added line-clamp */}
+                       </div>
+                        {/* Removed Badge */}
+                   </CardHeader>
+                   <CardContent className="space-y-2 pt-1 pb-4 px-4 sm:px-5 cursor-pointer"> {/* Cursor pointer on content */}
+                     <CardDescription className="text-sm text-foreground/90 leading-relaxed line-clamp-2">{report.description}</CardDescription>
+                      <div className="flex justify-between items-center text-sm text-muted-foreground pt-2">
+                        {/* Formatted Location */}
+                        <div className="flex items-center">
+                            <MapPin className="h-4 w-4 mr-1.5 flex-shrink-0"/>
+                            <span className="line-clamp-1">{formatLocation(report.location)}</span>
+                        </div>
+                        {/* Date */}
+                        <div className="flex items-center text-xs">
+                            <CalendarDays className="h-3.5 w-3.5 mr-1 flex-shrink-0" />
+                            <span>{format(report.createdAt, "PPP", { locale: es })}</span>
+                        </div>
                       </div>
-                       {/* Status Badge removed */}
-                  </CardHeader>
-                  <CardContent className="space-y-2 pt-1 pb-4 px-4 sm:px-5">
-                    <CardDescription className="text-sm text-foreground/90 leading-relaxed line-clamp-2">{report.description}</CardDescription>
-                     <div className="flex justify-between items-center text-sm text-muted-foreground pt-2">
-                       {/* Formatted Location */}
-                       <div className="flex items-center">
-                           <MapPin className="h-4 w-4 mr-1.5 flex-shrink-0"/>
-                           <span className="line-clamp-1">{formatLocation(report.location)}</span>
-                       </div>
-                       {/* Date */}
-                       <div className="flex items-center text-xs">
-                           <CalendarDays className="h-3.5 w-3.5 mr-1 flex-shrink-0" />
-                           <span>{format(report.createdAt, "PPP", { locale: es })}</span>
-                       </div>
-                     </div>
-                  </CardContent>
-                </Card>
-              </Link>
+                   </CardContent>
+                 </Link>
+                 {/* Voting Section - Separate from Link */}
+                 <div className="flex justify-end items-center space-x-3 px-4 pb-3 pt-1 border-t border-border/50">
+                    <Button
+                         variant="ghost"
+                         size="sm"
+                         className={cn(
+                           "flex items-center gap-1.5 h-7 px-2 rounded-md text-xs text-muted-foreground hover:text-green-600 hover:bg-green-100/50 dark:hover:bg-green-900/20",
+                           report.userVote === 'up' && "text-green-600 bg-green-100/60 dark:bg-green-900/30",
+                           votingState[report.id] && "opacity-50 cursor-not-allowed"
+                         )}
+                         onClick={() => handleVote(report.id, 'up')}
+                         disabled={votingState[report.id]}
+                         aria-pressed={report.userVote === 'up'}
+                         title="Votar positivamente"
+                    >
+                        {votingState[report.id] && report.userVote !== 'up' ? <Loader2 className="h-3.5 w-3.5 animate-spin"/> : <ArrowUp className="h-4 w-4"/>}
+                         <span>{report.upvotes}</span>
+                    </Button>
+                    <Button
+                         variant="ghost"
+                         size="sm"
+                         className={cn(
+                            "flex items-center gap-1.5 h-7 px-2 rounded-md text-xs text-muted-foreground hover:text-red-600 hover:bg-red-100/50 dark:hover:bg-red-900/20",
+                            report.userVote === 'down' && "text-red-600 bg-red-100/60 dark:bg-red-900/30",
+                            votingState[report.id] && "opacity-50 cursor-not-allowed"
+                          )}
+                         onClick={() => handleVote(report.id, 'down')}
+                         disabled={votingState[report.id]}
+                         aria-pressed={report.userVote === 'down'}
+                         title="Votar negativamente"
+                    >
+                        {votingState[report.id] && report.userVote !== 'down' ? <Loader2 className="h-3.5 w-3.5 animate-spin"/> : <ArrowDown className="h-4 w-4"/>}
+                         <span>{report.downvotes}</span>
+                    </Button>
+                 </div>
+              </Card>
             ))
           ) : (
             <Card className="w-full shadow-sm rounded-lg border border-border bg-card">
