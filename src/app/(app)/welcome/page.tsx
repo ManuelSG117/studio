@@ -30,7 +30,7 @@ export interface Report {
   mediaUrl: string | null;
   latitude: number | null;
   longitude: number | null;
-  status: 'Pendiente' | 'En proceso' | 'Resuelto';
+  // status: 'Pendiente' | 'En proceso' | 'Resuelto'; // Status field removed
   createdAt: Date; // Store as Date object
 }
 
@@ -57,7 +57,6 @@ const WelcomePage: FC = () => {
         try {
           console.log("Fetching reports from Firestore...");
           // Query reports collection, ordered by creation date descending
-          // Consider adding 'where' clauses for filtering (e.g., by user, status, location) if needed
           const reportsCollectionRef = collection(db, "reports");
           const q = query(reportsCollectionRef, orderBy("createdAt", "desc")); // Order by newest first
           const querySnapshot = await getDocs(q);
@@ -80,7 +79,7 @@ const WelcomePage: FC = () => {
               mediaUrl: data.mediaUrl || null,
               latitude: data.latitude || null,
               longitude: data.longitude || null,
-              status: data.status,
+              // status: data.status, // Status field removed
               createdAt: createdAtDate,
             } as Report; // Assert type
           });
@@ -120,33 +119,11 @@ const WelcomePage: FC = () => {
     });
   }, [reports, searchTerm, filter]);
 
-  // Function to get status badge variant (remains the same)
-  const getStatusVariant = (status: Report['status']): "default" | "secondary" | "outline" | "destructive" | null | undefined => {
-      switch (status) {
-          case 'Pendiente':
-              return 'default';
-          case 'En proceso':
-              return 'secondary';
-          case 'Resuelto':
-              return 'outline';
-          default:
-              return 'default';
-      }
-  }
+  // Function to get status badge variant (remains the same) - REMOVED
+  // const getStatusVariant = (status: Report['status']): "default" | "secondary" | "outline" | "destructive" | null | undefined => { ... }
 
-   // Function to get status badge colors (remains the same)
-   const getStatusClasses = (status: Report['status']): string => {
-       switch (status) {
-           case 'Pendiente':
-               return 'bg-yellow-100 text-yellow-800 border-yellow-200 dark:bg-yellow-900/30 dark:text-yellow-300 dark:border-yellow-700/50';
-           case 'En proceso':
-               return 'bg-blue-100 text-blue-800 border-blue-200 dark:bg-blue-900/30 dark:text-blue-300 dark:border-blue-700/50';
-           case 'Resuelto':
-               return 'bg-green-100 text-green-800 border-green-200 dark:bg-green-900/30 dark:text-green-300 dark:border-green-700/50';
-           default:
-               return 'bg-gray-100 text-gray-800 border-gray-200 dark:bg-gray-700 dark:text-gray-300 dark:border-gray-600'; // Fallback
-       }
-   }
+   // Function to get status badge colors (remains the same) - REMOVED
+   // const getStatusClasses = (status: Report['status']): string => { ... }
 
    // Helper function to extract street and neighborhood from location string
    const formatLocation = (location: string): string => {
@@ -189,7 +166,7 @@ const WelcomePage: FC = () => {
                      <Skeleton className="h-5 w-5 rounded-full flex-shrink-0" />
                      <Skeleton className="h-5 w-3/5" />
                   </div>
-                 <Skeleton className="absolute top-4 right-4 h-6 w-20 rounded-full" /> {/* Skeleton for Badge */}
+                 {/* <Skeleton className="absolute top-4 right-4 h-6 w-20 rounded-full" /> // Skeleton for Badge removed */}
                </CardHeader>
                <CardContent className="space-y-2 pt-1 pb-4 px-4 sm:px-5">
                  <Skeleton className="h-4 w-full" />
@@ -269,7 +246,7 @@ const WelcomePage: FC = () => {
               <Link key={report.id} href={`/reports/${report.id}`} className="block hover:bg-card/50 rounded-lg transition-colors duration-150">
                 <Card className="w-full shadow-sm rounded-lg overflow-hidden border border-border cursor-pointer bg-card">
                   <CardHeader className="flex flex-row items-start justify-between pb-2 space-y-0 pt-4 px-4 sm:px-5 relative"> {/* Added relative */}
-                      <div className="flex items-center space-x-2 flex-1 pr-20"> {/* Add padding-right to title container */}
+                      <div className="flex items-center space-x-2 flex-1 pr-4"> {/* Adjusted padding-right */}
                          {report.reportType === 'funcionario' ? (
                            <UserCog className="h-5 w-5 text-blue-600 flex-shrink-0" />
                          ) : (
@@ -277,13 +254,7 @@ const WelcomePage: FC = () => {
                          )}
                         <CardTitle className="text-base font-semibold text-foreground line-clamp-1">{report.title}</CardTitle> {/* Added line-clamp */}
                       </div>
-                       {/* Moved Status Badge to top right */}
-                       <Badge
-                           variant={getStatusVariant(report.status)}
-                           className={`absolute top-4 right-4 capitalize rounded-full px-2.5 py-0.5 text-xs font-medium border ${getStatusClasses(report.status)}`}
-                       >
-                        {report.status}
-                      </Badge>
+                       {/* Status Badge removed */}
                   </CardHeader>
                   <CardContent className="space-y-2 pt-1 pb-4 px-4 sm:px-5">
                     <CardDescription className="text-sm text-foreground/90 leading-relaxed line-clamp-2">{report.description}</CardDescription>
@@ -293,7 +264,7 @@ const WelcomePage: FC = () => {
                            <MapPin className="h-4 w-4 mr-1.5 flex-shrink-0"/>
                            <span className="line-clamp-1">{formatLocation(report.location)}</span>
                        </div>
-                       {/* Moved Date to bottom right */}
+                       {/* Date */}
                        <div className="flex items-center text-xs">
                            <CalendarDays className="h-3.5 w-3.5 mr-1 flex-shrink-0" />
                            <span>{format(report.createdAt, "PPP", { locale: es })}</span>

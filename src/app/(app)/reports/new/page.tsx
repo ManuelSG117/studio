@@ -1,3 +1,4 @@
+
 "use client";
 
 import type { FC, ChangeEvent } from "react";
@@ -294,7 +295,7 @@ const NewReportPage: FC = () => {
         mediaUrl: mediaDownloadURL,
         latitude: values.latitude ?? null, // Save coordinates if available
         longitude: values.longitude ?? null,
-        status: 'Pendiente',
+        // status: 'Pendiente', // Status field removed
         createdAt: Timestamp.now(),
       };
 

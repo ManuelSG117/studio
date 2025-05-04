@@ -60,7 +60,7 @@ const ReportDetailPage: FC = () => {
                                  mediaUrl: data.mediaUrl || null,
                                  latitude: data.latitude || null,
                                  longitude: data.longitude || null,
-                                 status: data.status,
+                                 // status: data.status, // Status field removed
                                  createdAt: createdAtDate,
                             };
                             console.log("Report data found:", fetchedReport);
@@ -88,29 +88,11 @@ const ReportDetailPage: FC = () => {
     }, [router, reportId]);
 
 
-    // Function to get status badge variant (consistent with welcome page)
-    const getStatusVariant = (status: Report['status']): "default" | "secondary" | "outline" | "destructive" | null | undefined => {
-        switch (status) {
-            case 'Pendiente': return 'default';
-            case 'En proceso': return 'secondary';
-            case 'Resuelto': return 'outline';
-            default: return 'default';
-        }
-    }
+    // Function to get status badge variant (consistent with welcome page) - REMOVED
+    // const getStatusVariant = (status: Report['status']): "default" | "secondary" | "outline" | "destructive" | null | undefined => { ... }
 
-     // Function to get status badge colors (consistent with welcome page)
-    const getStatusClasses = (status: Report['status']): string => {
-        switch (status) {
-             case 'Pendiente':
-                 return 'bg-yellow-100 text-yellow-800 border-yellow-200 dark:bg-yellow-900/30 dark:text-yellow-300 dark:border-yellow-700/50';
-             case 'En proceso':
-                 return 'bg-blue-100 text-blue-800 border-blue-200 dark:bg-blue-900/30 dark:text-blue-300 dark:border-blue-700/50';
-             case 'Resuelto':
-                 return 'bg-green-100 text-green-800 border-green-200 dark:bg-green-900/30 dark:text-green-300 dark:border-green-700/50';
-             default:
-                 return 'bg-gray-100 text-gray-800 border-gray-200 dark:bg-gray-700 dark:text-gray-300 dark:border-gray-600'; // Fallback
-        }
-    }
+     // Function to get status badge colors (consistent with welcome page) - REMOVED
+    // const getStatusClasses = (status: Report['status']): string => { ... }
 
      // Loading state for authentication check and data fetching
     if (isLoading || !isClient) { // Use the single isLoading state and check for client mount
@@ -126,7 +108,7 @@ const ReportDetailPage: FC = () => {
                     <CardContent className="px-6 sm:px-8 pt-4 pb-6 space-y-6"> {/* Increased spacing */}
                         {/* Metadata Skeletons */}
                          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 text-sm border-b pb-4">
-                            <Skeleton className="h-6 w-28" />
+                            {/* <Skeleton className="h-6 w-28" /> // Status skeleton removed */}
                             <Skeleton className="h-4 w-40" />
                          </div>
                          {/* Location Skeleton */}
@@ -206,18 +188,9 @@ const ReportDetailPage: FC = () => {
                     {/* Removed redundant CardDescription */}
                 </CardHeader>
 
-                 {/* Status and Date Section */}
-                 <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 text-sm text-muted-foreground px-6 sm:px-8 pb-4 border-b border-border">
-                     <div className="flex items-center space-x-3">
-                         <Tag className="h-4 w-4 flex-shrink-0" />
-                         <span className="font-medium text-foreground">Estado:</span>
-                         <Badge
-                             variant={getStatusVariant(report.status)}
-                             className={`capitalize rounded-full px-2.5 py-0.5 text-xs font-semibold border ${getStatusClasses(report.status)}`}
-                         >
-                             {report.status}
-                         </Badge>
-                     </div>
+                 {/* Date Section */}
+                 <div className="flex flex-col sm:flex-row justify-center items-center gap-2 text-sm text-muted-foreground px-6 sm:px-8 pb-4 border-b border-border">
+                     {/* Removed Status Display */}
                      <div className="flex items-center space-x-2">
                          <CalendarDays className="h-4 w-4 flex-shrink-0" />
                          <span>{format(report.createdAt, "PPP 'a las' p", { locale: es })}</span>
@@ -304,4 +277,3 @@ const ReportDetailPage: FC = () => {
 };
 
 export default ReportDetailPage;
-
