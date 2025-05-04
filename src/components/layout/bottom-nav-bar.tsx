@@ -45,3 +45,4 @@ export const BottomNavBar: FC = () => {
     </nav>
   );
 };
+
