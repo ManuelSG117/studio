@@ -55,8 +55,8 @@ const WelcomePage: FC = () => {
         setUser(currentUser);
         // Fetch reports from Firestore after authentication
         try {
-          console.log("Fetching reports from Firestore...");
-          // Query reports collection, ordered by creation date descending
+          console.log("Fetching reports for user:", currentUser.uid);
+          // Query reports collection, filtered by user ID and ordered by creation date descending
           const reportsCollectionRef = collection(db, "reports");
           const q = query(reportsCollectionRef, where("userId", "==", currentUser.uid), orderBy("createdAt", "desc")); // Filter by user ID and Order by newest first
           const querySnapshot = await getDocs(q);
@@ -83,10 +83,10 @@ const WelcomePage: FC = () => {
               createdAt: createdAtDate,
             } as Report; // Assert type
           });
-          console.log("Fetched reports:", fetchedReports.length);
+          console.log("Fetched user reports:", fetchedReports.length);
           setReports(fetchedReports);
         } catch (error) {
-          console.error("Error fetching reports: ", error);
+          console.error("Error fetching user reports: ", error);
           // Optionally show a toast message to the user
           // toast({ variant: "destructive", title: "Error", description: "No se pudiero cargar los reportes." });
         } finally {
@@ -253,8 +253,11 @@ const WelcomePage: FC = () => {
                        <Loader2 className="mr-2 h-4 w-4 animate-spin" /> Cargando reportes...
                    </span>
                  ) : (
-                   `No se encontraron reportes ${searchTerm ? `que coincidan con "${searchTerm}"` : ''}${filter !== 'Todos' ? ` en la categoría "${filter}"` : ''}.`
+                   `No has creado ningún reporte todavía ${searchTerm ? `que coincidan con "${searchTerm}"` : ''}${filter !== 'Todos' ? ` en la categoría "${filter}"` : ''}.`
                  )}
+                 <Button asChild variant="link" className="mt-2">
+                     <Link href="/reports/new">Crea tu primer reporte</Link>
+                 </Button>
                </CardContent>
             </Card>
           )}
