@@ -17,6 +17,7 @@ import { CalendarDays, MapPin, Tag, UserCog, TriangleAlert, Image as ImageIcon, 
 import type { Report } from '@/app/(app)/welcome/page'; // Import Report type
 import { format } from 'date-fns'; // Import format for date display
 import { es } from 'date-fns/locale'; // Import Spanish locale for date formatting
+import MapPreview from '@/components/map-preview'; // Import the MapPreview component
 
 
 const ReportDetailPage: FC = () => {
@@ -60,7 +61,6 @@ const ReportDetailPage: FC = () => {
                                  mediaUrl: data.mediaUrl || null,
                                  latitude: data.latitude || null,
                                  longitude: data.longitude || null,
-                                 // status: data.status, // Status field removed
                                  createdAt: createdAtDate,
                             };
                             console.log("Report data found:", fetchedReport);
@@ -88,12 +88,6 @@ const ReportDetailPage: FC = () => {
     }, [router, reportId]);
 
 
-    // Function to get status badge variant (consistent with welcome page) - REMOVED
-    // const getStatusVariant = (status: Report['status']): "default" | "secondary" | "outline" | "destructive" | null | undefined => { ... }
-
-     // Function to get status badge colors (consistent with welcome page) - REMOVED
-    // const getStatusClasses = (status: Report['status']): string => { ... }
-
      // Loading state for authentication check and data fetching
     if (isLoading || !isClient) { // Use the single isLoading state and check for client mount
         return (
@@ -102,15 +96,18 @@ const ReportDetailPage: FC = () => {
                     <CardHeader className="relative pb-4 pt-8">
                          {/* Add Back Button Skeleton */}
                          <Skeleton className="absolute left-4 top-6 h-9 w-9 rounded-full" />
-                        <Skeleton className="h-7 w-3/5 mx-auto mb-4" /> {/* Adjusted margin */}
-                        {/* Removed CardDescription skeleton */}
-                    </CardHeader>
-                    <CardContent className="px-6 sm:px-8 pt-4 pb-6 space-y-6"> {/* Increased spacing */}
-                        {/* Metadata Skeletons */}
-                         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 text-sm border-b pb-4">
-                            {/* <Skeleton className="h-6 w-28" /> // Status skeleton removed */}
-                            <Skeleton className="h-4 w-40" />
+                         {/* Title Skeleton */}
+                         <div className="flex items-center justify-center gap-3 pt-2">
+                            <Skeleton className="h-6 w-6 rounded-full"/>
+                            <Skeleton className="h-7 w-3/5" />
                          </div>
+                    </CardHeader>
+                     {/* Date Skeleton */}
+                     <div className="flex justify-center items-center gap-2 text-sm px-6 sm:px-8 pb-4 border-b">
+                         <Skeleton className="h-4 w-40" />
+                     </div>
+
+                    <CardContent className="px-6 sm:px-8 pt-6 pb-6 space-y-6"> {/* Increased spacing */}
                          {/* Location Skeleton */}
                          <div className="space-y-2">
                              <Skeleton className="h-5 w-32" />
@@ -151,7 +148,7 @@ const ReportDetailPage: FC = () => {
                          </p>
                          <Button asChild variant="outline" className="rounded-full">
                              <Link href="/welcome">
-                                 Volver a Reportes
+                                 Volver a Mis Reportes
                              </Link>
                          </Button>
                      </CardContent>
@@ -185,12 +182,10 @@ const ReportDetailPage: FC = () => {
                        )}
                        <CardTitle className="text-2xl font-bold text-foreground">{report.title}</CardTitle>
                     </div>
-                    {/* Removed redundant CardDescription */}
                 </CardHeader>
 
                  {/* Date Section */}
                  <div className="flex flex-col sm:flex-row justify-center items-center gap-2 text-sm text-muted-foreground px-6 sm:px-8 pb-4 border-b border-border">
-                     {/* Removed Status Display */}
                      <div className="flex items-center space-x-2">
                          <CalendarDays className="h-4 w-4 flex-shrink-0" />
                          <span>{format(report.createdAt, "PPP 'a las' p", { locale: es })}</span>
@@ -198,22 +193,21 @@ const ReportDetailPage: FC = () => {
                  </div>
 
 
-                <CardContent className="px-6 sm:px-8 pt-6 pb-6 space-y-6"> {/* Increased top padding */}
+                <CardContent className="px-6 sm:px-8 pt-6 pb-6 space-y-6">
 
                      {/* Report Location */}
-                     <div className="pt-0"> {/* Adjusted padding */}
+                     <div className="pt-0">
                          <h3 className="text-base font-semibold text-primary mb-2 flex items-center">
-                             <MapPin className="h-5 w-5 mr-2 opacity-70" /> Ubicación {/* Changed Heading */}
+                             <MapPin className="h-5 w-5 mr-2 opacity-70" /> Ubicación
                          </h3>
                          <p className="text-foreground/90 leading-relaxed">{report.location}</p>
-                         {/* Coordinates Display Removed */}
                      </div>
 
 
                     {/* Report Description */}
-                    <div className="pt-0"> {/* Adjusted padding */}
+                    <div className="pt-0">
                         <h3 className="text-base font-semibold text-primary mb-2">Descripción</h3>
-                        <p className="text-foreground/90 leading-relaxed whitespace-pre-wrap">{report.description}</p> {/* Added whitespace-pre-wrap */}
+                        <p className="text-foreground/90 leading-relaxed whitespace-pre-wrap">{report.description}</p>
                     </div>
 
                     {/* Media Evidence */}
@@ -223,13 +217,12 @@ const ReportDetailPage: FC = () => {
                                  <ImageIcon className="h-5 w-5 mr-2 opacity-70" /> Evidencia Multimedia
                              </h3>
                              <div className="relative aspect-video w-full overflow-hidden rounded-lg border border-border bg-muted">
-                                 {/* Simple check for video based on common extensions or content type if available */}
                                  {/\.(mp4|webm|ogg|mov)$/i.test(report.mediaUrl) ? (
                                       <video
                                          controls
                                          src={report.mediaUrl}
                                          className="absolute inset-0 w-full h-full object-contain"
-                                         preload="metadata" // Load only metadata initially
+                                         preload="metadata"
                                        >
                                          Tu navegador no soporta videos HTML5.
                                       </video>
@@ -241,7 +234,7 @@ const ReportDetailPage: FC = () => {
                                          style={{ objectFit: 'contain' }}
                                          data-ai-hint="report evidence media"
                                          className="bg-muted"
-                                         sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw" // Example sizes
+                                         sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
                                       />
                                   )}
                              </div>
@@ -255,18 +248,21 @@ const ReportDetailPage: FC = () => {
                          </div>
                     )}
 
-                     {/* Map Preview Placeholder */}
+                     {/* Map Preview */}
                     <div className="pt-0">
                          <h3 className="text-base font-semibold text-primary mb-2 flex items-center">
                              <MapPin className="h-5 w-5 mr-2 opacity-70" /> Ubicación en Mapa
                          </h3>
-                         <div className="h-48 w-full bg-muted border border-border rounded-lg flex flex-col items-center justify-center text-center p-4">
-                            <MapPin className="h-8 w-8 text-muted-foreground opacity-50 mb-2" />
-                            <p className="text-sm text-muted-foreground">Visualización del mapa no disponible.</p>
-                            {/* In a future implementation, MapPreview component would go here */}
-                            {/* {report.latitude && report.longitude && (
+                         <div className="h-48 w-full bg-muted border border-border rounded-lg overflow-hidden">
+                             {/* Render the MapPreview component if coordinates exist */}
+                             {report.latitude && report.longitude ? (
                                 <MapPreview lat={report.latitude} lng={report.longitude} />
-                            )} */}
+                             ) : (
+                                 <div className="h-full w-full flex flex-col items-center justify-center text-center p-4">
+                                     <MapPin className="h-8 w-8 text-muted-foreground opacity-50 mb-2" />
+                                     <p className="text-sm text-muted-foreground">Coordenadas no disponibles para mostrar el mapa.</p>
+                                 </div>
+                             )}
                          </div>
                     </div>
 
