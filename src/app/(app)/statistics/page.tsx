@@ -41,6 +41,7 @@ import {
 } from "@/components/ui/chart"; // Import Chart components
 import { cn } from '@/lib/utils';
 import { motion, animate } from 'framer-motion'; // Import motion and animate
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"; // Import Select components
 
 type FilterPeriod = 'day' | 'week' | 'month';
 type ReportTypeFilter = 'Todos' | 'Funcionario' | 'Incidente'; // Added report type filter
@@ -307,10 +308,8 @@ const StatisticsPage: FC = () => {
                      <Skeleton className="h-9 w-20 rounded-md" />
                      <Skeleton className="h-9 w-20 rounded-md" />
                      <Skeleton className="h-9 w-20 rounded-md" />
-                      {/* Type Filters */}
-                     <Skeleton className="h-9 w-24 rounded-md" />
-                     <Skeleton className="h-9 w-32 rounded-md" />
-                     <Skeleton className="h-9 w-28 rounded-md" />
+                      {/* Type Filters (Select Placeholder) */}
+                     <Skeleton className="h-9 w-36 rounded-md" /> {/* Placeholder for Select */}
                  </div>
             </div>
              {/* Metrics Skeleton */}
@@ -354,13 +353,14 @@ const StatisticsPage: FC = () => {
     <main className="flex flex-col items-center p-4 sm:p-6 bg-secondary min-h-screen">
         <div className="w-full max-w-4xl space-y-6">
              {/* Header and Filters */}
-             <div className="flex flex-col sm:flex-row justify-between items-center mb-2 gap-4"> {/* Reduced mb */}
+             <div className="flex flex-col sm:flex-row justify-between items-center mb-6 gap-4"> {/* Increased mb */}
                 <h1 className="text-2xl font-semibold text-foreground flex items-center">
                     <LineChartIcon className="mr-3 h-6 w-6 text-primary" />
                     Estadísticas de Reportes
                 </h1>
-                {/* Time Period Filters */}
-                <div className="flex space-x-2">
+                {/* Combined Filters */}
+                 <div className="flex flex-wrap justify-center sm:justify-end gap-2">
+                     {/* Period Filters */}
                     {(['day', 'week', 'month'] as const).map((period) => (
                         <Button
                             key={period}
@@ -373,30 +373,25 @@ const StatisticsPage: FC = () => {
                             {period === 'day' ? 'Día' : period === 'week' ? 'Semana' : 'Mes'}
                         </Button>
                     ))}
-                </div>
+                    {/* Report Type Select Filter */}
+                    <div className="flex items-center gap-1.5">
+                        <Filter className="h-4 w-4 text-muted-foreground" />
+                        <Select
+                            value={reportTypeFilter}
+                            onValueChange={(value: ReportTypeFilter) => setReportTypeFilter(value)}
+                        >
+                            <SelectTrigger className="h-9 w-[150px] text-sm">
+                                <SelectValue placeholder="Filtrar por tipo" />
+                            </SelectTrigger>
+                            <SelectContent>
+                                <SelectItem value="Todos">Todos</SelectItem>
+                                <SelectItem value="Funcionario">Funcionarios</SelectItem>
+                                <SelectItem value="Incidente">Incidentes</SelectItem>
+                            </SelectContent>
+                        </Select>
+                    </div>
+                 </div>
             </div>
-
-             {/* Report Type Filters */}
-            <div className="flex flex-wrap justify-start sm:justify-start gap-2 mb-4"> {/* Added flex-wrap and gap */}
-                 <span className="text-sm font-medium text-muted-foreground flex items-center mr-2">
-                     <Filter className="h-4 w-4 mr-1" /> Tipo:
-                 </span>
-                 {(['Todos', 'Funcionario', 'Incidente'] as const).map((type) => (
-                     <Button
-                         key={type}
-                         variant={reportTypeFilter === type ? 'secondary' : 'ghost'} // Different styling for type filter
-                         size="sm"
-                         onClick={() => setReportTypeFilter(type)}
-                         className={cn("capitalize h-8 px-3", reportTypeFilter === type && "bg-secondary text-secondary-foreground font-semibold")} // Adjusted active style
-                         aria-pressed={reportTypeFilter === type}
-                     >
-                         {type === 'Funcionario' ? <UserCog className="h-3.5 w-3.5 mr-1.5 text-blue-600" /> :
-                          type === 'Incidente' ? <AlertTriangle className="h-3.5 w-3.5 mr-1.5 text-red-600" /> : null}
-                         {type}
-                     </Button>
-                 ))}
-             </div>
-
 
              {/* Key Metrics Section */}
              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4"> {/* Reduced mb */}
