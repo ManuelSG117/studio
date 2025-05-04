@@ -4,7 +4,7 @@
 import type { FC } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Home, User, FileText, ShieldAlert } from 'lucide-react'; // Using FileText for Reports, ShieldAlert for Danger Zones
+import { Home, User, FileText, ShieldAlert, Globe } from 'lucide-react'; // Added Globe icon
 import { cn } from '@/lib/utils';
 
 interface NavItemProps {
@@ -38,8 +38,9 @@ export const BottomNavBar: FC = () => {
   return (
     <nav className="fixed bottom-0 left-0 right-0 h-16 bg-card border-t border-border shadow-lg flex items-stretch justify-around z-50">
       {/* Changed /welcome to /reports to be more intuitive */}
-      <NavItem href="/welcome" label="Reportes" icon={<FileText className="h-5 w-5" />} />
-      <NavItem href="/danger-zones" label="Zonas" icon={<ShieldAlert className="h-5 w-5" />} /> {/* Added Danger Zones */}
+      <NavItem href="/welcome" label="Mis Reportes" icon={<FileText className="h-5 w-5" />} />
+      <NavItem href="/community-reports" label="Comunidad" icon={<Globe className="h-5 w-5" />} /> {/* Added Community Reports */}
+      <NavItem href="/danger-zones" label="Zonas" icon={<ShieldAlert className="h-5 w-5" />} />
       <NavItem href="/profile" label="Perfil" icon={<User className="h-5 w-5" />} />
     </nav>
   );
