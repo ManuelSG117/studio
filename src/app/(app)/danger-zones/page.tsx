@@ -6,19 +6,18 @@ import { useState, useEffect, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import { onAuthStateChanged, type User } from 'firebase/auth';
 import { auth, db } from '@/lib/firebase/client';
-import { collection, getDocs, query, orderBy, Timestamp } from "firebase/firestore"; // Added imports
+import { collection, getDocs, query, orderBy, Timestamp } from "firebase/firestore";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
-import { MapPin, AlertTriangle, Loader2, List } from 'lucide-react'; // Import icons, removed LineChartIcon
+import { MapPin, AlertTriangle, Loader2, List } from 'lucide-react';
 import { ReportsMap } from '@/components/reports-map'; // Import the ReportsMap component
-import type { Report } from '@/app/(app)/welcome/page'; // Reuse Report type
-import { format } from 'date-fns'; // Import date-fns functions
-import { es } from 'date-fns/locale'; // Import Spanish locale for date formatting
-import Link from 'next/link'; // Import Link for report list
-// Removed chart related imports
+import type { Report } from '@/app/(app)/welcome/page';
+import { format } from 'date-fns';
+import { es } from 'date-fns/locale';
+import Link from 'next/link';
 
 
-// Helper function to format location (optional, might be different from welcome page if needed)
+// Helper function to format location
 const formatLocation = (location: string): string => {
     if (!location) return "Ubicación no disponible";
     const parts = location.split(',').map(part => part.trim());
@@ -31,26 +30,21 @@ const formatLocation = (location: string): string => {
     return location;
 };
 
-// Removed MonthlyReportData interface
-
 const DangerZonesPage: FC = () => {
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(true);
   const [user, setUser] = useState<User | null>(null);
-  const [reports, setReports] = useState<Report[]>([]); // State for all reports data
+  const [reports, setReports] = useState<Report[]>([]);
   const [isClient, setIsClient] = useState(false);
-  // Removed chartData state
-
 
    useEffect(() => {
     setIsClient(true);
-    setIsLoading(true); // Start loading
+    setIsLoading(true);
     const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
       if (!currentUser) {
         router.replace("/login");
       } else {
         setUser(currentUser);
-        // Fetch ALL reports from Firestore (similar to CommunityReportsPage)
         try {
           console.log("Fetching all reports for danger zones map...");
           const reportsCollectionRef = collection(db, "reports");
@@ -81,9 +75,8 @@ const DangerZonesPage: FC = () => {
           setReports(fetchedReports);
         } catch (error) {
           console.error("Error fetching reports for map: ", error);
-          // Optionally show a toast message
         } finally {
-           setIsLoading(false); // Stop loading after fetch attempt
+           setIsLoading(false);
         }
       }
     });
@@ -91,15 +84,11 @@ const DangerZonesPage: FC = () => {
     return () => unsubscribe();
   }, [router]);
 
-   // Removed useEffect for processing chart data
-   // Removed chartConfig
 
-   // Loading state skeleton
-  if (isLoading || !isClient) { // Also wait for client mount
+  if (isLoading || !isClient) {
     return (
       <main className="flex flex-col items-center p-4 sm:p-6 bg-secondary min-h-screen">
-         <div className="w-full max-w-4xl space-y-6"> {/* Increased space-y */}
-            {/* Map Card Skeleton */}
+         <div className="w-full max-w-4xl space-y-6">
             <Card className="w-full shadow-sm rounded-lg overflow-hidden border border-border bg-card">
                  <CardHeader className="pb-2 pt-4 px-4 sm:px-5">
                     <Skeleton className="h-6 w-1/2 mb-2" />
@@ -109,8 +98,6 @@ const DangerZonesPage: FC = () => {
                     <Skeleton className="h-full w-full" />
                  </CardContent>
              </Card>
-              {/* Chart Card Skeleton Removed */}
-             {/* List Card Skeleton */}
              <Card className="w-full shadow-sm rounded-lg border border-border bg-card">
                 <CardHeader>
                      <Skeleton className="h-6 w-1/3 mb-2" />
@@ -130,28 +117,27 @@ const DangerZonesPage: FC = () => {
 
   return (
     <main className="flex flex-col items-center p-4 sm:p-6 bg-secondary min-h-screen">
-        <div className="w-full max-w-4xl space-y-6"> {/* Increased space-y */}
-             {/* Map View Area */}
+        <div className="w-full max-w-4xl space-y-6">
             <Card className="w-full shadow-sm rounded-lg overflow-hidden border border-border bg-card">
                 <CardHeader className="pb-2 pt-4 px-4 sm:px-5">
                     <CardTitle className="text-lg font-semibold text-foreground flex items-center">
-                         <AlertTriangle className="h-5 w-5 mr-2 text-destructive" /> Mapa de Incidencias Reportadas
+                         <AlertTriangle className="h-5 w-5 mr-2 text-destructive" /> Mapa de Zonas de Riesgo
                     </CardTitle>
                      <CardDescription className="text-sm text-muted-foreground">
-                          Visualización de las ubicaciones de los reportes. Haz clic en un marcador para ver detalles.
+                          Visualización de densidad de reportes. Las zonas más cálidas indican mayor concentración.
                      </CardDescription>
                 </CardHeader>
-                <CardContent className="p-0 sm:p-0 h-[60vh] sm:h-[70vh]"> {/* Adjust height as needed */}
-                     {/* Render the ReportsMap component */}
-                     {isClient && ( // Ensure map only renders on client
-                        <ReportsMap reports={reports} />
+                <CardContent className="p-0 sm:p-0 h-[60vh] sm:h-[70vh]">
+                     {isClient && (
+                        <ReportsMap
+                            reports={reports}
+                            showHeatmap={true} // Enable the heatmap layer
+                            defaultZoom={13} // Slightly more zoomed out to see density patterns
+                         />
                      )}
                 </CardContent>
             </Card>
 
-             {/* Report Trend Chart Removed */}
-
-             {/* List View of Reports */}
               <Card className="w-full shadow-sm rounded-lg border border-border bg-card">
                  <CardHeader>
                      <CardTitle className="text-lg font-semibold flex items-center">
@@ -160,8 +146,8 @@ const DangerZonesPage: FC = () => {
                      <CardDescription>Detalles de los últimos reportes recibidos.</CardDescription>
                  </CardHeader>
                  <CardContent>
-                     {reports.length > 0 ? ( // Check reports length directly instead of isLoading again
-                         <ul className="space-y-4 max-h-[40vh] overflow-y-auto pr-2"> {/* Added scroll */}
+                     {reports.length > 0 ? (
+                         <ul className="space-y-4 max-h-[40vh] overflow-y-auto pr-2">
                              {reports.map(report => (
                                 <Link key={report.id} href={`/reports/${report.id}`} className="block hover:bg-muted/50 p-3 rounded-lg transition-colors duration-150 border-b last:border-b-0">
                                  <li >

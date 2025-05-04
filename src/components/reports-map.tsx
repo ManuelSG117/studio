@@ -2,39 +2,44 @@
 "use client";
 
 import type { FC } from 'react';
-import { GoogleMap, useJsApiLoader, MarkerF, InfoWindowF } from '@react-google-maps/api';
+import { GoogleMap, useJsApiLoader, MarkerF, InfoWindowF, HeatmapLayerF } from '@react-google-maps/api'; // Import HeatmapLayerF
 import { Skeleton } from '@/components/ui/skeleton';
-import { MapPin, AlertTriangle, Info, ExternalLink } from 'lucide-react'; // Added ExternalLink
+import { MapPin, AlertTriangle, Info, ExternalLink } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
-import type { Report } from '@/app/(app)/welcome/page'; // Reuse Report type
-import { useState, useCallback, useMemo } from 'react';
-import { useRouter } from 'next/navigation'; // Import useRouter
-import { Button } from '@/components/ui/button'; // Import Button for better styling
+import type { Report } from '@/app/(app)/welcome/page';
+import { useState, useCallback, useMemo, useEffect } from 'react'; // Added useEffect
+import { useRouter } from 'next/navigation';
+import { Button } from '@/components/ui/button';
+import { cn } from '@/lib/utils'; // Import cn for conditional styling
 
 interface ReportsMapProps {
   reports: Report[];
   defaultZoom?: number;
   defaultCenter?: { lat: number; lng: number };
+  showHeatmap?: boolean; // Add prop to control heatmap visibility
 }
 
-// Note: Storing the API key directly in the code is not recommended for production.
-// Consider using environment variables.
-const GOOGLE_MAPS_API_KEY = "AIzaSyDtuGQXVRNzK0N7_5R5iMFLuRMPxCFG5cs"; // User provided key
+const GOOGLE_MAPS_API_KEY = "AIzaSyDtuGQXVRNzK0N7_5R5iMFLuRMPxCFG5cs";
+
+// Define map libraries including visualization for heatmap
+const libraries: ('maps' | 'visualization')[] = ["maps", "visualization"];
 
 export const ReportsMap: FC<ReportsMapProps> = ({
   reports,
-  defaultZoom = 12, // Default zoom level
-  defaultCenter = { lat: 19.4181, lng: -102.0515 } // Centered around Uruapan
+  defaultZoom = 12,
+  defaultCenter = { lat: 19.4181, lng: -102.0515 },
+  showHeatmap = false // Default heatmap to off
 }) => {
   const { toast } = useToast();
-  const router = useRouter(); // Get router instance
+  const router = useRouter();
   const { isLoaded, loadError } = useJsApiLoader({
-    id: 'google-map-script-reports', // Use a unique ID
+    id: 'google-map-script-reports',
     googleMapsApiKey: GOOGLE_MAPS_API_KEY,
-    libraries: ["maps"],
+    libraries: libraries, // Use the defined libraries array
   });
 
   const [selectedReport, setSelectedReport] = useState<Report | null>(null);
+  const [heatmapData, setHeatmapData] = useState<google.maps.LatLng[]>([]); // State for heatmap data
 
   const handleMarkerClick = useCallback((report: Report) => {
     setSelectedReport(report);
@@ -45,42 +50,49 @@ export const ReportsMap: FC<ReportsMapProps> = ({
   }, []);
 
   const handleInfoWindowClick = (reportId: string) => {
-      router.push(`/reports/${reportId}`); // Navigate to report detail page
+      router.push(`/reports/${reportId}`);
   };
 
   const containerStyle = {
     width: '100%',
-    height: '100%', // Take full height of the parent container
-    borderRadius: '0.5rem', // Match card rounding
+    height: '100%',
+    borderRadius: '0.5rem',
   };
 
-  // Memoize map options to prevent unnecessary re-renders
   const mapOptions = useMemo(() => ({
     disableDefaultUI: true,
     zoomControl: true,
     clickableIcons: false,
-    // Consider adding map styles for a custom look
-    // styles: [...]
+    // styles: [...] // Optional custom map styles
   }), []);
 
-  // Filter reports that have valid coordinates
   const reportsWithCoords = useMemo(() => reports.filter(r => r.latitude != null && r.longitude != null), [reports]);
 
-  // Calculate map center dynamically based on reports (optional, fallback to default)
+  // Effect to process reports into heatmap data when isLoaded and reports change
+  useEffect(() => {
+    if (isLoaded && showHeatmap) {
+        const data = reportsWithCoords.map(report =>
+            new window.google.maps.LatLng(report.latitude!, report.longitude!)
+        );
+        setHeatmapData(data);
+        console.log("Generated heatmap data points:", data.length);
+    } else {
+        setHeatmapData([]); // Clear heatmap data if not shown or not loaded
+    }
+  }, [isLoaded, reportsWithCoords, showHeatmap]); // Depend on isLoaded, reportsWithCoords, showHeatmap
+
+
   const mapCenter = useMemo(() => {
     if (reportsWithCoords.length === 0) {
       return defaultCenter;
     }
     if (reportsWithCoords.length === 1 && reportsWithCoords[0]) {
-      // If only one report, center on it
       return { lat: reportsWithCoords[0].latitude!, lng: reportsWithCoords[0].longitude! };
     }
-    // Basic average calculation for multiple reports (can be improved with bounds calculation)
     const avgLat = reportsWithCoords.reduce((sum, r) => sum + r.latitude!, 0) / reportsWithCoords.length;
     const avgLng = reportsWithCoords.reduce((sum, r) => sum + r.longitude!, 0) / reportsWithCoords.length;
     return { lat: avgLat, lng: avgLng };
   }, [reportsWithCoords, defaultCenter]);
-
 
   // --- Loading and Error States ---
   if (loadError) {
@@ -116,14 +128,24 @@ export const ReportsMap: FC<ReportsMapProps> = ({
         zoom={defaultZoom}
         options={mapOptions}
       >
-        {/* Render a marker for each report with coordinates */}
-        {reportsWithCoords.map((report) => (
+        {/* Render Heatmap Layer if enabled */}
+        {showHeatmap && heatmapData.length > 0 && (
+            <HeatmapLayerF
+                data={heatmapData}
+                options={{
+                    radius: 20, // Adjust radius as needed
+                    opacity: 0.6 // Adjust opacity
+                }}
+            />
+        )}
+
+        {/* Render markers (conditionally hide if heatmap is very dense?) */}
+        {!showHeatmap && reportsWithCoords.map((report) => ( // Example: Only show markers if heatmap is off
           <MarkerF
             key={report.id}
             position={{ lat: report.latitude!, lng: report.longitude! }}
             title={report.title}
             onClick={() => handleMarkerClick(report)}
-            // Removed the icon prop to use default Google Maps marker
           />
         ))}
 
@@ -133,21 +155,20 @@ export const ReportsMap: FC<ReportsMapProps> = ({
                position={{ lat: selectedReport.latitude!, lng: selectedReport.longitude! }}
                onCloseClick={handleInfoWindowClose}
                options={{
-                  pixelOffset: new window.google.maps.Size(0, -35), // Adjust offset slightly higher
-                  maxWidth: 250, // Set max width for better layout
+                  pixelOffset: new window.google.maps.Size(0, -35),
+                  maxWidth: 250,
                 }}
             >
-              <div className="p-2 space-y-1.5 max-w-xs"> {/* Add padding and spacing */}
+              <div className="p-2 space-y-1.5 max-w-xs">
                  <h4 className="text-base font-semibold mb-1 text-primary flex items-center gap-1.5">
                     {selectedReport.reportType === 'incidente' ? (
                        <AlertTriangle className="h-4 w-4 text-destructive flex-shrink-0" />
                      ) : (
-                       <Info className="h-4 w-4 text-blue-600 flex-shrink-0" /> // Example icon for funcionario
+                       <Info className="h-4 w-4 text-blue-600 flex-shrink-0" />
                      )}
                      {selectedReport.title}
                  </h4>
                  <p className="text-xs text-muted-foreground line-clamp-3 leading-snug">{selectedReport.description}</p>
-                  {/* Use a styled button/link for viewing details */}
                   <Button
                     variant="link"
                     size="sm"
@@ -165,3 +186,6 @@ export const ReportsMap: FC<ReportsMapProps> = ({
 };
 
 export default ReportsMap;
+
+
+    
