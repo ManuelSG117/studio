@@ -1,0 +1,15 @@
+No puedo crear el índice de Firestore directamente por ti, ya que eso se hace a través de la consola de Firebase, no mediante cambios en el código de la aplicación.
+
+**Sin embargo, el mensaje de error te da el enlace exacto para hacerlo:**
+
+1.  **Haz clic en el enlace que te proporcionó el error:**
+    `https://console.firebase.google.com/v1/r/project/studiomasseguro/firestore/indexes?create_composite=Ck9wcm9qZWN0cy9zdHVkaW9tYXNzZWd1cm8vZGF0YWJhc2VzLyhkZWZhdWx0KS9jb2xsZWN0aW9uR3JvdXBzL3JlcG9ydHMvaW5kZXhlcy9fEAEaCgoGdXNlcklkEAEaDQoJY3JlYXRlZEF0EAIaDAoIX19uYW1lX18QAg`
+2.  **Verifica la Configuración:** La consola de Firebase ya debería tener pre-configurado el índice que necesitas basado en tu consulta:
+    *   **Grupo de colección:** `reports`
+    *   **Campos indexados:**
+        *   `userId` (Ascendente o igualdad)
+        *   `createdAt` (Descendente)
+3.  **Haz clic en "Crear Índice"**: Confirma la creación del índice.
+4.  **Espera:** Firebase tardará unos minutos (o más, dependiendo de cuántos datos tengas) en construir el índice. Verás el estado "Creando" o "Building" en la consola. Una vez que el estado cambie a "Activo" o "Enabled", tu consulta debería funcionar sin el error.
+
+Después de que el índice esté activo, tu aplicación podrá realizar la consulta para obtener los reportes del usuario ordenados por fecha.
