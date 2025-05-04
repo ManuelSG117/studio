@@ -17,7 +17,7 @@ import { CalendarDays, MapPin, Tag, UserCog, TriangleAlert, Image as ImageIcon, 
 import type { Report } from '@/app/(app)/welcome/page'; // Import Report type
 import { format } from 'date-fns'; // Import format for date display
 import { es } from 'date-fns/locale'; // Import Spanish locale for date formatting
-import MapPreview from '@/components/map-preview'; // Import the MapPreview component
+import { ReportsMap } from '@/components/reports-map'; // Import the ReportsMap component
 
 
 const ReportDetailPage: FC = () => {
@@ -160,7 +160,7 @@ const ReportDetailPage: FC = () => {
 
     // Display report details
     return (
-        <main className="flex flex-col items-center p-4 sm:p-8 bg-secondary">
+        <main className="flex flex-col items-center p-4 sm:p-8 bg-secondary min-h-screen">
             <Card className="w-full max-w-2xl shadow-lg border-none rounded-xl bg-card">
                 <CardHeader className="relative pb-4 pt-8">
                      {/* Back Button */}
@@ -254,13 +254,19 @@ const ReportDetailPage: FC = () => {
                              <MapPin className="h-5 w-5 mr-2 opacity-70" /> Ubicación en Mapa
                          </h3>
                          <div className="h-48 w-full bg-muted border border-border rounded-lg overflow-hidden">
-                             {/* Render the MapPreview component if coordinates exist */}
-                             {report.latitude && report.longitude ? (
-                                <MapPreview lat={report.latitude} lng={report.longitude} />
+                             {/* Render the ReportsMap component if coordinates exist */}
+                             {isClient && report.latitude && report.longitude ? (
+                                <ReportsMap
+                                     reports={[report]} // Pass the single report in an array
+                                     defaultZoom={16} // Zoom in closer for single report view
+                                     defaultCenter={{ lat: report.latitude, lng: report.longitude }}
+                                />
                              ) : (
                                  <div className="h-full w-full flex flex-col items-center justify-center text-center p-4">
                                      <MapPin className="h-8 w-8 text-muted-foreground opacity-50 mb-2" />
-                                     <p className="text-sm text-muted-foreground">Coordenadas no disponibles para mostrar el mapa.</p>
+                                     <p className="text-sm text-muted-foreground">
+                                         {isClient ? "Coordenadas no disponibles para mostrar el mapa." : "Cargando mapa..."}
+                                     </p>
                                  </div>
                              )}
                          </div>
