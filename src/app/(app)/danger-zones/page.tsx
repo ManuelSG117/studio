@@ -9,15 +9,16 @@ import { auth, db } from '@/lib/firebase/client';
 import { collection, getDocs, query, orderBy, Timestamp } from "firebase/firestore";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
-import { MapPin, AlertTriangle, Loader2, List } from 'lucide-react';
+import { Button } from '@/components/ui/button'; // Import Button
+import { MapPin, AlertTriangle, Loader2, List, Map, Waves } from 'lucide-react'; // Added Map and Waves icons
 import { ReportsMap } from '@/components/reports-map'; // Import the ReportsMap component
 import type { Report } from '@/app/(app)/welcome/page';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
 import Link from 'next/link';
+import { cn } from '@/lib/utils'; // Import cn
 
-
-// Helper function to format location
+// Helper function to format location (remains the same)
 const formatLocation = (location: string): string => {
     if (!location) return "Ubicación no disponible";
     const parts = location.split(',').map(part => part.trim());
@@ -30,12 +31,15 @@ const formatLocation = (location: string): string => {
     return location;
 };
 
+type MapViewMode = 'markers' | 'heatmap'; // Define view modes
+
 const DangerZonesPage: FC = () => {
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(true);
   const [user, setUser] = useState<User | null>(null);
   const [reports, setReports] = useState<Report[]>([]);
   const [isClient, setIsClient] = useState(false);
+  const [mapViewMode, setMapViewMode] = useState<MapViewMode>('heatmap'); // Default to heatmap view
 
    useEffect(() => {
     setIsClient(true);
@@ -89,26 +93,37 @@ const DangerZonesPage: FC = () => {
     return (
       <main className="flex flex-col items-center p-4 sm:p-6 bg-secondary min-h-screen">
          <div className="w-full max-w-4xl space-y-6">
-            <Card className="w-full shadow-sm rounded-lg overflow-hidden border border-border bg-card">
+            {/* Header Skeleton */}
+            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4 gap-3">
+                 <Skeleton className="h-8 w-2/3 sm:w-1/2" />
+                 {/* Toggle Buttons Skeleton */}
+                 <div className="flex items-center gap-2">
+                     <Skeleton className="h-9 w-28 rounded-md" />
+                     <Skeleton className="h-9 w-28 rounded-md" />
+                 </div>
+             </div>
+             {/* Map Card Skeleton */}
+             <Card className="w-full shadow-sm rounded-lg overflow-hidden border border-border bg-card">
                  <CardHeader className="pb-2 pt-4 px-4 sm:px-5">
-                    <Skeleton className="h-6 w-1/2 mb-2" />
-                    <Skeleton className="h-4 w-3/4" />
+                     <Skeleton className="h-6 w-1/2 mb-1" />
+                     <Skeleton className="h-4 w-3/4" />
                  </CardHeader>
-                 <CardContent className="p-0 sm:p-0 h-[60vh] sm:h-[70vh] flex items-center justify-center">
-                    <Skeleton className="h-full w-full" />
+                 <CardContent className="p-0 sm:p-0 h-[50vh] sm:h-[60vh] flex items-center justify-center"> {/* Adjusted height */}
+                     <Skeleton className="h-full w-full" />
                  </CardContent>
              </Card>
+             {/* List Card Skeleton */}
              <Card className="w-full shadow-sm rounded-lg border border-border bg-card">
-                <CardHeader>
+                 <CardHeader>
                      <Skeleton className="h-6 w-1/3 mb-2" />
                      <Skeleton className="h-4 w-1/2" />
-                </CardHeader>
-                <CardContent className="space-y-3">
-                    <Skeleton className="h-5 w-2/3" />
-                    <Skeleton className="h-4 w-full" />
-                    <Skeleton className="h-5 w-2/3" />
-                    <Skeleton className="h-4 w-full" />
-                </CardContent>
+                 </CardHeader>
+                 <CardContent className="space-y-3">
+                     <Skeleton className="h-5 w-2/3" />
+                     <Skeleton className="h-4 w-full" />
+                     <Skeleton className="h-5 w-2/3" />
+                     <Skeleton className="h-4 w-full" />
+                 </CardContent>
              </Card>
          </div>
       </main>
@@ -118,26 +133,69 @@ const DangerZonesPage: FC = () => {
   return (
     <main className="flex flex-col items-center p-4 sm:p-6 bg-secondary min-h-screen">
         <div className="w-full max-w-4xl space-y-6">
-            <Card className="w-full shadow-sm rounded-lg overflow-hidden border border-border bg-card">
+
+             {/* Header with Toggle Buttons */}
+             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4 gap-3">
+                 <div className="flex items-center">
+                     <AlertTriangle className="h-6 w-6 mr-2 text-destructive flex-shrink-0" />
+                     <h1 className="text-xl font-semibold text-foreground">
+                         Zonas de Riesgo y Reportes
+                     </h1>
+                 </div>
+                 {/* View Toggle Buttons */}
+                 <div className="flex items-center gap-2 bg-muted p-1 rounded-lg">
+                     <Button
+                         variant={mapViewMode === 'heatmap' ? 'default' : 'ghost'}
+                         size="sm"
+                         onClick={() => setMapViewMode('heatmap')}
+                         className={cn("flex-1 justify-center gap-1.5 h-8 px-4", mapViewMode === 'heatmap' && "shadow")}
+                         aria-pressed={mapViewMode === 'heatmap'}
+                     >
+                         <Waves size={16} />
+                         <span>Densidad</span>
+                     </Button>
+                     <Button
+                         variant={mapViewMode === 'markers' ? 'default' : 'ghost'}
+                         size="sm"
+                         onClick={() => setMapViewMode('markers')}
+                         className={cn("flex-1 justify-center gap-1.5 h-8 px-4", mapViewMode === 'markers' && "shadow")}
+                         aria-pressed={mapViewMode === 'markers'}
+                     >
+                         <MapPin size={16} />
+                         <span>Marcadores</span>
+                     </Button>
+                 </div>
+             </div>
+
+             {/* Map Card */}
+             <Card className="w-full shadow-sm rounded-lg overflow-hidden border border-border bg-card">
                 <CardHeader className="pb-2 pt-4 px-4 sm:px-5">
                     <CardTitle className="text-lg font-semibold text-foreground flex items-center">
-                         <AlertTriangle className="h-5 w-5 mr-2 text-destructive" /> Mapa de Zonas de Riesgo
+                         {mapViewMode === 'heatmap' ? (
+                            <Waves className="h-5 w-5 mr-2 text-primary"/>
+                         ) : (
+                            <Map className="h-5 w-5 mr-2 text-primary"/>
+                         )}
+                        Mapa de {mapViewMode === 'heatmap' ? 'Densidad' : 'Reportes Individuales'}
                     </CardTitle>
                      <CardDescription className="text-sm text-muted-foreground">
-                          Visualización de densidad de reportes. Las zonas más cálidas indican mayor concentración.
+                          {mapViewMode === 'heatmap'
+                           ? 'Visualización de densidad. Zonas más cálidas indican mayor concentración.'
+                           : 'Ubicación de cada reporte individual.'}
                      </CardDescription>
                 </CardHeader>
-                <CardContent className="p-0 sm:p-0 h-[60vh] sm:h-[70vh]">
+                <CardContent className="p-0 sm:p-0 h-[50vh] sm:h-[60vh]"> {/* Adjusted height */}
                      {isClient && (
                         <ReportsMap
                             reports={reports}
-                            showHeatmap={true} // Enable the heatmap layer
-                            defaultZoom={13} // Slightly more zoomed out to see density patterns
+                            viewMode={mapViewMode} // Pass the current view mode
+                            defaultZoom={13}
                          />
                      )}
                 </CardContent>
             </Card>
 
+              {/* Report List Card */}
               <Card className="w-full shadow-sm rounded-lg border border-border bg-card">
                  <CardHeader>
                      <CardTitle className="text-lg font-semibold flex items-center">
@@ -177,5 +235,4 @@ const DangerZonesPage: FC = () => {
 };
 
 export default DangerZonesPage;
-
     

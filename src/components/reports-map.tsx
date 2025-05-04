@@ -4,7 +4,7 @@
 import type { FC } from 'react';
 import { GoogleMap, useJsApiLoader, MarkerF, InfoWindowF, HeatmapLayerF } from '@react-google-maps/api'; // Import HeatmapLayerF
 import { Skeleton } from '@/components/ui/skeleton';
-import { MapPin, AlertTriangle, Info, ExternalLink } from 'lucide-react';
+import { MapPin, AlertTriangle, Info, ExternalLink, UserCog } from 'lucide-react'; // Added UserCog for type icon
 import { useToast } from '@/hooks/use-toast';
 import type { Report } from '@/app/(app)/welcome/page';
 import { useState, useCallback, useMemo, useEffect } from 'react'; // Added useEffect
@@ -12,11 +12,13 @@ import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils'; // Import cn for conditional styling
 
+type MapViewMode = 'markers' | 'heatmap'; // Define view modes
+
 interface ReportsMapProps {
   reports: Report[];
   defaultZoom?: number;
   defaultCenter?: { lat: number; lng: number };
-  showHeatmap?: boolean; // Add prop to control heatmap visibility
+  viewMode?: MapViewMode; // Add prop for view mode control
 }
 
 const GOOGLE_MAPS_API_KEY = "AIzaSyDtuGQXVRNzK0N7_5R5iMFLuRMPxCFG5cs";
@@ -28,7 +30,7 @@ export const ReportsMap: FC<ReportsMapProps> = ({
   reports,
   defaultZoom = 12,
   defaultCenter = { lat: 19.4181, lng: -102.0515 },
-  showHeatmap = false // Default heatmap to off
+  viewMode = 'markers' // Default view mode to 'markers' if not provided
 }) => {
   const { toast } = useToast();
   const router = useRouter();
@@ -70,7 +72,8 @@ export const ReportsMap: FC<ReportsMapProps> = ({
 
   // Effect to process reports into heatmap data when isLoaded and reports change
   useEffect(() => {
-    if (isLoaded && showHeatmap) {
+    // Only generate heatmap data if viewMode is 'heatmap' and map is loaded
+    if (isLoaded && viewMode === 'heatmap') {
         const data = reportsWithCoords.map(report =>
             new window.google.maps.LatLng(report.latitude!, report.longitude!)
         );
@@ -79,16 +82,18 @@ export const ReportsMap: FC<ReportsMapProps> = ({
     } else {
         setHeatmapData([]); // Clear heatmap data if not shown or not loaded
     }
-  }, [isLoaded, reportsWithCoords, showHeatmap]); // Depend on isLoaded, reportsWithCoords, showHeatmap
+  }, [isLoaded, reportsWithCoords, viewMode]); // Depend on viewMode as well
 
 
   const mapCenter = useMemo(() => {
     if (reportsWithCoords.length === 0) {
       return defaultCenter;
     }
+    // Center on the single report if only one exists
     if (reportsWithCoords.length === 1 && reportsWithCoords[0]) {
       return { lat: reportsWithCoords[0].latitude!, lng: reportsWithCoords[0].longitude! };
     }
+    // Calculate average center for multiple reports
     const avgLat = reportsWithCoords.reduce((sum, r) => sum + r.latitude!, 0) / reportsWithCoords.length;
     const avgLng = reportsWithCoords.reduce((sum, r) => sum + r.longitude!, 0) / reportsWithCoords.length;
     return { lat: avgLat, lng: avgLng };
@@ -128,43 +133,46 @@ export const ReportsMap: FC<ReportsMapProps> = ({
         zoom={defaultZoom}
         options={mapOptions}
       >
-        {/* Render Heatmap Layer if enabled */}
-        {showHeatmap && heatmapData.length > 0 && (
+        {/* Render Heatmap Layer if viewMode is 'heatmap' */}
+        {viewMode === 'heatmap' && heatmapData.length > 0 && (
             <HeatmapLayerF
                 data={heatmapData}
                 options={{
-                    radius: 20, // Adjust radius as needed
-                    opacity: 0.6 // Adjust opacity
+                    radius: 25, // Slightly increased radius
+                    opacity: 0.7 // Slightly increased opacity
                 }}
             />
         )}
 
-        {/* Render markers (conditionally hide if heatmap is very dense?) */}
-        {!showHeatmap && reportsWithCoords.map((report) => ( // Example: Only show markers if heatmap is off
+        {/* Render Markers if viewMode is 'markers' */}
+        {viewMode === 'markers' && reportsWithCoords.map((report) => (
           <MarkerF
             key={report.id}
             position={{ lat: report.latitude!, lng: report.longitude! }}
             title={report.title}
             onClick={() => handleMarkerClick(report)}
+            // You can customize marker icons here based on report.reportType if needed
+            // icon={report.reportType === 'incidente' ? '/path/to/alert-icon.png' : '/path/to/user-icon.png'}
           />
         ))}
 
-         {/* InfoWindow for selected marker */}
-         {selectedReport && (
+         {/* InfoWindow for selected marker (only shown in 'markers' mode) */}
+         {viewMode === 'markers' && selectedReport && (
             <InfoWindowF
                position={{ lat: selectedReport.latitude!, lng: selectedReport.longitude! }}
                onCloseClick={handleInfoWindowClose}
                options={{
-                  pixelOffset: new window.google.maps.Size(0, -35),
+                  pixelOffset: new window.google.maps.Size(0, -35), // Adjust offset if needed
                   maxWidth: 250,
+                  // Close button is enabled by default, can be disabled if needed: disableAutoPan: false,
                 }}
             >
-              <div className="p-2 space-y-1.5 max-w-xs">
-                 <h4 className="text-base font-semibold mb-1 text-primary flex items-center gap-1.5">
+              <div className="p-1 space-y-1.5 max-w-xs"> {/* Reduced padding */}
+                 <h4 className="text-sm font-semibold mb-0.5 text-primary flex items-center gap-1.5"> {/* Reduced bottom margin */}
                     {selectedReport.reportType === 'incidente' ? (
                        <AlertTriangle className="h-4 w-4 text-destructive flex-shrink-0" />
                      ) : (
-                       <Info className="h-4 w-4 text-blue-600 flex-shrink-0" />
+                       <UserCog className="h-4 w-4 text-blue-600 flex-shrink-0" /> // Changed icon to UserCog
                      )}
                      {selectedReport.title}
                  </h4>
@@ -176,7 +184,7 @@ export const ReportsMap: FC<ReportsMapProps> = ({
                     onClick={() => handleInfoWindowClick(selectedReport.id)}
                     title="Ver detalles del reporte"
                   >
-                     <ExternalLink size={12} /> Ver detalles del reporte
+                     <ExternalLink size={12} /> Ver detalles
                   </Button>
               </div>
             </InfoWindowF>
@@ -186,6 +194,4 @@ export const ReportsMap: FC<ReportsMapProps> = ({
 };
 
 export default ReportsMap;
-
-
     
