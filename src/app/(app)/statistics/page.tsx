@@ -9,7 +9,7 @@ import { auth, db } from '@/lib/firebase/client';
 import { collection, getDocs, query, orderBy, Timestamp } from "firebase/firestore";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
-import { LineChart as LineChartIcon, Loader2, CalendarRange, Hash, TrendingUp, AlertTriangle } from 'lucide-react'; // Import icons
+import { LineChart as LineChartIcon, Loader2, CalendarRange, Hash, TrendingUp, AlertTriangle, UserCog, Filter } from 'lucide-react'; // Import icons, added UserCog, Filter
 import { Button } from "@/components/ui/button";
 import type { Report } from '@/app/(app)/welcome/page'; // Reuse Report type
 import {
@@ -43,6 +43,7 @@ import { cn } from '@/lib/utils';
 import { motion, animate } from 'framer-motion'; // Import motion and animate
 
 type FilterPeriod = 'day' | 'week' | 'month';
+type ReportTypeFilter = 'Todos' | 'Funcionario' | 'Incidente'; // Added report type filter
 
 interface ChartDataPoint {
     period: string; // Format depends on filter: 'YYYY-MM-DD', 'YYYY-Www', 'YYYY-MM'
@@ -81,9 +82,10 @@ const StatisticsPage: FC = () => {
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(true);
   const [user, setUser] = useState<User | null>(null);
-  const [reports, setReports] = useState<Report[]>([]); // State for all reports data
+  const [reports, setReports] = useState<Report[]>([]); // State for all reports data (unfiltered)
   const [chartData, setChartData] = useState<ChartDataPoint[]>([]); // State for chart data
-  const [filterPeriod, setFilterPeriod] = useState<FilterPeriod>('month'); // Default filter
+  const [filterPeriod, setFilterPeriod] = useState<FilterPeriod>('month'); // Default period filter
+  const [reportTypeFilter, setReportTypeFilter] = useState<ReportTypeFilter>('Todos'); // Default report type filter
   const [totalReports, setTotalReports] = useState<number>(0);
   const [averageReports, setAverageReports] = useState<number>(0);
 
@@ -122,8 +124,8 @@ const StatisticsPage: FC = () => {
             } as Report;
           });
           console.log("Fetched reports for statistics:", fetchedReports.length);
-          setReports(fetchedReports);
-          setTotalReports(fetchedReports.length); // Set total reports count
+          setReports(fetchedReports); // Store all fetched reports
+          // Initial processing will happen in the processing useEffect
         } catch (error) {
           console.error("Error fetching reports for statistics: ", error);
         } finally {
@@ -135,22 +137,32 @@ const StatisticsPage: FC = () => {
     return () => unsubscribe();
   }, [router]);
 
-  // Function to process reports based on the selected filter period
-  const processReportsForChart = useCallback((period: FilterPeriod) => {
-    if (reports.length === 0) {
+  // Function to process reports based on BOTH selected filter periods
+  const processReportsForChart = useCallback((period: FilterPeriod, typeFilter: ReportTypeFilter) => {
+    // Filter reports by type first
+    const filteredReportsByType = reports.filter(report =>
+        typeFilter === 'Todos' ||
+        (typeFilter === 'Funcionario' && report.reportType === 'funcionario') ||
+        (typeFilter === 'Incidente' && report.reportType === 'incidente')
+    );
+
+    setTotalReports(filteredReportsByType.length); // Update total based on type filter
+
+    if (filteredReportsByType.length === 0) {
       setChartData([]);
-      setAverageReports(0); // Reset average if no reports
+      setAverageReports(0); // Reset average if no reports match filters
       return;
     }
 
     const reportsByPeriod: Record<string, number> = {};
-    const firstReportDate = reports[0].createdAt; // Reports are already sorted ascending
-    const lastReportDate = reports[reports.length - 1].createdAt;
+    // Use the filtered list for date range calculation
+    const firstReportDate = filteredReportsByType[0].createdAt; // Reports are already sorted ascending
+    const lastReportDate = filteredReportsByType[filteredReportsByType.length - 1].createdAt;
 
     let interval: Interval;
     let allPeriodsInInterval: Date[];
     let formatKey: (date: Date) => string;
-    let parseKey: (key: string) => Date;
+    let parseKey: (key: string) => Date; // Keep for potential future use
     let numberOfPeriods: number;
 
     switch (period) {
@@ -159,16 +171,14 @@ const StatisticsPage: FC = () => {
         allPeriodsInInterval = eachDayOfInterval(interval);
         formatKey = (date) => format(date, 'yyyy-MM-dd');
         parseKey = (key) => parseISO(key);
-        numberOfPeriods = differenceInDays(interval.end, interval.start) + 1; // +1 to include start day
+        numberOfPeriods = differenceInDays(interval.end, interval.start) + 1;
         break;
       case 'week':
         interval = { start: startOfWeek(firstReportDate, { locale: es }), end: endOfWeek(lastReportDate, { locale: es }) };
         allPeriodsInInterval = eachWeekOfInterval(interval, { locale: es });
-         // Use ISO week date format 'YYYY-Www'
         formatKey = (date) => format(date, 'RRRR-II', { locale: es });
-        // Parsing 'YYYY-Www' is tricky, we might need a library or manual logic if precise date needed for tooltip
-        parseKey = (key) => startOfWeek(parseISO(key.substring(0, 4) + "-01-01"), { weekStartsOn: 1 }); // Simplified parse
-        numberOfPeriods = differenceInWeeks(interval.end, interval.start, { locale: es }) + 1; // +1 to include start week
+        parseKey = (key) => startOfWeek(parseISO(key.substring(0, 4) + "-01-01"), { weekStartsOn: 1 });
+        numberOfPeriods = differenceInWeeks(interval.end, interval.start, { locale: es }) + 1;
         break;
       case 'month':
       default:
@@ -176,7 +186,7 @@ const StatisticsPage: FC = () => {
         allPeriodsInInterval = eachMonthOfInterval(interval);
         formatKey = (date) => format(date, 'yyyy-MM');
         parseKey = (key) => parseISO(key + '-01');
-        numberOfPeriods = differenceInMonths(interval.end, interval.start) + 1; // +1 to include start month
+        numberOfPeriods = differenceInMonths(interval.end, interval.start) + 1;
         break;
     }
 
@@ -186,8 +196,8 @@ const StatisticsPage: FC = () => {
         reportsByPeriod[periodKey] = 0;
     });
 
-    // Count reports for each period
-    reports.forEach(report => {
+    // Count reports for each period using the type-filtered list
+    filteredReportsByType.forEach(report => {
        const periodKey = formatKey(report.createdAt);
        if (reportsByPeriod[periodKey] !== undefined) {
           reportsByPeriod[periodKey]++;
@@ -201,14 +211,20 @@ const StatisticsPage: FC = () => {
 
     setChartData(formattedChartData);
 
-    // Calculate average reports
-    const total = reports.length;
-    const avg = numberOfPeriods > 0 ? total / numberOfPeriods : 0;
+    // Calculate average reports based on the type-filtered total
+    const totalFiltered = filteredReportsByType.length;
+    const avg = numberOfPeriods > 0 ? totalFiltered / numberOfPeriods : 0;
     setAverageReports(avg);
-    console.log(`Total: ${total}, Periods: ${numberOfPeriods}, Avg: ${avg.toFixed(1)}`);
+    console.log(`Filter: ${typeFilter}, Total: ${totalFiltered}, Periods: ${numberOfPeriods}, Avg: ${avg.toFixed(1)}`);
 
 
-  }, [reports]); // Dependency on reports array
+  }, [reports]); // Dependency ONLY on reports array (filters passed as args)
+
+  // Recalculate chart data when filters or reports change
+  useEffect(() => {
+    processReportsForChart(filterPeriod, reportTypeFilter);
+  }, [reports, filterPeriod, reportTypeFilter, processReportsForChart]);
+
 
   // Moved useMemo hook before the conditional return
   const averageLabel = useMemo(() => {
@@ -220,10 +236,6 @@ const StatisticsPage: FC = () => {
      }
   }, [filterPeriod]);
 
-  // Recalculate chart data when filter period or reports change
-  useEffect(() => {
-    processReportsForChart(filterPeriod);
-  }, [reports, filterPeriod, processReportsForChart]);
 
   // Chart Configuration
   const chartConfig = {
@@ -287,16 +299,22 @@ const StatisticsPage: FC = () => {
       <main className="flex flex-col items-center p-4 sm:p-6 bg-secondary min-h-screen">
          <div className="w-full max-w-4xl space-y-6">
             {/* Header Skeleton */}
-            <div className="flex flex-col sm:flex-row justify-between items-center mb-4 gap-4">
+            <div className="flex flex-col sm:flex-row justify-between items-center mb-2 gap-2"> {/* Reduced mb */}
                 <Skeleton className="h-8 w-48" />
-                <div className="flex space-x-2">
-                    <Skeleton className="h-9 w-20 rounded-md" />
-                    <Skeleton className="h-9 w-20 rounded-md" />
-                    <Skeleton className="h-9 w-20 rounded-md" />
-                </div>
+                 {/* Combined Filter Skeleton */}
+                 <div className="flex flex-wrap justify-center sm:justify-end gap-2">
+                     {/* Period Filters */}
+                     <Skeleton className="h-9 w-20 rounded-md" />
+                     <Skeleton className="h-9 w-20 rounded-md" />
+                     <Skeleton className="h-9 w-20 rounded-md" />
+                      {/* Type Filters */}
+                     <Skeleton className="h-9 w-24 rounded-md" />
+                     <Skeleton className="h-9 w-32 rounded-md" />
+                     <Skeleton className="h-9 w-28 rounded-md" />
+                 </div>
             </div>
              {/* Metrics Skeleton */}
-             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
+             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4"> {/* Reduced mb */}
                  <Card className="bg-card">
                      <CardHeader className="pb-2">
                           <Skeleton className="h-4 w-24" />
@@ -336,11 +354,12 @@ const StatisticsPage: FC = () => {
     <main className="flex flex-col items-center p-4 sm:p-6 bg-secondary min-h-screen">
         <div className="w-full max-w-4xl space-y-6">
              {/* Header and Filters */}
-             <div className="flex flex-col sm:flex-row justify-between items-center mb-4 gap-4">
+             <div className="flex flex-col sm:flex-row justify-between items-center mb-2 gap-4"> {/* Reduced mb */}
                 <h1 className="text-2xl font-semibold text-foreground flex items-center">
                     <LineChartIcon className="mr-3 h-6 w-6 text-primary" />
                     Estadísticas de Reportes
                 </h1>
+                {/* Time Period Filters */}
                 <div className="flex space-x-2">
                     {(['day', 'week', 'month'] as const).map((period) => (
                         <Button
@@ -357,12 +376,34 @@ const StatisticsPage: FC = () => {
                 </div>
             </div>
 
+             {/* Report Type Filters */}
+            <div className="flex flex-wrap justify-start sm:justify-start gap-2 mb-4"> {/* Added flex-wrap and gap */}
+                 <span className="text-sm font-medium text-muted-foreground flex items-center mr-2">
+                     <Filter className="h-4 w-4 mr-1" /> Tipo:
+                 </span>
+                 {(['Todos', 'Funcionario', 'Incidente'] as const).map((type) => (
+                     <Button
+                         key={type}
+                         variant={reportTypeFilter === type ? 'secondary' : 'ghost'} // Different styling for type filter
+                         size="sm"
+                         onClick={() => setReportTypeFilter(type)}
+                         className={cn("capitalize h-8 px-3", reportTypeFilter === type && "bg-secondary text-secondary-foreground font-semibold")} // Adjusted active style
+                         aria-pressed={reportTypeFilter === type}
+                     >
+                         {type === 'Funcionario' ? <UserCog className="h-3.5 w-3.5 mr-1.5 text-blue-600" /> :
+                          type === 'Incidente' ? <AlertTriangle className="h-3.5 w-3.5 mr-1.5 text-red-600" /> : null}
+                         {type}
+                     </Button>
+                 ))}
+             </div>
+
+
              {/* Key Metrics Section */}
-             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
+             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4"> {/* Reduced mb */}
                  {/* Total Reports Card */}
                 <Card className="bg-card shadow-sm border-border">
                      <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                         <CardTitle className="text-sm font-medium text-muted-foreground">Total de Reportes</CardTitle>
+                         <CardTitle className="text-sm font-medium text-muted-foreground">Total ({reportTypeFilter})</CardTitle> {/* Show current filter */}
                          <Hash className="h-4 w-4 text-muted-foreground" />
                      </CardHeader>
                      <CardContent>
@@ -383,6 +424,9 @@ const StatisticsPage: FC = () => {
                             {/* Animated Average Reports */}
                              <AnimatedNumber value={averageReports} formatOptions={{ maximumFractionDigits: 1 }} />
                           </div>
+                          <p className="text-xs text-muted-foreground">
+                             Reportes ({reportTypeFilter})
+                         </p>
                      </CardContent>
                  </Card>
              </div>
@@ -391,7 +435,7 @@ const StatisticsPage: FC = () => {
              <Card className="w-full shadow-sm rounded-lg border border-border bg-card">
                 <CardHeader>
                      <CardTitle className="text-lg font-semibold flex items-center">
-                        <CalendarRange className="h-5 w-5 mr-2 text-muted-foreground" /> Tendencia de Reportes por {filterPeriod === 'day' ? 'Día' : filterPeriod === 'week' ? 'Semana' : 'Mes'}
+                        <CalendarRange className="h-5 w-5 mr-2 text-muted-foreground" /> Tendencia de Reportes {reportTypeFilter !== 'Todos' ? `(${reportTypeFilter}s)` : ''} por {filterPeriod === 'day' ? 'Día' : filterPeriod === 'week' ? 'Semana' : 'Mes'}
                      </CardTitle>
                      <CardDescription>Número de reportes registrados en el periodo seleccionado.</CardDescription>
                  </CardHeader>
@@ -460,7 +504,7 @@ const StatisticsPage: FC = () => {
                          <div className="h-[300px] sm:h-[400px] flex flex-col items-center justify-center text-center p-4">
                              <LineChartIcon className="h-10 w-10 text-muted-foreground opacity-50 mb-3" />
                              <p className="text-sm text-muted-foreground">
-                                 {isLoading ? "Calculando datos..." : "No hay reportes disponibles para mostrar la tendencia en este periodo."}
+                                 {isLoading ? "Calculando datos..." : `No hay reportes ${reportTypeFilter !== 'Todos' ? `de tipo "${reportTypeFilter}"` : ''} para mostrar la tendencia en este periodo.`}
                              </p>
                          </div>
                      )}
@@ -472,3 +516,4 @@ const StatisticsPage: FC = () => {
 };
 
 export default StatisticsPage;
+
