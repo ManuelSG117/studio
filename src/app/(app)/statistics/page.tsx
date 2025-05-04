@@ -2,7 +2,7 @@
 "use client";
 
 import type { FC } from 'react';
-import { useState, useEffect, useMemo, useCallback } from 'react';
+import { useState, useEffect, useMemo, useCallback, useRef } from 'react'; // Added useRef
 import { useRouter } from 'next/navigation';
 import { onAuthStateChanged, type User } from 'firebase/auth';
 import { auth, db } from '@/lib/firebase/client';
@@ -40,6 +40,7 @@ import {
   ChartTooltipContent,
 } from "@/components/ui/chart"; // Import Chart components
 import { cn } from '@/lib/utils';
+import { motion, animate } from 'framer-motion'; // Import motion and animate
 
 type FilterPeriod = 'day' | 'week' | 'month';
 
@@ -47,6 +48,34 @@ interface ChartDataPoint {
     period: string; // Format depends on filter: 'YYYY-MM-DD', 'YYYY-Www', 'YYYY-MM'
     count: number;
 }
+
+// Animated number component
+const AnimatedNumber: FC<{ value: number; formatOptions?: Intl.NumberFormatOptions }> = ({ value, formatOptions }) => {
+  const [displayValue, setDisplayValue] = useState(0);
+  const nodeRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const node = nodeRef.current;
+    if (!node) return;
+
+    const controls = animate(displayValue, value, {
+      duration: 1, // Animation duration in seconds
+      ease: "easeOut",
+      onUpdate(latest) {
+        setDisplayValue(latest);
+      }
+    });
+
+    return () => controls.stop();
+  }, [value]); // Rerun animation when the target value changes
+
+  const formattedValue = useMemo(() => {
+    return new Intl.NumberFormat('es-ES', formatOptions).format(displayValue);
+  }, [displayValue, formatOptions]);
+
+  return <motion.div ref={nodeRef}>{formattedValue}</motion.div>;
+};
+
 
 const StatisticsPage: FC = () => {
   const router = useRouter();
@@ -176,10 +205,20 @@ const StatisticsPage: FC = () => {
     const total = reports.length;
     const avg = numberOfPeriods > 0 ? total / numberOfPeriods : 0;
     setAverageReports(avg);
-    console.log(`Total: ${total}, Periods: ${numberOfPeriods}, Avg: ${avg.toFixed(2)}`);
+    console.log(`Total: ${total}, Periods: ${numberOfPeriods}, Avg: ${avg.toFixed(1)}`);
 
 
   }, [reports]); // Dependency on reports array
+
+  // Moved useMemo hook before the conditional return
+  const averageLabel = useMemo(() => {
+     switch(filterPeriod) {
+        case 'day': return 'Promedio por Día';
+        case 'week': return 'Promedio por Semana';
+        case 'month': return 'Promedio por Mes';
+        default: return 'Promedio';
+     }
+  }, [filterPeriod]);
 
   // Recalculate chart data when filter period or reports change
   useEffect(() => {
@@ -241,17 +280,6 @@ const StatisticsPage: FC = () => {
             return label; // Fallback
         }
     };
-
-    // Moved useMemo hook before the conditional return
-    const averageLabel = useMemo(() => {
-       switch(filterPeriod) {
-          case 'day': return 'Promedio por Día';
-          case 'week': return 'Promedio por Semana';
-          case 'month': return 'Promedio por Mes';
-          default: return 'Promedio';
-       }
-    }, [filterPeriod]);
-
 
   // Loading state skeleton
   if (isLoading) {
@@ -338,7 +366,10 @@ const StatisticsPage: FC = () => {
                          <Hash className="h-4 w-4 text-muted-foreground" />
                      </CardHeader>
                      <CardContent>
-                         <div className="text-2xl font-bold text-foreground">{totalReports}</div>
+                         <div className="text-2xl font-bold text-foreground">
+                           {/* Animated Total Reports */}
+                           <AnimatedNumber value={totalReports} formatOptions={{ maximumFractionDigits: 0 }}/>
+                         </div>
                      </CardContent>
                  </Card>
                   {/* Average Reports Card */}
@@ -348,7 +379,10 @@ const StatisticsPage: FC = () => {
                          <TrendingUp className="h-4 w-4 text-muted-foreground" />
                      </CardHeader>
                      <CardContent>
-                          <div className="text-2xl font-bold text-foreground">{averageReports.toFixed(1)}</div> {/* Show one decimal place */}
+                          <div className="text-2xl font-bold text-foreground">
+                            {/* Animated Average Reports */}
+                             <AnimatedNumber value={averageReports} formatOptions={{ maximumFractionDigits: 1 }} />
+                          </div>
                      </CardContent>
                  </Card>
              </div>
