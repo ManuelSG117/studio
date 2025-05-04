@@ -1,4 +1,3 @@
-
 "use client";
 
 import type { FC } from 'react';
@@ -9,7 +8,7 @@ import { auth, db } from '@/lib/firebase/client';
 import { collection, getDocs, query, orderBy, Timestamp } from "firebase/firestore";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
-import { LineChart as LineChartIcon, Loader2, CalendarRange } from 'lucide-react'; // Import icons
+import { LineChart as LineChartIcon, Loader2, CalendarRange, Hash, TrendingUp, AlertTriangle } from 'lucide-react'; // Import icons
 import { Button } from "@/components/ui/button";
 import type { Report } from '@/app/(app)/welcome/page'; // Reuse Report type
 import {
@@ -27,7 +26,10 @@ import {
   startOfDay,
   endOfDay,
   eachDayOfInterval,
-  getDate
+  getDate,
+  differenceInDays,
+  differenceInWeeks,
+  differenceInMonths
 } from 'date-fns'; // Import date-fns functions
 import { es } from 'date-fns/locale'; // Import Spanish locale for date formatting
 import { Area, AreaChart, CartesianGrid, XAxis, YAxis, Tooltip as ChartTooltip } from 'recharts'; // Import AreaChart components from recharts
@@ -52,6 +54,8 @@ const StatisticsPage: FC = () => {
   const [reports, setReports] = useState<Report[]>([]); // State for all reports data
   const [chartData, setChartData] = useState<ChartDataPoint[]>([]); // State for chart data
   const [filterPeriod, setFilterPeriod] = useState<FilterPeriod>('month'); // Default filter
+  const [totalReports, setTotalReports] = useState<number>(0);
+  const [averageReports, setAverageReports] = useState<number>(0);
 
   useEffect(() => {
     setIsLoading(true); // Start loading
@@ -89,6 +93,7 @@ const StatisticsPage: FC = () => {
           });
           console.log("Fetched reports for statistics:", fetchedReports.length);
           setReports(fetchedReports);
+          setTotalReports(fetchedReports.length); // Set total reports count
         } catch (error) {
           console.error("Error fetching reports for statistics: ", error);
         } finally {
@@ -104,6 +109,7 @@ const StatisticsPage: FC = () => {
   const processReportsForChart = useCallback((period: FilterPeriod) => {
     if (reports.length === 0) {
       setChartData([]);
+      setAverageReports(0); // Reset average if no reports
       return;
     }
 
@@ -115,6 +121,7 @@ const StatisticsPage: FC = () => {
     let allPeriodsInInterval: Date[];
     let formatKey: (date: Date) => string;
     let parseKey: (key: string) => Date;
+    let numberOfPeriods: number;
 
     switch (period) {
       case 'day':
@@ -122,6 +129,7 @@ const StatisticsPage: FC = () => {
         allPeriodsInInterval = eachDayOfInterval(interval);
         formatKey = (date) => format(date, 'yyyy-MM-dd');
         parseKey = (key) => parseISO(key);
+        numberOfPeriods = differenceInDays(interval.end, interval.start) + 1; // +1 to include start day
         break;
       case 'week':
         interval = { start: startOfWeek(firstReportDate, { locale: es }), end: endOfWeek(lastReportDate, { locale: es }) };
@@ -130,6 +138,7 @@ const StatisticsPage: FC = () => {
         formatKey = (date) => format(date, 'RRRR-II', { locale: es });
         // Parsing 'YYYY-Www' is tricky, we might need a library or manual logic if precise date needed for tooltip
         parseKey = (key) => startOfWeek(parseISO(key.substring(0, 4) + "-01-01"), { weekStartsOn: 1 }); // Simplified parse
+        numberOfPeriods = differenceInWeeks(interval.end, interval.start, { locale: es }) + 1; // +1 to include start week
         break;
       case 'month':
       default:
@@ -137,6 +146,7 @@ const StatisticsPage: FC = () => {
         allPeriodsInInterval = eachMonthOfInterval(interval);
         formatKey = (date) => format(date, 'yyyy-MM');
         parseKey = (key) => parseISO(key + '-01');
+        numberOfPeriods = differenceInMonths(interval.end, interval.start) + 1; // +1 to include start month
         break;
     }
 
@@ -160,6 +170,14 @@ const StatisticsPage: FC = () => {
        .sort((a, b) => a.period.localeCompare(b.period)); // Sort by period key string
 
     setChartData(formattedChartData);
+
+    // Calculate average reports
+    const total = reports.length;
+    const avg = numberOfPeriods > 0 ? total / numberOfPeriods : 0;
+    setAverageReports(avg);
+    console.log(`Total: ${total}, Periods: ${numberOfPeriods}, Avg: ${avg.toFixed(2)}`);
+
+
   }, [reports]); // Dependency on reports array
 
   // Recalculate chart data when filter period or reports change
@@ -230,7 +248,7 @@ const StatisticsPage: FC = () => {
       <main className="flex flex-col items-center p-4 sm:p-6 bg-secondary min-h-screen">
          <div className="w-full max-w-4xl space-y-6">
             {/* Header Skeleton */}
-            <div className="flex justify-between items-center mb-4">
+            <div className="flex flex-col sm:flex-row justify-between items-center mb-4 gap-4">
                 <Skeleton className="h-8 w-48" />
                 <div className="flex space-x-2">
                     <Skeleton className="h-9 w-20 rounded-md" />
@@ -238,6 +256,26 @@ const StatisticsPage: FC = () => {
                     <Skeleton className="h-9 w-20 rounded-md" />
                 </div>
             </div>
+             {/* Metrics Skeleton */}
+             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
+                 <Card className="bg-card">
+                     <CardHeader className="pb-2">
+                          <Skeleton className="h-4 w-24" />
+                     </CardHeader>
+                     <CardContent>
+                         <Skeleton className="h-8 w-16" />
+                     </CardContent>
+                 </Card>
+                 <Card className="bg-card">
+                     <CardHeader className="pb-2">
+                          <Skeleton className="h-4 w-32" />
+                     </CardHeader>
+                     <CardContent>
+                         <Skeleton className="h-8 w-20" />
+                     </CardContent>
+                 </Card>
+            </div>
+
             {/* Chart Card Skeleton */}
             <Card className="w-full shadow-sm rounded-lg border border-border bg-card">
                <CardHeader>
@@ -252,6 +290,15 @@ const StatisticsPage: FC = () => {
       </main>
     );
   }
+
+  const averageLabel = useMemo(() => {
+     switch(filterPeriod) {
+        case 'day': return 'Promedio por Día';
+        case 'week': return 'Promedio por Semana';
+        case 'month': return 'Promedio por Mes';
+        default: return 'Promedio';
+     }
+  }, [filterPeriod]);
 
   return (
     <main className="flex flex-col items-center p-4 sm:p-6 bg-secondary min-h-screen">
@@ -277,6 +324,30 @@ const StatisticsPage: FC = () => {
                     ))}
                 </div>
             </div>
+
+             {/* Key Metrics Section */}
+             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
+                 {/* Total Reports Card */}
+                <Card className="bg-card shadow-sm border-border">
+                     <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                         <CardTitle className="text-sm font-medium text-muted-foreground">Total de Reportes</CardTitle>
+                         <Hash className="h-4 w-4 text-muted-foreground" />
+                     </CardHeader>
+                     <CardContent>
+                         <div className="text-2xl font-bold text-foreground">{totalReports}</div>
+                     </CardContent>
+                 </Card>
+                  {/* Average Reports Card */}
+                 <Card className="bg-card shadow-sm border-border">
+                     <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                         <CardTitle className="text-sm font-medium text-muted-foreground">{averageLabel}</CardTitle>
+                         <TrendingUp className="h-4 w-4 text-muted-foreground" />
+                     </CardHeader>
+                     <CardContent>
+                          <div className="text-2xl font-bold text-foreground">{averageReports.toFixed(1)}</div> {/* Show one decimal place */}
+                     </CardContent>
+                 </Card>
+             </div>
 
              {/* Report Trend Chart */}
              <Card className="w-full shadow-sm rounded-lg border border-border bg-card">
@@ -351,7 +422,7 @@ const StatisticsPage: FC = () => {
                          <div className="h-[300px] sm:h-[400px] flex flex-col items-center justify-center text-center p-4">
                              <LineChartIcon className="h-10 w-10 text-muted-foreground opacity-50 mb-3" />
                              <p className="text-sm text-muted-foreground">
-                                 {isLoading ? "Calculando datos..." : "No hay suficientes datos para mostrar la tendencia en este periodo."}
+                                 {isLoading ? "Calculando datos..." : "No hay reportes disponibles para mostrar la tendencia en este periodo."}
                              </p>
                          </div>
                      )}
@@ -363,5 +434,3 @@ const StatisticsPage: FC = () => {
 };
 
 export default StatisticsPage;
-
-    
