@@ -6,7 +6,7 @@ import { useEffect, useState } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import Link from 'next/link';
 import Image from 'next/image'; // Import next/image
-import dynamic from 'next/dynamic'; // Import dynamic
+// Removed dynamic import for MapPreview
 import { onAuthStateChanged, type User } from 'firebase/auth'; // Import User type
 import { auth, db } from '@/lib/firebase/client';
 import { doc, getDoc, Timestamp } from 'firebase/firestore'; // Import Firestore functions
@@ -14,21 +14,12 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
-import { CalendarDays, MapPin, Tag, UserCog, TriangleAlert, Image as ImageIcon, Map, Video, Loader2 } from 'lucide-react'; // Added Loader2
+import { CalendarDays, MapPin, Tag, UserCog, TriangleAlert, Image as ImageIcon, Loader2 } from 'lucide-react'; // Removed Map icon, added Loader2
 import type { Report } from '@/app/(app)/welcome/page'; // Import Report type
 import { format } from 'date-fns'; // Import format for date display
 import { es } from 'date-fns/locale'; // Import Spanish locale for date formatting
 
-// Dynamically import the Map Preview component
-const MapPreview = dynamic(() => import('@/components/map-preview'), {
-    ssr: false, // Ensure component only renders on client-side
-    loading: () => (
-        <div className="aspect-video bg-muted rounded-lg flex items-center justify-center text-muted-foreground text-sm border border-border h-[250px] w-full"> {/* Match MapPreview height */}
-            <Map className="h-8 w-8 mr-2 opacity-50 animate-pulse" />
-            <span>Cargando mapa...</span>
-        </div>
-    ),
-});
+// Removed MapPreview dynamic import and loading state
 
 
 const ReportDetailPage: FC = () => {
@@ -153,11 +144,7 @@ const ReportDetailPage: FC = () => {
                             <Skeleton className="h-5 w-32" />
                             <Skeleton className="aspect-video w-full rounded-lg" />
                          </div>
-                         {/* Map Skeleton */}
-                          <div className="pt-4 space-y-2">
-                             <Skeleton className="h-5 w-24" />
-                             <Skeleton className="aspect-video w-full rounded-lg h-[250px]" /> {/* Match MapPreview height */}
-                          </div>
+                         {/* Removed Map Skeleton */}
                     </CardContent>
                      <CardFooter className="flex justify-end pt-4 pb-6 px-6 sm:px-8">
                          <Skeleton className="h-10 w-24 rounded-full" />
@@ -274,24 +261,18 @@ const ReportDetailPage: FC = () => {
                          </div>
                     )}
 
-                    {/* Location Map Preview - Only render if client-side and coordinates exist */}
-                    <div className="pt-2">
-                         <h3 className="text-base font-semibold text-primary mb-2 flex items-center">
-                             <Map className="h-5 w-5 mr-2 opacity-70" /> Ubicación en Mapa
-                         </h3>
-                         {isClient && report.latitude && report.longitude ? (
-                            <MapPreview
-                                mapId={`report-map-${report.id}`} // Pass a unique ID
-                                latitude={report.latitude}
-                                longitude={report.longitude}
-                                locationName={report.location}
-                             />
-                         ) : (
-                            !report.latitude || !report.longitude ? (
-                                <p className="text-sm text-muted-foreground italic">No se proporcionaron coordenadas para este reporte.</p>
-                            ) : null // Render nothing if client not ready yet, loading skeleton handles initial state
-                         )}
-                    </div>
+                    {/* Location Map Preview Removed */}
+                    {/* Coordinates Display (if needed) */}
+                    {report.latitude && report.longitude && (
+                        <div className="pt-2">
+                            <h3 className="text-base font-semibold text-primary mb-2 flex items-center">
+                                <MapPin className="h-5 w-5 mr-2 opacity-70" /> Coordenadas
+                            </h3>
+                            <p className="text-sm text-muted-foreground">
+                                Latitud: {report.latitude.toFixed(6)}, Longitud: {report.longitude.toFixed(6)}
+                            </p>
+                        </div>
+                    )}
 
 
                      {/* Back Button */}
