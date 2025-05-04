@@ -1,6 +1,6 @@
 
 import type { ReactNode } from 'react';
-import { BottomNavBar } from '@/components/layout/bottom-nav-bar';
+import { TopNavBar } from '@/components/layout/bottom-nav-bar'; // Import the renamed TopNavBar
 import { AuthProvider } from '@/context/AuthContext'; // Import AuthProvider
 
 interface AppLayoutProps {
@@ -12,10 +12,11 @@ export default function AppLayout({ children }: AppLayoutProps) {
     // Wrap the layout content with AuthProvider
     <AuthProvider>
       <div className="flex flex-col min-h-screen">
-        <main className="flex-grow pb-16 sm:pb-0"> {/* Add padding-bottom to prevent content overlap with fixed nav bar on mobile */}
+        <TopNavBar /> {/* Use TopNavBar instead of BottomNavBar */}
+        <main className="flex-grow pt-0 sm:pt-0"> {/* Remove bottom padding, adjust top padding if needed */}
           {children}
         </main>
-        <BottomNavBar />
+        {/* BottomNavBar removed from here */}
       </div>
     </AuthProvider>
   );

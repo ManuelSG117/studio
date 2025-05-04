@@ -34,9 +34,10 @@ const NavItem: FC<NavItemProps> = ({ href, label, icon }) => {
   );
 };
 
-export const BottomNavBar: FC = () => {
+// Renamed component to reflect its position
+export const TopNavBar: FC = () => {
   return (
-    <nav className="fixed bottom-0 left-0 right-0 h-16 bg-card border-t border-border shadow-lg flex items-stretch justify-around z-50">
+    <nav className="sticky top-0 left-0 right-0 h-16 bg-card border-b border-border shadow-md flex items-stretch justify-around z-50">
       {/* Changed /welcome to /reports to be more intuitive */}
       <NavItem href="/welcome" label="Mis Reportes" icon={<FileText className="h-5 w-5" />} />
       <NavItem href="/community-reports" label="Comunidad" icon={<Globe className="h-5 w-5" />} /> {/* Added Community Reports */}
@@ -46,3 +47,5 @@ export const BottomNavBar: FC = () => {
   );
 };
 
+// Export the component with the new name
+export { TopNavBar as BottomNavBar };
