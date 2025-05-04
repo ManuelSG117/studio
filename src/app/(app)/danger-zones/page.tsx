@@ -10,13 +10,14 @@ import { collection, getDocs, query, orderBy, Timestamp } from "firebase/firesto
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Button } from '@/components/ui/button'; // Import Button
-import { MapPin, AlertTriangle, Loader2, List, Map, Waves } from 'lucide-react'; // Added Map and Waves icons
+import { MapPin, AlertTriangle, Loader2, List, Map, Waves, Filter } from 'lucide-react'; // Added Map, Waves, and Filter icons
 import { ReportsMap } from '@/components/reports-map'; // Import the ReportsMap component
 import type { Report } from '@/app/(app)/welcome/page';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
 import Link from 'next/link';
 import { cn } from '@/lib/utils'; // Import cn
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"; // Import Select components
 
 // Helper function to format location (remains the same)
 const formatLocation = (location: string): string => {
@@ -32,6 +33,7 @@ const formatLocation = (location: string): string => {
 };
 
 type MapViewMode = 'markers' | 'heatmap'; // Define view modes
+type ReportTypeFilter = 'Todos' | 'Funcionario' | 'Incidente'; // Define report type filters
 
 const DangerZonesPage: FC = () => {
   const router = useRouter();
@@ -40,6 +42,7 @@ const DangerZonesPage: FC = () => {
   const [reports, setReports] = useState<Report[]>([]);
   const [isClient, setIsClient] = useState(false);
   const [mapViewMode, setMapViewMode] = useState<MapViewMode>('heatmap'); // Default to heatmap view
+  const [reportTypeFilter, setReportTypeFilter] = useState<ReportTypeFilter>('Todos'); // Add state for report type filter
 
    useEffect(() => {
     setIsClient(true);
@@ -88,6 +91,22 @@ const DangerZonesPage: FC = () => {
     return () => unsubscribe();
   }, [router]);
 
+  // Memoize filtered reports based on reportTypeFilter
+  const filteredReports = useMemo(() => {
+    return reports.filter(report => {
+      if (reportTypeFilter === 'Todos') {
+        return true;
+      }
+      if (reportTypeFilter === 'Funcionario') {
+        return report.reportType === 'funcionario';
+      }
+      if (reportTypeFilter === 'Incidente') {
+        return report.reportType === 'incidente';
+      }
+      return false;
+    });
+  }, [reports, reportTypeFilter]);
+
 
   if (isLoading || !isClient) {
     return (
@@ -96,10 +115,11 @@ const DangerZonesPage: FC = () => {
             {/* Header Skeleton */}
             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4 gap-3">
                  <Skeleton className="h-8 w-2/3 sm:w-1/2" />
-                 {/* Toggle Buttons Skeleton */}
-                 <div className="flex items-center gap-2">
+                 {/* Toggle Buttons & Filter Skeleton */}
+                 <div className="flex items-center gap-2 flex-wrap justify-end">
                      <Skeleton className="h-9 w-28 rounded-md" />
                      <Skeleton className="h-9 w-28 rounded-md" />
+                     <Skeleton className="h-9 w-36 rounded-md" /> {/* Filter Select Skeleton */}
                  </div>
              </div>
              {/* Map Card Skeleton */}
@@ -134,36 +154,56 @@ const DangerZonesPage: FC = () => {
     <main className="flex flex-col items-center p-4 sm:p-6 bg-secondary min-h-screen">
         <div className="w-full max-w-4xl space-y-6">
 
-             {/* Header with Toggle Buttons */}
-             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4 gap-3">
+             {/* Header with Toggle Buttons and Filter */}
+             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4 gap-4">
                  <div className="flex items-center">
                      <AlertTriangle className="h-6 w-6 mr-2 text-destructive flex-shrink-0" />
                      <h1 className="text-xl font-semibold text-foreground">
                          Zonas de Riesgo y Reportes
                      </h1>
                  </div>
-                 {/* View Toggle Buttons */}
-                 <div className="flex items-center gap-2 bg-muted p-1 rounded-lg">
-                     <Button
-                         variant={mapViewMode === 'heatmap' ? 'default' : 'ghost'}
-                         size="sm"
-                         onClick={() => setMapViewMode('heatmap')}
-                         className={cn("flex-1 justify-center gap-1.5 h-8 px-4", mapViewMode === 'heatmap' && "shadow")}
-                         aria-pressed={mapViewMode === 'heatmap'}
-                     >
-                         <Waves size={16} />
-                         <span>Densidad</span>
-                     </Button>
-                     <Button
-                         variant={mapViewMode === 'markers' ? 'default' : 'ghost'}
-                         size="sm"
-                         onClick={() => setMapViewMode('markers')}
-                         className={cn("flex-1 justify-center gap-1.5 h-8 px-4", mapViewMode === 'markers' && "shadow")}
-                         aria-pressed={mapViewMode === 'markers'}
-                     >
-                         <MapPin size={16} />
-                         <span>Marcadores</span>
-                     </Button>
+                 {/* View Toggle Buttons & Filter */}
+                 <div className="flex flex-wrap justify-end items-center gap-2">
+                     {/* View Toggle Buttons */}
+                     <div className="flex items-center gap-2 bg-muted p-1 rounded-lg order-1 sm:order-none">
+                         <Button
+                             variant={mapViewMode === 'heatmap' ? 'default' : 'ghost'}
+                             size="sm"
+                             onClick={() => setMapViewMode('heatmap')}
+                             className={cn("flex-1 justify-center gap-1.5 h-8 px-4", mapViewMode === 'heatmap' && "shadow")}
+                             aria-pressed={mapViewMode === 'heatmap'}
+                         >
+                             <Waves size={16} />
+                             <span>Densidad</span>
+                         </Button>
+                         <Button
+                             variant={mapViewMode === 'markers' ? 'default' : 'ghost'}
+                             size="sm"
+                             onClick={() => setMapViewMode('markers')}
+                             className={cn("flex-1 justify-center gap-1.5 h-8 px-4", mapViewMode === 'markers' && "shadow")}
+                             aria-pressed={mapViewMode === 'markers'}
+                         >
+                             <MapPin size={16} />
+                             <span>Marcadores</span>
+                         </Button>
+                     </div>
+                      {/* Report Type Select Filter */}
+                    <div className="flex items-center gap-1.5 order-2 sm:order-none">
+                        <Filter className="h-4 w-4 text-muted-foreground" />
+                        <Select
+                            value={reportTypeFilter}
+                            onValueChange={(value: ReportTypeFilter) => setReportTypeFilter(value)}
+                        >
+                            <SelectTrigger className="h-9 w-[150px] text-sm bg-card border-border">
+                                <SelectValue placeholder="Filtrar por tipo" />
+                            </SelectTrigger>
+                            <SelectContent>
+                                <SelectItem value="Todos">Todos</SelectItem>
+                                <SelectItem value="Funcionario">Funcionarios</SelectItem>
+                                <SelectItem value="Incidente">Incidentes</SelectItem>
+                            </SelectContent>
+                        </Select>
+                    </div>
                  </div>
              </div>
 
@@ -176,19 +216,20 @@ const DangerZonesPage: FC = () => {
                          ) : (
                             <Map className="h-5 w-5 mr-2 text-primary"/>
                          )}
-                        Mapa de {mapViewMode === 'heatmap' ? 'Densidad' : 'Reportes Individuales'}
+                        Mapa de {mapViewMode === 'heatmap' ? 'Densidad' : 'Reportes Individuales'} {reportTypeFilter !== 'Todos' ? `(${reportTypeFilter}s)` : ''}
                     </CardTitle>
                      <CardDescription className="text-sm text-muted-foreground">
                           {mapViewMode === 'heatmap'
                            ? 'Visualización de densidad. Zonas más cálidas indican mayor concentración.'
                            : 'Ubicación de cada reporte individual.'}
+                         {reportTypeFilter !== 'Todos' && ` Filtrado por: ${reportTypeFilter}.`}
                      </CardDescription>
                 </CardHeader>
                 <CardContent className="p-0 sm:p-0 h-[50vh] sm:h-[60vh]"> {/* Adjusted height */}
                      {isClient && (
                         <ReportsMap
-                            reports={reports}
-                            viewMode={mapViewMode} // Pass the current view mode
+                            reports={filteredReports} // Pass filtered reports to the map
+                            viewMode={mapViewMode}
                             defaultZoom={13}
                          />
                      )}
@@ -199,14 +240,14 @@ const DangerZonesPage: FC = () => {
               <Card className="w-full shadow-sm rounded-lg border border-border bg-card">
                  <CardHeader>
                      <CardTitle className="text-lg font-semibold flex items-center">
-                         <List className="h-5 w-5 mr-2 text-primary"/> Lista de Reportes
+                         <List className="h-5 w-5 mr-2 text-primary"/> Lista de Reportes {reportTypeFilter !== 'Todos' ? `(${reportTypeFilter}s)` : ''}
                      </CardTitle>
-                     <CardDescription>Detalles de los últimos reportes recibidos.</CardDescription>
+                     <CardDescription>Detalles de los últimos reportes recibidos {reportTypeFilter !== 'Todos' ? `filtrados por tipo "${reportTypeFilter}"` : ''}.</CardDescription>
                  </CardHeader>
                  <CardContent>
-                     {reports.length > 0 ? (
+                     {filteredReports.length > 0 ? ( // Use filteredReports for the list
                          <ul className="space-y-4 max-h-[40vh] overflow-y-auto pr-2">
-                             {reports.map(report => (
+                             {filteredReports.map(report => ( // Iterate over filteredReports
                                 <Link key={report.id} href={`/reports/${report.id}`} className="block hover:bg-muted/50 p-3 rounded-lg transition-colors duration-150 border-b last:border-b-0">
                                  <li >
                                      <div className="flex justify-between items-center mb-1">
@@ -225,7 +266,9 @@ const DangerZonesPage: FC = () => {
                              ))}
                          </ul>
                      ) : (
-                         <p className="text-muted-foreground text-sm text-center py-4">No hay reportes disponibles para mostrar.</p>
+                         <p className="text-muted-foreground text-sm text-center py-4">
+                             No hay reportes disponibles para mostrar {reportTypeFilter !== 'Todos' ? `del tipo "${reportTypeFilter}"` : ''}.
+                         </p>
                      )}
                  </CardContent>
               </Card>
@@ -236,3 +279,4 @@ const DangerZonesPage: FC = () => {
 
 export default DangerZonesPage;
     
+

@@ -15,7 +15,7 @@ import { cn } from '@/lib/utils'; // Import cn for conditional styling
 type MapViewMode = 'markers' | 'heatmap'; // Define view modes
 
 interface ReportsMapProps {
-  reports: Report[];
+  reports: Report[]; // Now expects potentially filtered reports
   defaultZoom?: number;
   defaultCenter?: { lat: number; lng: number };
   viewMode?: MapViewMode; // Add prop for view mode control
@@ -27,7 +27,7 @@ const GOOGLE_MAPS_API_KEY = "AIzaSyDtuGQXVRNzK0N7_5R5iMFLuRMPxCFG5cs";
 const libraries: ('maps' | 'visualization')[] = ["maps", "visualization"];
 
 export const ReportsMap: FC<ReportsMapProps> = ({
-  reports,
+  reports, // Receive the (potentially filtered) reports directly
   defaultZoom = 12,
   defaultCenter = { lat: 19.4181, lng: -102.0515 },
   viewMode = 'markers' // Default view mode to 'markers' if not provided
@@ -58,7 +58,7 @@ export const ReportsMap: FC<ReportsMapProps> = ({
   const containerStyle = {
     width: '100%',
     height: '100%',
-    borderRadius: '0.5rem',
+    borderRadius: '0.5rem', // Keep border radius if map container has it
   };
 
   const mapOptions = useMemo(() => ({
@@ -68,11 +68,11 @@ export const ReportsMap: FC<ReportsMapProps> = ({
     // styles: [...] // Optional custom map styles
   }), []);
 
+  // Directly use the received reports array, already filtered upstream
   const reportsWithCoords = useMemo(() => reports.filter(r => r.latitude != null && r.longitude != null), [reports]);
 
   // Effect to process reports into heatmap data when isLoaded and reports change
   useEffect(() => {
-    // Only generate heatmap data if viewMode is 'heatmap' and map is loaded
     if (isLoaded && viewMode === 'heatmap') {
         const data = reportsWithCoords.map(report =>
             new window.google.maps.LatLng(report.latitude!, report.longitude!)
@@ -82,18 +82,17 @@ export const ReportsMap: FC<ReportsMapProps> = ({
     } else {
         setHeatmapData([]); // Clear heatmap data if not shown or not loaded
     }
-  }, [isLoaded, reportsWithCoords, viewMode]); // Depend on viewMode as well
+  }, [isLoaded, reportsWithCoords, viewMode]);
 
 
   const mapCenter = useMemo(() => {
+    // Handle case where the filtered array might be empty
     if (reportsWithCoords.length === 0) {
       return defaultCenter;
     }
-    // Center on the single report if only one exists
     if (reportsWithCoords.length === 1 && reportsWithCoords[0]) {
       return { lat: reportsWithCoords[0].latitude!, lng: reportsWithCoords[0].longitude! };
     }
-    // Calculate average center for multiple reports
     const avgLat = reportsWithCoords.reduce((sum, r) => sum + r.latitude!, 0) / reportsWithCoords.length;
     const avgLng = reportsWithCoords.reduce((sum, r) => sum + r.longitude!, 0) / reportsWithCoords.length;
     return { lat: avgLat, lng: avgLng };
@@ -189,9 +188,18 @@ export const ReportsMap: FC<ReportsMapProps> = ({
               </div>
             </InfoWindowF>
          )}
+
+         {/* Display message if no reports with coordinates are available for the current filter */}
+          {reportsWithCoords.length === 0 && (
+                <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-background/80 p-4 rounded-md shadow-md text-center text-sm text-muted-foreground">
+                    No hay reportes con ubicación para mostrar con los filtros actuales.
+                </div>
+            )}
+
       </GoogleMap>
   );
 };
 
 export default ReportsMap;
     
+
