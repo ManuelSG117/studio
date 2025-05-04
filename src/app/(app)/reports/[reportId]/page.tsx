@@ -230,15 +230,10 @@ const ReportDetailPage: FC = () => {
                      {/* Report Location */}
                      <div className="pt-0"> {/* Adjusted padding */}
                          <h3 className="text-base font-semibold text-primary mb-2 flex items-center">
-                             <MapPin className="h-5 w-5 mr-2 opacity-70" /> Ubicación Reportada
+                             <MapPin className="h-5 w-5 mr-2 opacity-70" /> Ubicación {/* Changed Heading */}
                          </h3>
                          <p className="text-foreground/90 leading-relaxed">{report.location}</p>
-                         {/* Coordinates Display (if needed) */}
-                         {report.latitude && report.longitude && (
-                             <p className="text-xs text-muted-foreground mt-1">
-                                 (Lat: {report.latitude.toFixed(6)}, Lon: {report.longitude.toFixed(6)})
-                             </p>
-                         )}
+                         {/* Coordinates Display Removed */}
                      </div>
 
 
@@ -310,5 +305,3 @@ const ReportDetailPage: FC = () => {
 
 export default ReportDetailPage;
 
-
-    
