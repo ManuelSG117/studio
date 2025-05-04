@@ -6,7 +6,6 @@ import { useEffect, useState } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import Link from 'next/link';
 import Image from 'next/image'; // Import next/image
-// Removed dynamic import for MapPreview
 import { onAuthStateChanged, type User } from 'firebase/auth'; // Import User type
 import { auth, db } from '@/lib/firebase/client';
 import { doc, getDoc, Timestamp } from 'firebase/firestore'; // Import Firestore functions
@@ -18,8 +17,6 @@ import { CalendarDays, MapPin, Tag, UserCog, TriangleAlert, Image as ImageIcon, 
 import type { Report } from '@/app/(app)/welcome/page'; // Import Report type
 import { format } from 'date-fns'; // Import format for date display
 import { es } from 'date-fns/locale'; // Import Spanish locale for date formatting
-
-// Removed MapPreview dynamic import and loading state
 
 
 const ReportDetailPage: FC = () => {
@@ -123,32 +120,31 @@ const ReportDetailPage: FC = () => {
                     <CardHeader className="relative pb-4 pt-8">
                          {/* Add Back Button Skeleton */}
                          <Skeleton className="absolute left-4 top-6 h-9 w-9 rounded-full" />
-                        <Skeleton className="h-7 w-3/5 mx-auto" />
-                        <Skeleton className="h-4 w-2/5 mx-auto mt-2" />
+                        <Skeleton className="h-7 w-3/5 mx-auto mb-4" /> {/* Adjusted margin */}
+                        {/* Removed CardDescription skeleton */}
                     </CardHeader>
-                    <CardContent className="px-6 sm:px-8 pt-4 pb-6 space-y-5">
+                    <CardContent className="px-6 sm:px-8 pt-4 pb-6 space-y-6"> {/* Increased spacing */}
                         {/* Metadata Skeletons */}
-                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-4">
-                             {[...Array(4)].map((_, i) => (
-                                 <div key={i} className="flex items-center space-x-3">
-                                     <Skeleton className="h-5 w-5 rounded-full flex-shrink-0" />
-                                     <Skeleton className="h-4 w-24" />
-                                 </div>
-                             ))}
+                         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 text-sm border-b pb-4">
+                            <Skeleton className="h-6 w-28" />
+                            <Skeleton className="h-4 w-40" />
+                         </div>
+                         {/* Location Skeleton */}
+                         <div className="space-y-2">
+                             <Skeleton className="h-5 w-32" />
+                             <Skeleton className="h-4 w-full" />
                          </div>
                          {/* Description Skeleton */}
-                         <div className="pt-4 space-y-2">
-                           <Skeleton className="h-5 w-28" />
+                         <div className="space-y-2">
+                           <Skeleton className="h-5 w-40" />
                            <Skeleton className="h-16 w-full" />
                          </div>
                          {/* Media Skeleton */}
-                         <div className="pt-4 space-y-2">
-                            <Skeleton className="h-5 w-32" />
+                         <div className="space-y-2">
+                            <Skeleton className="h-5 w-36" />
                             <Skeleton className="aspect-video w-full rounded-lg" />
                          </div>
-                         {/* Removed Map Skeleton */}
                     </CardContent>
-                     {/* Removed CardFooter Skeleton */}
                 </Card>
             </main>
         );
@@ -193,55 +189,63 @@ const ReportDetailPage: FC = () => {
                     >
                         <ArrowLeft className="h-5 w-5" />
                     </Button>
-                    <CardTitle className="text-2xl font-bold text-primary text-center pt-2">{report.title}</CardTitle>
-                    <CardDescription className="text-muted-foreground text-center">
-                        Detalles del reporte #{report.id}
-                    </CardDescription>
-                </CardHeader>
-                <CardContent className="px-6 sm:px-8 pt-4 pb-6 space-y-6"> {/* Increased spacing */}
-                    {/* Report Metadata */}
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-4 text-sm">
-                        <div className="flex items-center space-x-3 text-foreground">
-                            {report.reportType === 'funcionario' ? (
-                              <UserCog className="h-5 w-5 text-blue-600 flex-shrink-0" />
-                             ) : (
-                              <TriangleAlert className="h-5 w-5 text-red-600 flex-shrink-0" />
-                             )}
-                            <span className="font-medium">Tipo:</span> <span className="capitalize">{report.reportType === 'funcionario' ? 'Funcionario' : 'Incidente'}</span>
-                        </div>
-                        <div className="flex items-center space-x-3 text-foreground">
-                            <CalendarDays className="h-5 w-5 text-muted-foreground flex-shrink-0" />
-                            <span className="font-medium">Fecha:</span>
-                             {/* Format the date */}
-                            <span>{format(report.createdAt, "PPP 'a las' p", { locale: es })}</span>
-                        </div>
-                         <div className="flex items-center space-x-3 text-foreground">
-                             <MapPin className="h-5 w-5 text-muted-foreground flex-shrink-0" />
-                             <span className="font-medium">Ubicación:</span> <span>{report.location}</span>
-                         </div>
-                         <div className="flex items-center space-x-3 text-foreground">
-                            <Tag className="h-5 w-5 text-muted-foreground flex-shrink-0" />
-                            <div className="flex items-center">
-                                <span className="font-medium mr-2">Estado:</span>
-                                <Badge
-                                     variant={getStatusVariant(report.status)}
-                                     className={`capitalize rounded-full px-2.5 py-0.5 text-xs font-semibold border ${getStatusClasses(report.status)}`}
-                                >
-                                    {report.status}
-                                </Badge>
-                            </div>
-                         </div>
+                    {/* Combined Title and Type Icon */}
+                    <div className="flex items-center justify-center gap-3 pt-2">
+                       {report.reportType === 'funcionario' ? (
+                          <UserCog className="h-6 w-6 text-primary flex-shrink-0" />
+                       ) : (
+                          <TriangleAlert className="h-6 w-6 text-destructive flex-shrink-0" />
+                       )}
+                       <CardTitle className="text-2xl font-bold text-foreground">{report.title}</CardTitle>
                     </div>
+                    {/* Removed redundant CardDescription */}
+                </CardHeader>
+
+                 {/* Status and Date Section */}
+                 <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 text-sm text-muted-foreground px-6 sm:px-8 pb-4 border-b border-border">
+                     <div className="flex items-center space-x-3">
+                         <Tag className="h-4 w-4 flex-shrink-0" />
+                         <span className="font-medium text-foreground">Estado:</span>
+                         <Badge
+                             variant={getStatusVariant(report.status)}
+                             className={`capitalize rounded-full px-2.5 py-0.5 text-xs font-semibold border ${getStatusClasses(report.status)}`}
+                         >
+                             {report.status}
+                         </Badge>
+                     </div>
+                     <div className="flex items-center space-x-2">
+                         <CalendarDays className="h-4 w-4 flex-shrink-0" />
+                         <span>{format(report.createdAt, "PPP 'a las' p", { locale: es })}</span>
+                     </div>
+                 </div>
+
+
+                <CardContent className="px-6 sm:px-8 pt-6 pb-6 space-y-6"> {/* Increased top padding */}
+
+                     {/* Report Location */}
+                     <div className="pt-0"> {/* Adjusted padding */}
+                         <h3 className="text-base font-semibold text-primary mb-2 flex items-center">
+                             <MapPin className="h-5 w-5 mr-2 opacity-70" /> Ubicación Reportada
+                         </h3>
+                         <p className="text-foreground/90 leading-relaxed">{report.location}</p>
+                         {/* Coordinates Display (if needed) */}
+                         {report.latitude && report.longitude && (
+                             <p className="text-xs text-muted-foreground mt-1">
+                                 (Lat: {report.latitude.toFixed(6)}, Lon: {report.longitude.toFixed(6)})
+                             </p>
+                         )}
+                     </div>
+
 
                     {/* Report Description */}
-                    <div className="pt-2"> {/* Adjusted padding */}
+                    <div className="pt-0"> {/* Adjusted padding */}
                         <h3 className="text-base font-semibold text-primary mb-2">Descripción</h3>
                         <p className="text-foreground/90 leading-relaxed whitespace-pre-wrap">{report.description}</p> {/* Added whitespace-pre-wrap */}
                     </div>
 
                     {/* Media Evidence */}
                     {report.mediaUrl && (
-                         <div className="pt-2">
+                         <div className="pt-0">
                              <h3 className="text-base font-semibold text-primary mb-2 flex items-center">
                                  <ImageIcon className="h-5 w-5 mr-2 opacity-70" /> Evidencia Multimedia
                              </h3>
@@ -270,21 +274,6 @@ const ReportDetailPage: FC = () => {
                              </div>
                          </div>
                     )}
-
-                    {/* Location Map Preview Removed */}
-                    {/* Coordinates Display (if needed) */}
-                    {report.latitude && report.longitude && (
-                        <div className="pt-2">
-                            <h3 className="text-base font-semibold text-primary mb-2 flex items-center">
-                                <MapPin className="h-5 w-5 mr-2 opacity-70" /> Coordenadas
-                            </h3>
-                            <p className="text-sm text-muted-foreground">
-                                Latitud: {report.latitude.toFixed(6)}, Longitud: {report.longitude.toFixed(6)}
-                            </p>
-                        </div>
-                    )}
-
-                     {/* Removed Back Button from Footer */}
                 </CardContent>
             </Card>
         </main>
