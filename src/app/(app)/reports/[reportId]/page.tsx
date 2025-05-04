@@ -14,7 +14,7 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
-import { CalendarDays, MapPin, Tag, UserCog, TriangleAlert, Image as ImageIcon, Loader2 } from 'lucide-react'; // Removed Map icon, added Loader2
+import { CalendarDays, MapPin, Tag, UserCog, TriangleAlert, Image as ImageIcon, Loader2, ArrowLeft } from 'lucide-react'; // Added ArrowLeft
 import type { Report } from '@/app/(app)/welcome/page'; // Import Report type
 import { format } from 'date-fns'; // Import format for date display
 import { es } from 'date-fns/locale'; // Import Spanish locale for date formatting
@@ -121,6 +121,8 @@ const ReportDetailPage: FC = () => {
             <main className="flex flex-col items-center p-4 sm:p-8 bg-secondary min-h-screen">
                 <Card className="w-full max-w-2xl shadow-lg border-none rounded-xl bg-card">
                     <CardHeader className="relative pb-4 pt-8">
+                         {/* Add Back Button Skeleton */}
+                         <Skeleton className="absolute left-4 top-6 h-9 w-9 rounded-full" />
                         <Skeleton className="h-7 w-3/5 mx-auto" />
                         <Skeleton className="h-4 w-2/5 mx-auto mt-2" />
                     </CardHeader>
@@ -146,9 +148,7 @@ const ReportDetailPage: FC = () => {
                          </div>
                          {/* Removed Map Skeleton */}
                     </CardContent>
-                     <CardFooter className="flex justify-end pt-4 pb-6 px-6 sm:px-8">
-                         <Skeleton className="h-10 w-24 rounded-full" />
-                     </CardFooter>
+                     {/* Removed CardFooter Skeleton */}
                 </Card>
             </main>
         );
@@ -183,6 +183,16 @@ const ReportDetailPage: FC = () => {
         <main className="flex flex-col items-center p-4 sm:p-8 bg-secondary">
             <Card className="w-full max-w-2xl shadow-lg border-none rounded-xl bg-card">
                 <CardHeader className="relative pb-4 pt-8">
+                     {/* Back Button */}
+                    <Button
+                        variant="ghost"
+                        size="icon"
+                        className="absolute left-4 top-6 text-muted-foreground hover:text-primary rounded-full"
+                        onClick={() => router.back()}
+                        aria-label="Volver"
+                    >
+                        <ArrowLeft className="h-5 w-5" />
+                    </Button>
                     <CardTitle className="text-2xl font-bold text-primary text-center pt-2">{report.title}</CardTitle>
                     <CardDescription className="text-muted-foreground text-center">
                         Detalles del reporte #{report.id}
@@ -274,13 +284,7 @@ const ReportDetailPage: FC = () => {
                         </div>
                     )}
 
-
-                     {/* Back Button */}
-                     <CardFooter className="pt-6 justify-start px-0"> {/* Changed justify-end to justify-start */}
-                       <Button variant="outline" className="rounded-full" onClick={() => router.back()}>
-                           Volver a Reportes
-                       </Button>
-                     </CardFooter>
+                     {/* Removed Back Button from Footer */}
                 </CardContent>
             </Card>
         </main>
