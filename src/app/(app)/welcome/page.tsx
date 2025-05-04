@@ -294,6 +294,11 @@ const WelcomePage: FC = () => {
                      <Skeleton className="h-5 w-5 rounded-full flex-shrink-0" />
                      <Skeleton className="h-5 w-3/5" />
                   </div>
+                  {/* Vote Skeletons in Header */}
+                  <div className="absolute top-3 right-3 flex items-center space-x-2">
+                       <Skeleton className="h-6 w-12 rounded-md" />
+                       <Skeleton className="h-6 w-12 rounded-md" />
+                  </div>
                </CardHeader>
                <CardContent className="space-y-2 pt-1 pb-4 px-4 sm:px-5">
                  <Skeleton className="h-4 w-full" />
@@ -302,11 +307,7 @@ const WelcomePage: FC = () => {
                     <Skeleton className="h-4 w-1/3" />
                     <Skeleton className="h-4 w-1/4" /> {/* Skeleton for Date */}
                   </div>
-                   {/* Vote Skeletons */}
-                   <div className="flex justify-end items-center space-x-3 pt-2">
-                     <Skeleton className="h-6 w-12 rounded-md" />
-                     <Skeleton className="h-6 w-12 rounded-md" />
-                   </div>
+                   {/* Vote Skeletons Removed from here */}
                </CardContent>
              </Card>
            ))}
@@ -359,69 +360,69 @@ const WelcomePage: FC = () => {
           {filteredReports.length > 0 ? (
             filteredReports.map((report) => (
               <Card key={report.id} className="w-full shadow-sm rounded-lg overflow-hidden border border-border bg-card transition-colors duration-150">
-                <Link href={`/reports/${report.id}`} className="block hover:bg-card/50 ">
-                   <CardHeader className="flex flex-row items-start justify-between pb-2 space-y-0 pt-4 px-4 sm:px-5 relative cursor-pointer"> {/* Cursor pointer on header too */}
-                       <div className="flex items-center space-x-2 flex-1 pr-4"> {/* Adjusted padding-right */}
+                   <CardHeader className="flex flex-row items-start justify-between pb-2 space-y-0 pt-4 px-4 sm:px-5 relative"> {/* Add relative */}
+                       {/* Title and Type Icon (Left Side) */}
+                       <Link href={`/reports/${report.id}`} className="flex items-center space-x-2 flex-1 pr-4 cursor-pointer">
                           {report.reportType === 'funcionario' ? (
                             <UserCog className="h-5 w-5 text-blue-600 flex-shrink-0" />
                           ) : (
                             <TriangleAlert className="h-5 w-5 text-red-600 flex-shrink-0" />
                           )}
-                         <CardTitle className="text-base font-semibold text-foreground line-clamp-1">{report.title}</CardTitle> {/* Added line-clamp */}
-                       </div>
-                        {/* Removed Badge */}
+                         <CardTitle className="text-base font-semibold text-foreground line-clamp-1 hover:text-primary">{report.title}</CardTitle> {/* Added line-clamp */}
+                       </Link>
+                        {/* Voting Section (Right Side) - Outside Link */}
+                        <div className="flex items-center space-x-2 flex-shrink-0">
+                           <Button
+                                variant="ghost"
+                                size="sm"
+                                className={cn(
+                                   "flex items-center gap-1.5 h-7 px-2 rounded-md text-xs text-muted-foreground hover:text-green-600 hover:bg-green-100/50 dark:hover:bg-green-900/20",
+                                   report.userVote === 'up' && "text-green-600 bg-green-100/60 dark:bg-green-900/30",
+                                   votingState[report.id] && "opacity-50 cursor-not-allowed"
+                                 )}
+                                onClick={(e) => { e.stopPropagation(); handleVote(report.id, 'up'); }} // Prevent link navigation
+                                disabled={votingState[report.id]}
+                                aria-pressed={report.userVote === 'up'}
+                                title="Votar positivamente"
+                            >
+                                {votingState[report.id] && report.userVote !== 'up' ? <Loader2 className="h-3.5 w-3.5 animate-spin"/> : <ArrowUp className="h-4 w-4"/>}
+                                <span>{report.upvotes}</span>
+                            </Button>
+                            <Button
+                                variant="ghost"
+                                size="sm"
+                                className={cn(
+                                    "flex items-center gap-1.5 h-7 px-2 rounded-md text-xs text-muted-foreground hover:text-red-600 hover:bg-red-100/50 dark:hover:bg-red-900/20",
+                                    report.userVote === 'down' && "text-red-600 bg-red-100/60 dark:bg-red-900/30",
+                                    votingState[report.id] && "opacity-50 cursor-not-allowed"
+                                  )}
+                                onClick={(e) => { e.stopPropagation(); handleVote(report.id, 'down'); }} // Prevent link navigation
+                                disabled={votingState[report.id]}
+                                aria-pressed={report.userVote === 'down'}
+                                title="Votar negativamente"
+                            >
+                                {votingState[report.id] && report.userVote !== 'down' ? <Loader2 className="h-3.5 w-3.5 animate-spin"/> : <ArrowDown className="h-4 w-4"/>}
+                                <span>{report.downvotes}</span>
+                            </Button>
+                         </div>
                    </CardHeader>
-                   <CardContent className="space-y-2 pt-1 pb-4 px-4 sm:px-5 cursor-pointer"> {/* Cursor pointer on content */}
-                     <CardDescription className="text-sm text-foreground/90 leading-relaxed line-clamp-2">{report.description}</CardDescription>
-                      <div className="flex justify-between items-center text-sm text-muted-foreground pt-2">
-                        {/* Formatted Location */}
-                        <div className="flex items-center">
-                            <MapPin className="h-4 w-4 mr-1.5 flex-shrink-0"/>
-                            <span className="line-clamp-1">{formatLocation(report.location)}</span>
-                        </div>
-                        {/* Date */}
-                        <div className="flex items-center text-xs">
-                            <CalendarDays className="h-3.5 w-3.5 mr-1 flex-shrink-0" />
-                            <span>{format(report.createdAt, "PPP", { locale: es })}</span>
-                        </div>
-                      </div>
-                   </CardContent>
+                   <Link href={`/reports/${report.id}`} className="block hover:bg-card/50 ">
+                       <CardContent className="space-y-2 pt-1 pb-4 px-4 sm:px-5 cursor-pointer border-t border-border/50"> {/* Add border-top */}
+                         <CardDescription className="text-sm text-foreground/90 leading-relaxed line-clamp-2">{report.description}</CardDescription>
+                          <div className="flex justify-between items-center text-sm text-muted-foreground pt-2">
+                            {/* Formatted Location */}
+                            <div className="flex items-center">
+                                <MapPin className="h-4 w-4 mr-1.5 flex-shrink-0"/>
+                                <span className="line-clamp-1">{formatLocation(report.location)}</span>
+                            </div>
+                            {/* Date */}
+                            <div className="flex items-center text-xs">
+                                <CalendarDays className="h-3.5 w-3.5 mr-1 flex-shrink-0" />
+                                <span>{format(report.createdAt, "PPP", { locale: es })}</span>
+                            </div>
+                          </div>
+                       </CardContent>
                  </Link>
-                 {/* Voting Section - Separate from Link */}
-                 <div className="flex justify-end items-center space-x-3 px-4 pb-3 pt-1 border-t border-border/50">
-                    <Button
-                         variant="ghost"
-                         size="sm"
-                         className={cn(
-                           "flex items-center gap-1.5 h-7 px-2 rounded-md text-xs text-muted-foreground hover:text-green-600 hover:bg-green-100/50 dark:hover:bg-green-900/20",
-                           report.userVote === 'up' && "text-green-600 bg-green-100/60 dark:bg-green-900/30",
-                           votingState[report.id] && "opacity-50 cursor-not-allowed"
-                         )}
-                         onClick={() => handleVote(report.id, 'up')}
-                         disabled={votingState[report.id]}
-                         aria-pressed={report.userVote === 'up'}
-                         title="Votar positivamente"
-                    >
-                        {votingState[report.id] && report.userVote !== 'up' ? <Loader2 className="h-3.5 w-3.5 animate-spin"/> : <ArrowUp className="h-4 w-4"/>}
-                         <span>{report.upvotes}</span>
-                    </Button>
-                    <Button
-                         variant="ghost"
-                         size="sm"
-                         className={cn(
-                            "flex items-center gap-1.5 h-7 px-2 rounded-md text-xs text-muted-foreground hover:text-red-600 hover:bg-red-100/50 dark:hover:bg-red-900/20",
-                            report.userVote === 'down' && "text-red-600 bg-red-100/60 dark:bg-red-900/30",
-                            votingState[report.id] && "opacity-50 cursor-not-allowed"
-                          )}
-                         onClick={() => handleVote(report.id, 'down')}
-                         disabled={votingState[report.id]}
-                         aria-pressed={report.userVote === 'down'}
-                         title="Votar negativamente"
-                    >
-                        {votingState[report.id] && report.userVote !== 'down' ? <Loader2 className="h-3.5 w-3.5 animate-spin"/> : <ArrowDown className="h-4 w-4"/>}
-                         <span>{report.downvotes}</span>
-                    </Button>
-                 </div>
               </Card>
             ))
           ) : (
