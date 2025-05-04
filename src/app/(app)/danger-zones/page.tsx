@@ -4,24 +4,14 @@
 import type { FC } from 'react';
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import dynamic from 'next/dynamic'; // Import dynamic
+// Removed: import dynamic from 'next/dynamic'; // No longer needed
 import { onAuthStateChanged, type User } from 'firebase/auth'; // Import User type
 import { auth } from '@/lib/firebase/client';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
 import { MapPin, AlertTriangle } from 'lucide-react'; // Import icons
-// Removed: import 'leaflet/dist/leaflet.css'; // Leaflet CSS will be imported globally
 
-// Dynamically import the Map component to avoid SSR issues
-const DangerZoneMap = dynamic(() => import('@/components/danger-zone-map'), {
-  ssr: false,
-  loading: () => (
-      <div className="h-full w-full flex flex-col items-center justify-center text-muted-foreground text-sm border border-border rounded-lg bg-muted">
-          <MapPin className="h-10 w-10 mb-2 opacity-50 animate-pulse" />
-          <span>Cargando mapa...</span>
-      </div>
-  ),
-});
+// Removed: dynamic import for DangerZoneMap
 
 // Define interface for Danger Zone data
 interface DangerZone {
@@ -61,7 +51,6 @@ const DangerZonesPage: FC = () => {
             setIsLoading(false); // Finish loading after auth check and data fetch
          }, 500); // Simulate network delay
       }
-      // Removed setIsLoading(false) from here to ensure it happens after data is potentially fetched
     });
 
     return () => unsubscribe();
@@ -90,8 +79,8 @@ const DangerZonesPage: FC = () => {
     );
   }
 
-  // Render map only after client mount, auth check, loading finished, and data is available
-  const renderMap = isClient && !isLoading && user && dangerZones.length > 0;
+  // Removed: Conditional rendering logic for the map
+  // const renderMap = isClient && !isLoading && user && dangerZones.length > 0;
 
   return (
     <main className="flex flex-col items-center p-4 sm:p-6 bg-secondary">
@@ -105,41 +94,64 @@ const DangerZonesPage: FC = () => {
             {/* Search/Filter Input (Optional) */}
             {/* <div className="relative mb-4"> ... </div> */}
 
-             {/* Map View */}
+             {/* Map View Area (Map component removed) */}
             <Card className="w-full shadow-sm rounded-lg overflow-hidden border border-border bg-card mb-6">
                 <CardHeader className="pb-2 pt-4 px-4 sm:px-5">
                     <CardTitle className="text-lg font-semibold text-foreground flex items-center">
-                         <AlertTriangle className="h-5 w-5 mr-2 text-destructive" /> Mapa de Riesgo
+                         <AlertTriangle className="h-5 w-5 mr-2 text-destructive" /> Zonas de Riesgo Reportadas
                     </CardTitle>
                      <CardDescription className="text-sm text-muted-foreground">
-                         Visualiza las áreas reportadas con mayor incidencia. Pasa el cursor o haz clic en un marcador para ver detalles.
+                          Aquí se mostraría la visualización de las zonas con mayor incidencia reportada.
                      </CardDescription>
                 </CardHeader>
-                <CardContent className="p-0 sm:p-0 h-[60vh] sm:h-[70vh]"> {/* Adjust padding and height */}
-                     {/* Conditional rendering for the map */}
-                     {renderMap ? (
-                        <DangerZoneMap zones={dangerZones} />
-                     ) : (
-                        <div className="h-full w-full flex flex-col items-center justify-center text-muted-foreground text-sm border border-border rounded-lg bg-muted">
-                            {dangerZones.length === 0 && !isLoading ? (
-                                <span>No hay zonas de peligro para mostrar.</span>
-                            ) : (
-                                <>
-                                    {/* Show loading skeleton/indicator if map isn't ready but shouldn't be empty */}
-                                    <MapPin className="h-10 w-10 mb-2 opacity-50 animate-pulse" />
-                                    <span>Cargando mapa...</span>
-                                </>
-                            )}
-                         </div>
-                     )}
+                <CardContent className="p-4 sm:p-6 h-[60vh] sm:h-[70vh] flex items-center justify-center"> {/* Adjust padding and height */}
+                     {/* Placeholder content where the map used to be */}
+                     <div className="h-full w-full flex flex-col items-center justify-center text-muted-foreground text-sm border border-border rounded-lg bg-muted">
+                         <MapPin className="h-10 w-10 mb-2 opacity-50 animate-pulse" />
+                         {isLoading ? (
+                             <span>Cargando datos de zonas...</span>
+                         ) : dangerZones.length === 0 ? (
+                            <span>No hay zonas de peligro para mostrar.</span>
+                         ) : (
+                             <span>Visualización del mapa no disponible.</span> // Placeholder message
+                         )}
+                     </div>
                 </CardContent>
             </Card>
 
              {/* Potentially add a list view or other information below the map */}
-             {/* ... (List view code remains commented) ... */}
+              <Card className="w-full shadow-sm rounded-lg border border-border bg-card">
+                 <CardHeader>
+                     <CardTitle className="text-lg font-semibold">Lista de Zonas</CardTitle>
+                     <CardDescription>Detalles de las zonas reportadas.</CardDescription>
+                 </CardHeader>
+                 <CardContent>
+                     {isLoading ? (
+                         <div className="space-y-3">
+                             <Skeleton className="h-5 w-2/3" />
+                             <Skeleton className="h-4 w-full" />
+                             <Skeleton className="h-5 w-2/3" />
+                             <Skeleton className="h-4 w-full" />
+                         </div>
+                     ) : dangerZones.length > 0 ? (
+                         <ul className="space-y-4">
+                             {dangerZones.map(zone => (
+                                 <li key={zone.id} className="border-b pb-3 last:border-b-0">
+                                     <h4 className="font-medium text-foreground">{zone.title}</h4>
+                                     <p className="text-sm text-muted-foreground">{zone.description}</p>
+                                     <p className="text-xs text-muted-foreground/70 mt-1">Coords: {zone.lat.toFixed(4)}, {zone.lng.toFixed(4)}</p>
+                                 </li>
+                             ))}
+                         </ul>
+                     ) : (
+                         <p className="text-muted-foreground text-sm">No hay zonas de peligro disponibles.</p>
+                     )}
+                 </CardContent>
+              </Card>
         </div>
     </main>
   );
 };
 
 export default DangerZonesPage;
+
