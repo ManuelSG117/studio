@@ -278,4 +278,3 @@ const WelcomePage: FC = () => {
 };
 
 export default WelcomePage;
-

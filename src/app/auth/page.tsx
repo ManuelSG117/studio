@@ -1,3 +1,4 @@
+
 "use client";
 
 import type { FC } from 'react';
@@ -285,9 +286,9 @@ const AuthScreen: FC = () => {
               <Image
                   src="/logo.png"
                   alt="App Logo"
-                  width={100}
-                  height={100}
-                  className="mx-auto mb-5 rounded-lg shadow-sm"
+                  width={150}
+                  height={150}
+                  className="mx-auto mb-6 rounded-lg shadow-lg"
                   priority
                   data-ai-hint="app logo safety shield"
               />

@@ -577,4 +577,3 @@ const EditProfilePage: FC = () => {
 };
 
 export default EditProfilePage;
-
