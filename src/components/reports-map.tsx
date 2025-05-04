@@ -11,6 +11,15 @@ import { useState, useCallback, useMemo, useEffect } from 'react'; // Added useE
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils'; // Import cn for conditional styling
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog"; // Import AlertDialog components
 
 type MapViewMode = 'markers' | 'heatmap'; // Define view modes
 
@@ -42,6 +51,7 @@ export const ReportsMap: FC<ReportsMapProps> = ({
 
   const [selectedReport, setSelectedReport] = useState<Report | null>(null);
   const [heatmapData, setHeatmapData] = useState<google.maps.LatLng[]>([]); // State for heatmap data
+  const [showNoReportsAlert, setShowNoReportsAlert] = useState(false); // State for alert dialog
 
   const handleMarkerClick = useCallback((report: Report) => {
     setSelectedReport(report);
@@ -71,16 +81,28 @@ export const ReportsMap: FC<ReportsMapProps> = ({
   // Directly use the received reports array, already filtered upstream
   const reportsWithCoords = useMemo(() => reports.filter(r => r.latitude != null && r.longitude != null), [reports]);
 
-  // Effect to process reports into heatmap data when isLoaded and reports change
+  // Effect to process reports into heatmap data and handle no reports alert
   useEffect(() => {
-    if (isLoaded && viewMode === 'heatmap') {
-        const data = reportsWithCoords.map(report =>
-            new window.google.maps.LatLng(report.latitude!, report.longitude!)
-        );
-        setHeatmapData(data);
-        console.log("Generated heatmap data points:", data.length);
+    if (isLoaded) {
+        if (viewMode === 'heatmap') {
+            const data = reportsWithCoords.map(report =>
+                new window.google.maps.LatLng(report.latitude!, report.longitude!)
+            );
+            setHeatmapData(data);
+            setShowNoReportsAlert(false); // No alert needed for heatmap
+            console.log("Generated heatmap data points:", data.length);
+        } else { // Marker view
+            setHeatmapData([]); // Clear heatmap data
+            if (reportsWithCoords.length === 0) {
+                setShowNoReportsAlert(true); // Show alert if no markers
+                console.log("No reports with coordinates to show in marker view.");
+            } else {
+                setShowNoReportsAlert(false); // Hide alert if there are markers
+            }
+        }
     } else {
-        setHeatmapData([]); // Clear heatmap data if not shown or not loaded
+        setHeatmapData([]);
+        setShowNoReportsAlert(false); // Ensure alert is hidden if map not loaded
     }
   }, [isLoaded, reportsWithCoords, viewMode]);
 
@@ -126,80 +148,90 @@ export const ReportsMap: FC<ReportsMapProps> = ({
 
   // --- Render Map ---
   return (
-      <GoogleMap
-        mapContainerStyle={containerStyle}
-        center={mapCenter}
-        zoom={defaultZoom}
-        options={mapOptions}
-      >
-        {/* Render Heatmap Layer if viewMode is 'heatmap' */}
-        {viewMode === 'heatmap' && heatmapData.length > 0 && (
-            <HeatmapLayerF
-                data={heatmapData}
-                options={{
-                    radius: 25, // Slightly increased radius
-                    opacity: 0.7 // Slightly increased opacity
-                }}
+      <>
+        <AlertDialog open={showNoReportsAlert} onOpenChange={setShowNoReportsAlert}>
+            <AlertDialogContent>
+                <AlertDialogHeader>
+                    <AlertDialogTitle>Sin Reportes para Mostrar</AlertDialogTitle>
+                    <AlertDialogDescription>
+                        No hay reportes con ubicación para mostrar con los filtros actuales en la vista de marcadores.
+                    </AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter>
+                    <AlertDialogAction onClick={() => setShowNoReportsAlert(false)}>Entendido</AlertDialogAction>
+                </AlertDialogFooter>
+            </AlertDialogContent>
+        </AlertDialog>
+
+        <GoogleMap
+          mapContainerStyle={containerStyle}
+          center={mapCenter}
+          zoom={defaultZoom}
+          options={mapOptions}
+        >
+          {/* Render Heatmap Layer if viewMode is 'heatmap' */}
+          {viewMode === 'heatmap' && heatmapData.length > 0 && (
+              <HeatmapLayerF
+                  data={heatmapData}
+                  options={{
+                      radius: 25, // Slightly increased radius
+                      opacity: 0.7 // Slightly increased opacity
+                  }}
+              />
+          )}
+
+          {/* Render Markers if viewMode is 'markers' */}
+          {viewMode === 'markers' && reportsWithCoords.map((report) => (
+            <MarkerF
+              key={report.id}
+              position={{ lat: report.latitude!, lng: report.longitude! }}
+              title={report.title}
+              onClick={() => handleMarkerClick(report)}
+              // You can customize marker icons here based on report.reportType if needed
+              // icon={report.reportType === 'incidente' ? '/path/to/alert-icon.png' : '/path/to/user-icon.png'}
             />
-        )}
+          ))}
 
-        {/* Render Markers if viewMode is 'markers' */}
-        {viewMode === 'markers' && reportsWithCoords.map((report) => (
-          <MarkerF
-            key={report.id}
-            position={{ lat: report.latitude!, lng: report.longitude! }}
-            title={report.title}
-            onClick={() => handleMarkerClick(report)}
-            // You can customize marker icons here based on report.reportType if needed
-            // icon={report.reportType === 'incidente' ? '/path/to/alert-icon.png' : '/path/to/user-icon.png'}
-          />
-        ))}
-
-         {/* InfoWindow for selected marker (only shown in 'markers' mode) */}
-         {viewMode === 'markers' && selectedReport && (
-            <InfoWindowF
-               position={{ lat: selectedReport.latitude!, lng: selectedReport.longitude! }}
-               onCloseClick={handleInfoWindowClose}
-               options={{
-                  pixelOffset: new window.google.maps.Size(0, -35), // Adjust offset if needed
-                  maxWidth: 250,
-                  // Close button is enabled by default, can be disabled if needed: disableAutoPan: false,
-                }}
-            >
-              <div className="p-1 space-y-1.5 max-w-xs"> {/* Reduced padding */}
-                 <h4 className="text-sm font-semibold mb-0.5 text-primary flex items-center gap-1.5"> {/* Reduced bottom margin */}
-                    {selectedReport.reportType === 'incidente' ? (
-                       <AlertTriangle className="h-4 w-4 text-destructive flex-shrink-0" />
-                     ) : (
-                       <UserCog className="h-4 w-4 text-blue-600 flex-shrink-0" /> // Changed icon to UserCog
-                     )}
-                     {selectedReport.title}
-                 </h4>
-                 <p className="text-xs text-muted-foreground line-clamp-3 leading-snug">{selectedReport.description}</p>
-                  <Button
-                    variant="link"
-                    size="sm"
-                    className="p-0 h-auto text-xs text-accent hover:text-accent/80 font-medium mt-1 flex items-center gap-1"
-                    onClick={() => handleInfoWindowClick(selectedReport.id)}
-                    title="Ver detalles del reporte"
-                  >
-                     <ExternalLink size={12} /> Ver detalles
-                  </Button>
-              </div>
-            </InfoWindowF>
-         )}
-
-         {/* Display message if no reports with coordinates are available for the current filter */}
-          {reportsWithCoords.length === 0 && (
-                <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-background/80 p-4 rounded-md shadow-md text-center text-sm text-muted-foreground">
-                    No hay reportes con ubicación para mostrar con los filtros actuales.
+           {/* InfoWindow for selected marker (only shown in 'markers' mode) */}
+           {viewMode === 'markers' && selectedReport && (
+              <InfoWindowF
+                 position={{ lat: selectedReport.latitude!, lng: selectedReport.longitude! }}
+                 onCloseClick={handleInfoWindowClose}
+                 options={{
+                    pixelOffset: new window.google.maps.Size(0, -35), // Adjust offset if needed
+                    maxWidth: 250,
+                    // Close button is enabled by default, can be disabled if needed: disableAutoPan: false,
+                  }}
+              >
+                <div className="p-1 space-y-1.5 max-w-xs"> {/* Reduced padding */}
+                   <h4 className="text-sm font-semibold mb-0.5 text-primary flex items-center gap-1.5"> {/* Reduced bottom margin */}
+                      {selectedReport.reportType === 'incidente' ? (
+                         <AlertTriangle className="h-4 w-4 text-destructive flex-shrink-0" />
+                       ) : (
+                         <UserCog className="h-4 w-4 text-blue-600 flex-shrink-0" /> // Changed icon to UserCog
+                       )}
+                       {selectedReport.title}
+                   </h4>
+                   <p className="text-xs text-muted-foreground line-clamp-3 leading-snug">{selectedReport.description}</p>
+                    <Button
+                      variant="link"
+                      size="sm"
+                      className="p-0 h-auto text-xs text-accent hover:text-accent/80 font-medium mt-1 flex items-center gap-1"
+                      onClick={() => handleInfoWindowClick(selectedReport.id)}
+                      title="Ver detalles del reporte"
+                    >
+                       <ExternalLink size={12} /> Ver detalles
+                    </Button>
                 </div>
-            )}
+              </InfoWindowF>
+           )}
 
-      </GoogleMap>
+           {/* Removed the inline message for no reports */}
+
+        </GoogleMap>
+      </>
   );
 };
 
 export default ReportsMap;
     
-
