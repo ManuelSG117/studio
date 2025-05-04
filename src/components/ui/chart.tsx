@@ -1,3 +1,4 @@
+
 "use client"
 
 import * as React from "react"
@@ -146,7 +147,7 @@ const ChartTooltipContent = React.forwardRef<
           ? config[label as keyof typeof config]?.label || label
           : itemConfig?.label
 
-      if (labelFormatter) {
+      if (labelFormatter && value) { // Ensure value is passed to labelFormatter
         return (
           <div className={cn("font-medium", labelClassName)}>
             {labelFormatter(value, payload)}
@@ -240,7 +241,8 @@ const ChartTooltipContent = React.forwardRef<
                       </div>
                       {item.value && (
                         <span className="font-mono font-medium tabular-nums text-foreground">
-                          {item.value.toLocaleString()}
+                          {/* Format number if it's a number, otherwise display as is */}
+                          {typeof item.value === 'number' ? item.value.toLocaleString() : item.value}
                         </span>
                       )}
                     </div>
@@ -254,7 +256,7 @@ const ChartTooltipContent = React.forwardRef<
     )
   }
 )
-ChartTooltipContent.displayName = "ChartTooltip"
+ChartTooltipContent.displayName = "ChartTooltipContent" // Use the local component name
 
 const ChartLegend = RechartsPrimitive.Legend
 
@@ -358,8 +360,11 @@ function getPayloadConfigFromPayload(
 export {
   ChartContainer,
   ChartTooltip,
-  ChartTooltipContent,
+  ChartTooltipContent, // Export the local component
   ChartLegend,
   ChartLegendContent,
   ChartStyle,
 }
+
+
+    
