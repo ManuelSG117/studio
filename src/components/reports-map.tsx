@@ -4,11 +4,12 @@
 import type { FC } from 'react';
 import { GoogleMap, useJsApiLoader, MarkerF, InfoWindowF } from '@react-google-maps/api';
 import { Skeleton } from '@/components/ui/skeleton';
-import { MapPin, AlertTriangle, Info } from 'lucide-react';
+import { MapPin, AlertTriangle, Info, ExternalLink } from 'lucide-react'; // Added ExternalLink
 import { useToast } from '@/hooks/use-toast';
 import type { Report } from '@/app/(app)/welcome/page'; // Reuse Report type
 import { useState, useCallback, useMemo } from 'react';
 import { useRouter } from 'next/navigation'; // Import useRouter
+import { Button } from '@/components/ui/button'; // Import Button for better styling
 
 interface ReportsMapProps {
   reports: Report[];
@@ -70,11 +71,16 @@ export const ReportsMap: FC<ReportsMapProps> = ({
     if (reportsWithCoords.length === 0) {
       return defaultCenter;
     }
-    // Basic average calculation (can be improved with bounds calculation)
+    if (reportsWithCoords.length === 1 && reportsWithCoords[0]) {
+      // If only one report, center on it
+      return { lat: reportsWithCoords[0].latitude!, lng: reportsWithCoords[0].longitude! };
+    }
+    // Basic average calculation for multiple reports (can be improved with bounds calculation)
     const avgLat = reportsWithCoords.reduce((sum, r) => sum + r.latitude!, 0) / reportsWithCoords.length;
     const avgLng = reportsWithCoords.reduce((sum, r) => sum + r.longitude!, 0) / reportsWithCoords.length;
     return { lat: avgLat, lng: avgLng };
   }, [reportsWithCoords, defaultCenter]);
+
 
   // --- Loading and Error States ---
   if (loadError) {
@@ -118,10 +124,13 @@ export const ReportsMap: FC<ReportsMapProps> = ({
             title={report.title}
             onClick={() => handleMarkerClick(report)}
             // Optional: Use different icons based on report type
-            // icon={{
-            //   url: report.reportType === 'incidente' ? '/path/to/incident-icon.png' : '/path/to/official-icon.png',
-            //   scaledSize: new window.google.maps.Size(30, 30) // Adjust size as needed
-            // }}
+             icon={{
+               url: report.reportType === 'incidente'
+                 ? 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyNCIgaGVpZ2h0PSIyNCIgdmlld0JveD0iMCAwIDI0IDI0IiBmaWxsPSJub25lIiBzdHJva2U9ImhzbCgxMCA4MCUgNjAlKSIgc3Ryb2tlLXdpZHRoPSIyIiBzdHJva2UtbGluZWNhcD0icm91bmQiIHN0cm9rZS1saW5lam9pbj0icm91bmQiIGNsYXNzPSJsdWNpZGUgbHVjaWRlLWFsZXJ0LXRyaWFuZ2xlIj48cGF0aCBkPSJNMTUuNzggMy4yMkExIDEgMCAwIDAgMTQgNEg1YTEgMSAwIDAgMCAtLjc4IDEuNzhsNyAxNEExIDEgMCAwIDAgMTQgMjBoOEExIDEgMCAwIDAgMjIuNzggMTcuNzhsLTctMTRhMSAxIDAgMCAwIC0xLjIyIC0xLjU2eiIvPjxsaW5lIHgxPSIxMiIgeDI9IjEyIiB5MT0iOCIgeTI9IjEzIi8+PHBvaW50IHgxPSIxMiIgeTE9IjE3IiB5Mj0iMTcuMDEiLz48L3N2Zz4=' // Red triangle for incidents
+                 : 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyNCIgaGVpZ2h0PSIyNCIgdmlld0JveD0iMCAwIDI0IDI0IiBmaWxsPSJub25lIiBzdHJva2U9ImhzbCgyMTUgNDklIDMyJSkiIHN0cm9rZS13aWR0aD0iMiIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIiBzdHJva2UtbGluZWpvaW49InJvdW5kIiBjbGFzcz0ibHVjaWRlIGx1Y2lkZS11c2VyLWNvZyI+PHBhdGggZD0ibTE0IDE4IDYtNi02LTYiLz48cGF0aCBkPSJNNS44NjEgMTggLjc3NyAxMC4yOTNhNSA1IDAgMSAxIDktMS43MzYiLz48cGF0aCBkPSJtMTYgMy4xMzEgMy45MiAyLjI2NGEyIDIgMCAwIDEgMS4wOCAxLjcxNXY0Ljc3NWEyIDIgMCAwIDEgLTEuMDggMS43MTRsLTMuOTIgMi4yNjRhMiAyIDAgMCAxIC0yIDBMMTAuMDggMTMuNjFhMiAyIDAgMCAxIC0xLjA4LTEuNzE1di00Ljc3NWEyIDIgMCAwIDEgMS4wOC0xLjcxNEwxNCAzLjEzMVoiLz48L3N2Zz4=', // Blue user cog for officials
+               scaledSize: new window.google.maps.Size(30, 30), // Adjust size
+               anchor: new window.google.maps.Point(15, 15), // Center anchor
+             }}
           />
         ))}
 
@@ -130,18 +139,31 @@ export const ReportsMap: FC<ReportsMapProps> = ({
             <InfoWindowF
                position={{ lat: selectedReport.latitude!, lng: selectedReport.longitude! }}
                onCloseClick={handleInfoWindowClose}
-               options={{ pixelOffset: new window.google.maps.Size(0, -30) }} // Adjust offset
+               options={{
+                  pixelOffset: new window.google.maps.Size(0, -35), // Adjust offset slightly higher
+                  maxWidth: 250, // Set max width for better layout
+                }}
             >
-              <div
-                className="p-1 cursor-pointer hover:bg-muted/50 rounded"
-                onClick={() => handleInfoWindowClick(selectedReport.id)}
-                title="Ver detalles del reporte"
-              >
-                 <h4 className="text-sm font-semibold mb-1 text-primary">{selectedReport.title}</h4>
-                 <p className="text-xs text-muted-foreground line-clamp-2">{selectedReport.description}</p>
-                 <div className="flex items-center text-xs text-accent mt-1.5">
-                   <Info size={12} className="mr-1"/> Ver detalles
-                 </div>
+              <div className="p-2 space-y-1.5 max-w-xs"> {/* Add padding and spacing */}
+                 <h4 className="text-base font-semibold mb-1 text-primary flex items-center gap-1.5">
+                    {selectedReport.reportType === 'incidente' ? (
+                       <AlertTriangle className="h-4 w-4 text-destructive flex-shrink-0" />
+                     ) : (
+                       <Info className="h-4 w-4 text-blue-600 flex-shrink-0" /> // Example icon for funcionario
+                     )}
+                     {selectedReport.title}
+                 </h4>
+                 <p className="text-xs text-muted-foreground line-clamp-3 leading-snug">{selectedReport.description}</p>
+                  {/* Use a styled button/link for viewing details */}
+                  <Button
+                    variant="link"
+                    size="sm"
+                    className="p-0 h-auto text-xs text-accent hover:text-accent/80 font-medium mt-1 flex items-center gap-1"
+                    onClick={() => handleInfoWindowClick(selectedReport.id)}
+                    title="Ver detalles del reporte"
+                  >
+                     <ExternalLink size={12} /> Ver detalles del reporte
+                  </Button>
               </div>
             </InfoWindowF>
          )}
@@ -150,3 +172,5 @@ export const ReportsMap: FC<ReportsMapProps> = ({
 };
 
 export default ReportsMap;
+
+    
