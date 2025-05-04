@@ -123,14 +123,7 @@ export const ReportsMap: FC<ReportsMapProps> = ({
             position={{ lat: report.latitude!, lng: report.longitude! }}
             title={report.title}
             onClick={() => handleMarkerClick(report)}
-            // Optional: Use different icons based on report type
-             icon={{
-               url: report.reportType === 'incidente'
-                 ? 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyNCIgaGVpZ2h0PSIyNCIgdmlld0JveD0iMCAwIDI0IDI0IiBmaWxsPSJub25lIiBzdHJva2U9ImhzbCgxMCA4MCUgNjAlKSIgc3Ryb2tlLXdpZHRoPSIyIiBzdHJva2UtbGluZWNhcD0icm91bmQiIHN0cm9rZS1saW5lam9pbj0icm91bmQiIGNsYXNzPSJsdWNpZGUgbHVjaWRlLWFsZXJ0LXRyaWFuZ2xlIj48cGF0aCBkPSJNMTUuNzggMy4yMkExIDEgMCAwIDAgMTQgNEg1YTEgMSAwIDAgMCAtLjc4IDEuNzhsNyAxNEExIDEgMCAwIDAgMTQgMjBoOEExIDEgMCAwIDAgMjIuNzggMTcuNzhsLTctMTRhMSAxIDAgMCAwIC0xLjIyIC0xLjU2eiIvPjxsaW5lIHgxPSIxMiIgeDI9IjEyIiB5MT0iOCIgeTI9IjEzIi8+PHBvaW50IHgxPSIxMiIgeTE9IjE3IiB5Mj0iMTcuMDEiLz48L3N2Zz4=' // Red triangle for incidents
-                 : 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyNCIgaGVpZ2h0PSIyNCIgdmlld0JveD0iMCAwIDI0IDI0IiBmaWxsPSJub25lIiBzdHJva2U9ImhzbCgyMTUgNDklIDMyJSkiIHN0cm9rZS13aWR0aD0iMiIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIiBzdHJva2UtbGluZWpvaW49InJvdW5kIiBjbGFzcz0ibHVjaWRlIGx1Y2lkZS11c2VyLWNvZyI+PHBhdGggZD0ibTE0IDE4IDYtNi02LTYiLz48cGF0aCBkPSJNNS44NjEgMTggLjc3NyAxMC4yOTNhNSA1IDAgMSAxIDktMS43MzYiLz48cGF0aCBkPSJtMTYgMy4xMzEgMy45MiAyLjI2NGEyIDIgMCAwIDEgMS4wOCAxLjcxNXY0Ljc3NWEyIDIgMCAwIDEgLTEuMDggMS43MTRsLTMuOTIgMi4yNjRhMiAyIDAgMCAxIC0yIDBMMTAuMDggMTMuNjFhMiAyIDAgMCAxIC0xLjA4LTEuNzE1di00Ljc3NWEyIDIgMCAwIDEgMS4wOC0xLjcxNEwxNCAzLjEzMVoiLz48L3N2Zz4=', // Blue user cog for officials
-               scaledSize: new window.google.maps.Size(30, 30), // Adjust size
-               anchor: new window.google.maps.Point(15, 15), // Center anchor
-             }}
+            // Removed the icon prop to use default Google Maps marker
           />
         ))}
 
@@ -172,5 +165,3 @@ export const ReportsMap: FC<ReportsMapProps> = ({
 };
 
 export default ReportsMap;
-
-    
