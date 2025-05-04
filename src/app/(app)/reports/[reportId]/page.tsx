@@ -13,7 +13,7 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
-import { CalendarDays, MapPin, Tag, UserCog, TriangleAlert, Image as ImageIcon, Loader2, ArrowLeft } from 'lucide-react'; // Added ArrowLeft
+import { CalendarDays, MapPin, Tag, UserCog, TriangleAlert, Image as ImageIcon, Loader2, ArrowLeft } from 'lucide-react'; // Added ArrowLeft and ImageIcon
 import type { Report } from '@/app/(app)/welcome/page'; // Import Report type
 import { format } from 'date-fns'; // Import format for date display
 import { es } from 'date-fns/locale'; // Import Spanish locale for date formatting
@@ -144,6 +144,11 @@ const ReportDetailPage: FC = () => {
                             <Skeleton className="h-5 w-36" />
                             <Skeleton className="aspect-video w-full rounded-lg" />
                          </div>
+                         {/* Map Placeholder Skeleton */}
+                         <div className="space-y-2">
+                             <Skeleton className="h-5 w-40" />
+                             <Skeleton className="h-48 w-full rounded-lg" />
+                         </div>
                     </CardContent>
                 </Card>
             </main>
@@ -244,7 +249,7 @@ const ReportDetailPage: FC = () => {
                     </div>
 
                     {/* Media Evidence */}
-                    {report.mediaUrl && (
+                    {report.mediaUrl ? (
                          <div className="pt-0">
                              <h3 className="text-base font-semibold text-primary mb-2 flex items-center">
                                  <ImageIcon className="h-5 w-5 mr-2 opacity-70" /> Evidencia Multimedia
@@ -273,7 +278,30 @@ const ReportDetailPage: FC = () => {
                                   )}
                              </div>
                          </div>
+                    ) : (
+                        <div className="pt-0">
+                             <h3 className="text-base font-semibold text-primary mb-2 flex items-center">
+                                <ImageIcon className="h-5 w-5 mr-2 opacity-70" /> Evidencia Multimedia
+                             </h3>
+                             <p className="text-sm text-muted-foreground italic">No se adjuntó evidencia multimedia.</p>
+                         </div>
                     )}
+
+                     {/* Map Preview Placeholder */}
+                    <div className="pt-0">
+                         <h3 className="text-base font-semibold text-primary mb-2 flex items-center">
+                             <MapPin className="h-5 w-5 mr-2 opacity-70" /> Ubicación en Mapa
+                         </h3>
+                         <div className="h-48 w-full bg-muted border border-border rounded-lg flex flex-col items-center justify-center text-center p-4">
+                            <MapPin className="h-8 w-8 text-muted-foreground opacity-50 mb-2" />
+                            <p className="text-sm text-muted-foreground">Visualización del mapa no disponible.</p>
+                            {/* In a future implementation, MapPreview component would go here */}
+                            {/* {report.latitude && report.longitude && (
+                                <MapPreview lat={report.latitude} lng={report.longitude} />
+                            )} */}
+                         </div>
+                    </div>
+
                 </CardContent>
             </Card>
         </main>
@@ -281,3 +309,6 @@ const ReportDetailPage: FC = () => {
 };
 
 export default ReportDetailPage;
+
+
+    
