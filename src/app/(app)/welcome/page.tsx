@@ -13,7 +13,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
-import { LogOut, Search, UserCog, TriangleAlert, MapPin, User as UserIcon, Plus, Loader2 } from "lucide-react"; // Added Loader2
+import { LogOut, Search, UserCog, TriangleAlert, MapPin, User as UserIcon, Plus, Loader2, CalendarDays } from "lucide-react"; // Added Loader2, CalendarDays
 import Image from "next/image"; // Import Image
 import { format } from 'date-fns'; // Import format for date display
 import { es } from 'date-fns/locale'; // Import Spanish locale for date formatting
@@ -148,6 +148,21 @@ const WelcomePage: FC = () => {
        }
    }
 
+   // Helper function to extract street and neighborhood from location string
+   const formatLocation = (location: string): string => {
+        if (!location) return "Ubicación no disponible";
+        const parts = location.split(',').map(part => part.trim());
+        // Try to get street (part 0) and neighborhood (part 1)
+        if (parts.length >= 2) {
+            // Basic check if the first part looks like Lat/Lon coordinates
+            if (/^Lat: .+ Lon: .+$/.test(parts[0])) {
+               return parts[0]; // Return coordinates if that's all we have
+            }
+            return `${parts[0]}, ${parts[1]}`; // Street, Neighborhood
+        }
+        return location; // Fallback to the full string if parsing fails
+    };
+
 
   if (isLoading) {
     return (
@@ -169,19 +184,19 @@ const WelcomePage: FC = () => {
            {/* Report Card Skeletons */}
            {[1, 2, 3].map((i) => (
              <Card key={i} className="w-full shadow-sm mb-4 bg-card rounded-lg border border-border">
-               <CardHeader className="flex flex-row items-start justify-between pb-2 space-y-0 pt-4 px-4 sm:px-5">
-                  <div className="flex items-center space-x-2 flex-1">
+               <CardHeader className="flex flex-row items-start justify-between pb-2 space-y-0 pt-4 px-4 sm:px-5 relative"> {/* Added relative */}
+                  <div className="flex items-center space-x-2 flex-1 pr-16"> {/* Add padding-right to avoid overlap */}
                      <Skeleton className="h-5 w-5 rounded-full flex-shrink-0" />
                      <Skeleton className="h-5 w-3/5" />
                   </div>
-                 <Skeleton className="h-4 w-1/4" />
+                 <Skeleton className="absolute top-4 right-4 h-6 w-20 rounded-full" /> {/* Skeleton for Badge */}
                </CardHeader>
                <CardContent className="space-y-2 pt-1 pb-4 px-4 sm:px-5">
                  <Skeleton className="h-4 w-full" />
                  <Skeleton className="h-4 w-4/5" />
                  <div className="flex justify-between items-center text-sm text-muted-foreground pt-2">
                     <Skeleton className="h-4 w-1/3" />
-                    <Skeleton className="h-6 w-20 rounded-full" />
+                    <Skeleton className="h-4 w-1/4" /> {/* Skeleton for Date */}
                   </div>
                </CardContent>
              </Card>
@@ -253,34 +268,37 @@ const WelcomePage: FC = () => {
             filteredReports.map((report) => (
               <Link key={report.id} href={`/reports/${report.id}`} className="block hover:bg-card/50 rounded-lg transition-colors duration-150">
                 <Card className="w-full shadow-sm rounded-lg overflow-hidden border border-border cursor-pointer bg-card">
-                  <CardHeader className="flex flex-row items-start justify-between pb-2 space-y-0 pt-4 px-4 sm:px-5">
-                      <div className="flex items-center space-x-2">
+                  <CardHeader className="flex flex-row items-start justify-between pb-2 space-y-0 pt-4 px-4 sm:px-5 relative"> {/* Added relative */}
+                      <div className="flex items-center space-x-2 flex-1 pr-20"> {/* Add padding-right to title container */}
                          {report.reportType === 'funcionario' ? (
                            <UserCog className="h-5 w-5 text-blue-600 flex-shrink-0" />
                          ) : (
                            <TriangleAlert className="h-5 w-5 text-red-600 flex-shrink-0" />
                          )}
-                        <CardTitle className="text-base font-semibold text-foreground">{report.title}</CardTitle>
+                        <CardTitle className="text-base font-semibold text-foreground line-clamp-1">{report.title}</CardTitle> {/* Added line-clamp */}
                       </div>
-                     {/* Format the date */}
-                     <p className="text-xs text-muted-foreground pt-1">
-                         {format(report.createdAt, "PPP", { locale: es })}
-                     </p>
-                  </CardHeader>
-                  <CardContent className="space-y-2 pt-1 pb-4 px-4 sm:px-5">
-                    <CardDescription className="text-sm text-foreground/90 leading-relaxed line-clamp-2">{report.description}</CardDescription> {/* Added line-clamp */}
-                    <div className="flex justify-between items-center text-sm text-muted-foreground pt-2">
-                      <div className="flex items-center">
-                          <MapPin className="h-4 w-4 mr-1.5"/>
-                          {report.location}
-                      </div>
+                       {/* Moved Status Badge to top right */}
                        <Badge
                            variant={getStatusVariant(report.status)}
-                           className={`capitalize rounded-full px-2.5 py-0.5 text-xs font-medium border ${getStatusClasses(report.status)}`}
+                           className={`absolute top-4 right-4 capitalize rounded-full px-2.5 py-0.5 text-xs font-medium border ${getStatusClasses(report.status)}`}
                        >
                         {report.status}
                       </Badge>
-                    </div>
+                  </CardHeader>
+                  <CardContent className="space-y-2 pt-1 pb-4 px-4 sm:px-5">
+                    <CardDescription className="text-sm text-foreground/90 leading-relaxed line-clamp-2">{report.description}</CardDescription>
+                     <div className="flex justify-between items-center text-sm text-muted-foreground pt-2">
+                       {/* Formatted Location */}
+                       <div className="flex items-center">
+                           <MapPin className="h-4 w-4 mr-1.5 flex-shrink-0"/>
+                           <span className="line-clamp-1">{formatLocation(report.location)}</span>
+                       </div>
+                       {/* Moved Date to bottom right */}
+                       <div className="flex items-center text-xs">
+                           <CalendarDays className="h-3.5 w-3.5 mr-1 flex-shrink-0" />
+                           <span>{format(report.createdAt, "PPP", { locale: es })}</span>
+                       </div>
+                     </div>
                   </CardContent>
                 </Card>
               </Link>
@@ -319,4 +337,4 @@ const WelcomePage: FC = () => {
 
 export default WelcomePage;
 // Removed export type { Report }; - It's already exported inline
-
+    
