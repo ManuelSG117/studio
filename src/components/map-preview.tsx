@@ -8,7 +8,7 @@ import L from 'leaflet'; // Import Leaflet library
 
 // Define the props for the component
 interface MapPreviewProps {
-  mapId: string; // Add a unique ID for the map instance
+  mapId: string; // Keep ID for potential future use, but not as key
   latitude: number;
   longitude: number;
   locationName?: string; // Optional name for the popup/tooltip
@@ -35,7 +35,7 @@ const MapPreview: FC<MapPreviewProps> = ({
     // Basic check for valid coordinates
     if (isNaN(latitude) || isNaN(longitude)) {
         return (
-            <div className="aspect-video bg-muted rounded-lg flex items-center justify-center text-destructive text-sm border border-destructive/50">
+            <div className="aspect-video bg-muted rounded-lg flex items-center justify-center text-destructive text-sm border border-destructive/50 h-[250px]">
                 Coordenadas inválidas.
             </div>
         );
@@ -43,7 +43,7 @@ const MapPreview: FC<MapPreviewProps> = ({
 
     return (
         <MapContainer
-            key={mapId} // Add the key prop here
+            // key={mapId} // Removed key from here, dynamic import handles uniqueness
             center={position}
             zoom={zoom}
             scrollWheelZoom={false} // Disable zoom for preview usually
@@ -51,6 +51,11 @@ const MapPreview: FC<MapPreviewProps> = ({
             zoomControl={false} // Hide zoom controls
             style={{ height: '250px', width: '100%', borderRadius: '0.5rem' }} // Fixed height, rounded corners
             className="cursor-default" // Indicate non-interactive map
+            placeholder={ // Add placeholder for better loading experience
+                <div className="h-[250px] w-full bg-muted rounded-lg flex items-center justify-center text-muted-foreground text-sm border border-border">
+                    Cargando mapa...
+                 </div>
+             }
         >
             <TileLayer
                 attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'

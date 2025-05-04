@@ -21,9 +21,9 @@ import { es } from 'date-fns/locale'; // Import Spanish locale for date formatti
 
 // Dynamically import the Map Preview component
 const MapPreview = dynamic(() => import('@/components/map-preview'), {
-    ssr: false,
+    ssr: false, // Ensure component only renders on client-side
     loading: () => (
-        <div className="aspect-video bg-muted rounded-lg flex items-center justify-center text-muted-foreground text-sm border border-border">
+        <div className="aspect-video bg-muted rounded-lg flex items-center justify-center text-muted-foreground text-sm border border-border h-[250px] w-full"> {/* Match MapPreview height */}
             <Map className="h-8 w-8 mr-2 opacity-50 animate-pulse" />
             <span>Cargando mapa...</span>
         </div>
@@ -38,8 +38,10 @@ const ReportDetailPage: FC = () => {
     const [report, setReport] = useState<Report | null>(null); // Start with null
     const [isLoading, setIsLoading] = useState(true); // Combined loading state
     const [user, setUser] = useState<User | null>(null);
+    const [isClient, setIsClient] = useState(false); // State to track client-side mounting
 
     useEffect(() => {
+        setIsClient(true); // Component has mounted
         setIsLoading(true); // Start loading
         const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
             if (!currentUser) {
@@ -123,7 +125,7 @@ const ReportDetailPage: FC = () => {
     }
 
      // Loading state for authentication check and data fetching
-    if (isLoading) { // Use the single isLoading state
+    if (isLoading || !isClient) { // Use the single isLoading state and check for client mount
         return (
             <main className="flex flex-col items-center p-4 sm:p-8 bg-secondary min-h-screen">
                 <Card className="w-full max-w-2xl shadow-lg border-none rounded-xl bg-card">
@@ -154,7 +156,7 @@ const ReportDetailPage: FC = () => {
                          {/* Map Skeleton */}
                           <div className="pt-4 space-y-2">
                              <Skeleton className="h-5 w-24" />
-                             <Skeleton className="aspect-video w-full rounded-lg" />
+                             <Skeleton className="aspect-video w-full rounded-lg h-[250px]" /> {/* Match MapPreview height */}
                           </div>
                     </CardContent>
                      <CardFooter className="flex justify-end pt-4 pb-6 px-6 sm:px-8">
@@ -272,27 +274,25 @@ const ReportDetailPage: FC = () => {
                          </div>
                     )}
 
-                    {/* Location Map Preview */}
-                     {report.latitude && report.longitude ? ( // Check both lat and lon
-                        <div className="pt-2">
-                             <h3 className="text-base font-semibold text-primary mb-2 flex items-center">
-                                 <Map className="h-5 w-5 mr-2 opacity-70" /> Ubicación en Mapa
-                             </h3>
-                             <MapPreview
-                                 mapId={`report-map-${report.id}`} // Pass a unique ID
-                                 latitude={report.latitude}
-                                 longitude={report.longitude}
-                                 locationName={report.location}
-                              />
-                        </div>
-                     ) : (
-                        <div className="pt-2">
-                           <h3 className="text-base font-semibold text-primary mb-2 flex items-center">
-                               <Map className="h-5 w-5 mr-2 opacity-70" /> Ubicación en Mapa
-                           </h3>
-                            <p className="text-sm text-muted-foreground italic">No se proporcionaron coordenadas para este reporte.</p>
-                         </div>
-                     )}
+                    {/* Location Map Preview - Only render if client-side and coordinates exist */}
+                    <div className="pt-2">
+                         <h3 className="text-base font-semibold text-primary mb-2 flex items-center">
+                             <Map className="h-5 w-5 mr-2 opacity-70" /> Ubicación en Mapa
+                         </h3>
+                         {isClient && report.latitude && report.longitude ? (
+                            <MapPreview
+                                mapId={`report-map-${report.id}`} // Pass a unique ID
+                                latitude={report.latitude}
+                                longitude={report.longitude}
+                                locationName={report.location}
+                             />
+                         ) : (
+                            !report.latitude || !report.longitude ? (
+                                <p className="text-sm text-muted-foreground italic">No se proporcionaron coordenadas para este reporte.</p>
+                            ) : null // Render nothing if client not ready yet, loading skeleton handles initial state
+                         )}
+                    </div>
+
 
                      {/* Back Button */}
                      <CardFooter className="pt-6 justify-start px-0"> {/* Changed justify-end to justify-start */}
