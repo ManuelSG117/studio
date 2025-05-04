@@ -1,3 +1,4 @@
+
 "use client";
 
 import type { FC } from 'react';
@@ -241,6 +242,16 @@ const StatisticsPage: FC = () => {
         }
     };
 
+    // Moved useMemo hook before the conditional return
+    const averageLabel = useMemo(() => {
+       switch(filterPeriod) {
+          case 'day': return 'Promedio por Día';
+          case 'week': return 'Promedio por Semana';
+          case 'month': return 'Promedio por Mes';
+          default: return 'Promedio';
+       }
+    }, [filterPeriod]);
+
 
   // Loading state skeleton
   if (isLoading) {
@@ -291,14 +302,7 @@ const StatisticsPage: FC = () => {
     );
   }
 
-  const averageLabel = useMemo(() => {
-     switch(filterPeriod) {
-        case 'day': return 'Promedio por Día';
-        case 'week': return 'Promedio por Semana';
-        case 'month': return 'Promedio por Mes';
-        default: return 'Promedio';
-     }
-  }, [filterPeriod]);
+
 
   return (
     <main className="flex flex-col items-center p-4 sm:p-6 bg-secondary min-h-screen">
