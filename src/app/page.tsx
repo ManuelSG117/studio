@@ -104,18 +104,29 @@ const HomePage: FC = () => {
                   </motion.div>
                </div>
 
-               {/* Right Side - Lottie Animation */}
-               <motion.div className="flex-1" variants={itemVariants}>
-                 <DotLottieReact
-                   src="https://lottie.host/7734755b-dc79-461d-9ce9-517fc33c65b4/N7eBj4r78D.lottie"
-                   loop
-                   autoplay
-                   className="w-full max-w-md mx-auto" // Adjust size and positioning as needed
-                   data-ai-hint="security shield animation"
-                 />
-               </motion.div>
+               {/* Right Side - Lottie Animation moved below hero section */}
+               {/* Removed from here */}
             </motion.div>
           </div>
+        </section>
+
+        {/* Lottie Animation Section */}
+        <section className="w-full py-16 md:py-24 bg-secondary">
+            <div className="container px-4 md:px-6">
+                <motion.div
+                   variants={itemVariants} // Reuse itemVariants or create a new one
+                   initial="hidden"
+                   animate="visible"
+                 >
+                  <DotLottieReact
+                    src="https://lottie.host/7734755b-dc79-461d-9ce9-517fc33c65b4/N7eBj4r78D.lottie"
+                    loop
+                    autoplay
+                    className="w-full max-w-md mx-auto" // Adjust size and positioning as needed
+                    data-ai-hint="security shield animation"
+                  />
+                </motion.div>
+            </div>
         </section>
 
         {/* Report Types Section */}
