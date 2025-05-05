@@ -1,3 +1,4 @@
+
 "use client";
 
 import type { FC } from 'react';
@@ -508,25 +509,13 @@ const HomePage: FC = () => {
                   </p>
               </motion.div>
 
-              {/* Lottie Animation Graph */}
+              {/* Lottie Animation Graph - Removed Card wrapper */}
               <motion.div
-                  className="relative bg-card p-6 rounded-2xl shadow-xl border border-border overflow-hidden"
+                  className="relative p-6 rounded-2xl overflow-hidden" // Removed bg-card, shadow, border
                   variants={scrollRevealVariants}
                   whileHover={{ scale: 1.01 }}
                   transition={{ type: "spring", stiffness: 300 }}
               >
-                  {/* Background Gradient */}
-                  <div className="absolute inset-0 bg-gradient-to-br from-accent/10 via-transparent to-primary/5 opacity-50 pointer-events-none"></div>
-
-                  <div className="flex flex-col md:flex-row items-center justify-between mb-6">
-                      <h3 className="text-xl font-semibold text-foreground mb-4 md:mb-0">Evolución de Reportes</h3>
-                      <div className="flex gap-2">
-                          <Badge variant="outline">Mes</Badge>
-                          <Badge variant="secondary">Semana</Badge>
-                          <Badge variant="secondary">Día</Badge>
-                      </div>
-                  </div>
-
                   {/* Lottie Animation */}
                   <div className="relative h-64 w-full flex items-center justify-center">
                      <DotLottieReact
@@ -536,15 +525,6 @@ const HomePage: FC = () => {
                         className="w-full max-w-lg" // Adjust width as needed
                         data-ai-hint="data graph animation"
                       />
-                  </div>
-                  <div className="flex justify-between text-xs text-muted-foreground mt-2 px-2">
-                      {/* Labels can be adjusted or removed based on animation context */}
-                      <span>Ene</span>
-                      <span>Feb</span>
-                      <span>Mar</span>
-                      <span>Abr</span>
-                      <span>May</span>
-                      <span>Jun</span>
                   </div>
               </motion.div>
 
