@@ -232,19 +232,42 @@ const CommunityReportsPage: FC = () => {
             let newUpvotes = reportData.upvotes || 0;
             let newDownvotes = reportData.downvotes || 0;
 
+            // Referencia a la colección de votos del usuario
+            const userVoteRef = doc(db, 'userVotes', `${user.uid}_${reportId}`);
+            
             if (existingVote === voteType) { // Removing vote
                 if (voteType === 'up') newUpvotes = Math.max(0, newUpvotes - 1);
                 else newDownvotes = Math.max(0, newDownvotes - 1);
                 transaction.delete(voteRef);
+                transaction.delete(userVoteRef); // Eliminar también de userVotes
             } else { // Adding or changing vote
+                // Obtener título del reporte para guardar en userVotes
+                const reportTitle = reportData.title || 'Reporte sin título';
+                
                 if (voteType === 'up') {
                     newUpvotes++;
                     if (existingVote === 'down') newDownvotes = Math.max(0, newDownvotes - 1);
-                    transaction.set(voteRef, { type: 'up' }); // Removed timestamp
+                    transaction.set(voteRef, { type: 'up' });
+                    // Guardar en userVotes con timestamp
+                    transaction.set(userVoteRef, {
+                        userId: user.uid,
+                        reportId: reportId,
+                        reportTitle: reportTitle,
+                        type: 'up',
+                        timestamp: Timestamp.now()
+                    });
                 } else {
                     newDownvotes++;
                     if (existingVote === 'up') newUpvotes = Math.max(0, newUpvotes - 1);
-                    transaction.set(voteRef, { type: 'down' }); // Removed timestamp
+                    transaction.set(voteRef, { type: 'down' });
+                    // Guardar en userVotes con timestamp
+                    transaction.set(userVoteRef, {
+                        userId: user.uid,
+                        reportId: reportId,
+                        reportTitle: reportTitle,
+                        type: 'down',
+                        timestamp: Timestamp.now()
+                    });
                 }
             }
             transaction.update(reportRef, { upvotes: newUpvotes, downvotes: newDownvotes });
@@ -315,8 +338,8 @@ const CommunityReportsPage: FC = () => {
                                 variant="ghost"
                                 size="icon"
                                 className={cn(
-                                    "h-6 w-6 rounded-full text-muted-foreground hover:bg-green-600/10 hover:text-green-600",
-                                    report.userVote === 'up' && "bg-green-600/20 text-green-600",
+                                    "h-6 w-6 rounded-full text-muted-foreground hover:bg-blue-600/10 hover:text-blue-600",
+                                    report.userVote === 'up' && "bg-blue-600/20 text-blue-600",
                                     votingState[report.id] && "opacity-50 cursor-not-allowed"
                                 )}
                                 onClick={() => handleVote(report.id, 'up')}

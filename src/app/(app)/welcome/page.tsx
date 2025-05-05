@@ -249,23 +249,46 @@ const WelcomePage: FC = () => {
                 let newDownvotes = reportData.downvotes || 0;
 
                 // Logic based on assumed `currentVote`
+                // Referencia a la colección de votos del usuario
+                const userVoteRef = doc(db, 'userVotes', `${user.uid}_${reportId}`);
+                
                 if (existingVote === voteType) {
                     // Vote removal
                     if (voteType === 'up') newUpvotes = Math.max(0, newUpvotes - 1);
                     else newDownvotes = Math.max(0, newDownvotes - 1);
                     transaction.delete(voteRef);
+                    transaction.delete(userVoteRef); // Eliminar también de userVotes
                     console.log(`Removed ${voteType}vote for report ${reportId} by user ${user.uid}`);
                 } else {
+                    // Obtener título del reporte para guardar en userVotes
+                    const reportTitle = reportData.title || 'Reporte sin título';
+                    
                     // Adding a new vote or changing an existing one
                     if (voteType === 'up') {
                         newUpvotes++;
                         if (existingVote === 'down') newDownvotes = Math.max(0, newDownvotes - 1); // Remove downvote if changing
-                        transaction.set(voteRef, { type: 'up' }); // Removed timestamp
+                        transaction.set(voteRef, { type: 'up' });
+                        // Guardar en userVotes con timestamp
+                        transaction.set(userVoteRef, {
+                            userId: user.uid,
+                            reportId: reportId,
+                            reportTitle: reportTitle,
+                            type: 'up',
+                            timestamp: Timestamp.now()
+                        });
                         console.log(`Added upvote for report ${reportId} by user ${user.uid}`);
                     } else { // voteType is 'down'
                         newDownvotes++;
                         if (existingVote === 'up') newUpvotes = Math.max(0, newUpvotes - 1); // Remove upvote if changing
-                        transaction.set(voteRef, { type: 'down' }); // Removed timestamp
+                        transaction.set(voteRef, { type: 'down' });
+                        // Guardar en userVotes con timestamp
+                        transaction.set(userVoteRef, {
+                            userId: user.uid,
+                            reportId: reportId,
+                            reportTitle: reportTitle,
+                            type: 'down',
+                            timestamp: Timestamp.now()
+                        });
                         console.log(`Added downvote for report ${reportId} by user ${user.uid}`);
                     }
                 }
@@ -346,8 +369,8 @@ const WelcomePage: FC = () => {
                                 variant="ghost"
                                 size="icon"
                                 className={cn(
-                                    "h-6 w-6 rounded-full text-muted-foreground hover:bg-green-600/10 hover:text-green-600",
-                                    report.userVote === 'up' && "bg-green-600/20 text-green-600",
+                                    "h-6 w-6 rounded-full text-muted-foreground hover:bg-blue-600/10 hover:text-blue-600",
+                                    report.userVote === 'up' && "bg-blue-600/20 text-blue-600",
                                     votingState[report.id] && "opacity-50 cursor-not-allowed"
                                 )}
                                 onClick={() => handleVote(report.id, 'up')}
