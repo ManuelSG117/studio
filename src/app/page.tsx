@@ -1,4 +1,3 @@
-
 "use client";
 
 import type { FC } from 'react';
@@ -104,7 +103,15 @@ const HomePage: FC = () => {
                </div>
 
                {/* Right Side - Lottie Animation moved below hero section */}
-               {/* Removed from here */}
+                 <motion.div className="w-full max-w-lg mx-auto mt-8" variants={itemVariants}> {/* Moved Lottie below buttons and text */}
+                    <DotLottieReact
+                        src="https://lottie.host/7734755b-dc79-461d-9ce9-517fc33c65b4/N7eBj4r78D.lottie"
+                        loop
+                        autoplay
+                        className="w-full h-auto" // Adjust size as needed
+                        data-ai-hint="security shield animation"
+                    />
+                </motion.div>
             </motion.div>
           </div>
         </section>
