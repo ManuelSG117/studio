@@ -8,7 +8,7 @@ import { useAuth } from '@/context/AuthContext';
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Shield, AlertTriangle, ChevronRight, MapPin, Check, Navigation, ExternalLink, Heart, HelpCircle, Mail, Phone, Facebook, Twitter, Instagram, LineChart, Loader2, ImageIcon } from 'lucide-react'; // Added ImageIcon
+import { Shield, AlertTriangle, ChevronRight, MapPin, Check, Navigation, ExternalLink, Heart, HelpCircle, Mail, Phone, Facebook, Twitter, Instagram, LineChart, Loader2, ImageIcon, UserCog, FileText } from 'lucide-react'; // Added UserCog, FileText
 import { motion, useScroll, useTransform } from 'framer-motion';
 import Image from 'next/image';
 import { HoverCard, HoverCardTrigger, HoverCardContent } from "@/components/ui/hover-card";
@@ -354,7 +354,7 @@ const HomePage: FC = () => {
                                        <span className="text-xs text-destructive">Incidente</span>
                                   </div>
                                    <div className="p-2 w-1/2 border border-input rounded-md bg-muted/50 text-center opacity-60">
-                                       <Shield className="h-4 w-4 text-muted-foreground mx-auto mb-1" />
+                                       <UserCog className="h-4 w-4 text-muted-foreground mx-auto mb-1" />
                                        <span className="text-xs text-muted-foreground">Funcionario</span>
                                   </div>
                               </div>
@@ -422,7 +422,7 @@ const HomePage: FC = () => {
                       Visualiza los reportes de los demás y observa cómo contribuye tu reporte, visualiza las zonas de riesgo.
                     </p>
                      <motion.div className="mt-5 flex justify-start md:justify-end" whileTap={{ scale: 0.95 }}>
-                      <Button variant="outline" className="border-accent text-accent hover:bg-accent/30 flex items-center rounded-full" onClick={() => router.push('/auth')}>
+                      <Button variant="outline" className="border-accent text-accent hover:bg-accent/10 flex items-center rounded-full" onClick={() => router.push('/auth')}> {/* Updated hover */}
                         Visualizar reportes
                         <ChevronRight className="ml-1 h-4 w-4" />
                       </Button>
@@ -435,25 +435,38 @@ const HomePage: FC = () => {
                            <div className="flex justify-between items-center mb-4">
                              <h4 className="text-base font-medium text-accent">Ve los reportes de los demás</h4>
                              <span className="inline-flex items-center justify-center h-6 w-6 rounded-full bg-accent/10 text-accent">
-                                <Navigation className="h-3 w-3" />
+                                <FileText className="h-3 w-3" /> {/* Changed icon to FileText */}
                               </span>
                            </div>
+                           {/* Simulated list of reports */}
                            <div className="space-y-3">
-                             <div className="h-9 w-full bg-muted rounded animate-pulse"></div>
-                             <div className="h-9 w-full bg-muted rounded animate-pulse"></div>
-                             <div className="flex justify-between">
-                               <div className="h-9 w-1/3 bg-muted rounded animate-pulse"></div>
-                               <div className="h-9 w-1/4 bg-muted rounded animate-pulse"></div>
+                             {/* Simulated Report 1 */}
+                             <div className="p-3 bg-muted/50 rounded-lg border border-input flex items-center justify-between">
+                               <div className="flex items-center gap-2">
+                                   <AlertTriangle className="h-4 w-4 text-destructive" />
+                                   <span className="text-sm text-foreground truncate w-32">Asalto en Col. Morelos</span>
                                </div>
-                             <div className="flex gap-2 mt-2">
-                               <div className="h-4 w-4 rounded-full bg-red-500"></div>
-                               <div className="h-4 w-4 rounded-full bg-yellow-500"></div>
-                               <div className="h-4 w-4 rounded-full bg-green-500"></div>
-                               <div className="h-4 w-4 rounded-full bg-orange-500"></div>
+                                <span className="text-xs text-muted-foreground">Hace 2h</span>
                              </div>
-                             <div className="flex justify-end mt-4">
-                               <div className="h-8 w-24 bg-accent/20 rounded-full animate-pulse"></div>
+                              {/* Simulated Report 2 */}
+                             <div className="p-3 bg-muted/50 rounded-lg border border-input flex items-center justify-between">
+                               <div className="flex items-center gap-2">
+                                   <UserCog className="h-4 w-4 text-primary" />
+                                   <span className="text-sm text-foreground truncate w-32">Funcionario grosero</span>
+                               </div>
+                               <span className="text-xs text-muted-foreground">Ayer</span>
                              </div>
+                              {/* Simulated Report 3 */}
+                             <div className="p-3 bg-muted/50 rounded-lg border border-input flex items-center justify-between">
+                               <div className="flex items-center gap-2">
+                                   <AlertTriangle className="h-4 w-4 text-destructive" />
+                                   <span className="text-sm text-foreground truncate w-32">Robo de autopartes</span>
+                               </div>
+                               <span className="text-xs text-muted-foreground">Hace 3d</span>
+                             </div>
+                           </div>
+                           <div className="flex justify-end mt-4">
+                             <div className="h-9 w-32 bg-accent/80 rounded-full flex items-center justify-center text-sm text-accent-foreground">Cargar más</div>
                            </div>
                          </CardContent>
                      </Card>
@@ -536,7 +549,7 @@ const HomePage: FC = () => {
                   </div>
                </motion.div>
               <motion.div className="text-center mt-10" variants={scrollRevealVariants}>
-                  <Button variant="outline" className="border-accent text-accent hover:bg-accent/50 flex items-center mx-auto rounded-full" onClick={() => router.push('/auth')}>
+                  <Button variant="outline" className="border-accent text-accent hover:bg-accent/10 flex items-center mx-auto rounded-full" onClick={() => router.push('/auth')}> {/* Updated hover */}
                       Explorar Estadísticas Completas
                       <ChevronRight className="ml-1 h-4 w-4" />
                   </Button>
