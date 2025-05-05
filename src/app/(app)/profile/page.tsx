@@ -15,6 +15,7 @@ import { LogOut, Edit, User as UserIcon, Mail, Home, Phone, Cake, VenetianMask }
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale'; // Import Spanish locale
 import { useToast } from '@/hooks/use-toast';
+import { VotingStats } from '@/components/profile/voting-stats'; // Import the new component
 
 // Define a type for detailed user profile data fetched from Firestore
 export interface UserProfile { // Export UserProfile type
@@ -124,7 +125,7 @@ const ProfilePage: FC = () => {
   // Display Loading Skeletons
   if (isLoading) {
     return (
-      <main className="flex flex-col items-center p-4 sm:p-8 bg-secondary">
+      <main className="flex flex-col items-center p-4 sm:p-8 bg-secondary min-h-screen">
         <Card className="w-full max-w-lg shadow-lg border-none rounded-xl bg-card">
           <CardHeader className="relative pb-4 pt-8 items-center text-center">
              {/* Header Skeleton Removed */}
@@ -140,6 +141,8 @@ const ProfilePage: FC = () => {
                 <Skeleton className="h-4 w-3/5" />
               </div>
             ))}
+             {/* Skeleton for VotingStats */}
+             <Skeleton className="h-24 w-full mt-6" />
           </CardContent>
           <CardFooter className="flex flex-col sm:flex-row justify-between items-center pt-4 pb-8 px-6 sm:px-8 gap-3">
             <Skeleton className="h-10 w-full sm:w-auto sm:flex-1 rounded-full" />
@@ -172,7 +175,7 @@ const ProfilePage: FC = () => {
 
   // Display Profile
   return (
-    <main className="flex flex-col items-center p-4 sm:p-8 bg-secondary">
+    <main className="flex flex-col items-center p-4 sm:p-8 bg-secondary min-h-screen">
       <Card className="w-full max-w-lg shadow-lg border-none rounded-xl bg-card">
         <CardHeader className="relative pb-4 pt-8 items-center text-center">
            {/* Header section removed */}
@@ -266,6 +269,11 @@ const ProfilePage: FC = () => {
                  </p>
              )}
 
+             {/* Add Voting Stats Section */}
+             <div className="pt-4 mt-4 border-t border-border">
+                 <h3 className="text-base font-semibold text-primary mb-4">Mis Estadísticas de Voto</h3>
+                  <VotingStats userId={user.uid} />
+             </div>
 
         </CardContent>
 
