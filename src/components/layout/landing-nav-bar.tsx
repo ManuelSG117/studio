@@ -3,13 +3,11 @@
 
 import type { FC } from 'react';
 import Link from 'next/link';
-import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import { useEffect, useState } from 'react';
-// Import icons for the navbar links
-import { LogIn, Menu, X } from 'lucide-react';
+import { LogIn, Menu} from 'lucide-react';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
 
 const LandingNavBar: FC = () => {

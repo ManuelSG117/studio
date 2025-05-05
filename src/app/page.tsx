@@ -7,15 +7,14 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link'; // Import Link for internal navigation
 import { useAuth } from '@/context/AuthContext';
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent} from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Shield, AlertTriangle, ChevronRight, MapPin, Check, Navigation, ExternalLink, Heart, HelpCircle, Mail, Phone, Facebook, Twitter, Instagram, LineChart, Loader2, ImageIcon, UserCog, FileText, ThumbsUp, CheckCircle, ArrowUp, ArrowDown } from 'lucide-react'; // Added ThumbsUp, CheckCircle, ArrowUp, ArrowDown
-import { motion, useScroll, useTransform } from 'framer-motion';
+import {  AlertTriangle, ChevronRight, MapPin, Check, Mail, Phone, Facebook, Twitter, Instagram, Loader2, ImageIcon, UserCog, FileText, ThumbsUp, CheckCircle, ArrowUp, ArrowDown } from 'lucide-react'; // Added ThumbsUp, CheckCircle, ArrowUp, ArrowDown
+import { motion, useScroll } from 'framer-motion';
 import Image from 'next/image';
 import { HoverCard, HoverCardTrigger, HoverCardContent } from "@/components/ui/hover-card";
 import LandingNavBar from '@/components/layout/landing-nav-bar'; // Import the new navbar
 import { DotLottieReact } from '@lottiefiles/dotlottie-react'; // Import Lottie component
-import { cn } from '@/lib/utils'; // Import cn
 
 const HomePage: FC = () => {
   const router = useRouter();
@@ -62,7 +61,7 @@ const HomePage: FC = () => {
                <div className="flex-1 space-y-4 text-center"> {/* Added text-center */}
                   <motion.div className="space-y-2" variants={itemVariants}>
                      <Image
-                        src="/logo.png"
+                        src="/logo.webp"
                         alt="App Logo"
                         width={200} // Reduced logo size
                         height={200}
