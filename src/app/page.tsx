@@ -1,3 +1,4 @@
+
 "use client";
 
 import type { FC } from 'react';
@@ -130,7 +131,7 @@ const HomePage: FC = () => {
         {/* Report Types Section */}
          <motion.section
             id="what-we-do" // Add ID for navigation
-            className="w-full py-16 md:py-24 bg-secondary"
+            className="w-full py-16 md:py-24 bg-gradient-to-b from-secondary to-white"
             initial="offscreen"
             whileInView="onscreen"
             viewport={{ once: true, amount: 0.2 }}
