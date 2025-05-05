@@ -1,8 +1,7 @@
-
 "use client";
 
 import type { FC } from 'react';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/context/AuthContext';
 import { Button } from "@/components/ui/button";
@@ -307,19 +306,19 @@ const HomePage: FC = () => {
                             {/* Simulated form content */}
                             <div className="space-y-3 mb-4">
                                 <div className="space-y-1">
-                                   <div className="h-4 w-1/3 bg-muted rounded"></div>
+                                   <div className="h-4 w-1/3 bg-muted rounded mb-1">Correo</div>
                                    <div className="h-9 w-full bg-muted/70 rounded border border-input flex items-center px-2">
                                       <span className="text-sm text-muted-foreground/70">usuario@ejemplo.com</span>
                                    </div>
                                 </div>
                                 <div className="space-y-1">
-                                  <div className="h-4 w-1/4 bg-muted rounded"></div>
+                                  <div className="h-4 w-1/4 bg-muted rounded mb-1">Contraseña</div>
                                   <div className="h-9 w-full bg-muted/70 rounded border border-input flex items-center px-2">
                                       <span className="text-sm text-muted-foreground/70">••••••••</span>
                                   </div>
                                 </div>
                                 <div className="space-y-1">
-                                  <div className="h-4 w-1/3 bg-muted rounded"></div>
+                                  <div className="h-4 w-1/3 bg-muted rounded mb-1">Confirmar contraseña</div>
                                   <div className="h-9 w-full bg-muted/70 rounded border border-input flex items-center px-2">
                                       <span className="text-sm text-muted-foreground/70">••••••••</span>
                                   </div>
@@ -585,5 +584,3 @@ const HomePage: FC = () => {
 };
 
 export default HomePage;
-
-    
