@@ -8,7 +8,7 @@ import { useAuth } from '@/context/AuthContext';
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Shield, AlertTriangle, ChevronRight, MapPin, Check, Navigation, ExternalLink, Heart, HelpCircle, Mail, Phone, Facebook, Twitter, Instagram } from 'lucide-react';
+import { Shield, AlertTriangle, ChevronRight, MapPin, Check, Navigation, ExternalLink, Heart, HelpCircle, Mail, Phone, Facebook, Twitter, Instagram, LineChart } from 'lucide-react'; // Added LineChart
 import { Loader2 } from 'lucide-react';
 import { motion, useScroll, useTransform } from 'framer-motion';
 import Image from 'next/image';
@@ -460,6 +460,112 @@ const HomePage: FC = () => {
               </motion.div>
             </div>
           </motion.section>
+
+           {/* Statistics Section */}
+        <motion.section
+            id="statistics"
+            className="w-full py-16 md:py-24 bg-gradient-to-b from-white to-secondary"
+            initial="offscreen"
+            whileInView="onscreen"
+            viewport={{ once: true, amount: 0.2 }}
+            variants={scrollRevealVariants}
+          >
+            <div className="container px-4 md:px-6">
+              <motion.div className="text-center mb-12 max-w-3xl mx-auto" variants={scrollRevealVariants}>
+                  <Badge className="mb-4 bg-accent/10 text-accent hover:bg-accent/20">
+                      ESTADÍSTICAS
+                  </Badge>
+                  <h2 className="text-3xl md:text-5xl font-bold tracking-tight mb-4 text-foreground">
+                      Tendencias de Seguridad en Uruapan
+                  </h2>
+                  <p className="mx-auto max-w-[700px] text-muted-foreground md:text-xl/relaxed">
+                      Visualiza las tendencias de reportes para entender mejor la seguridad en tu área y tomar decisiones informadas.
+                  </p>
+              </motion.div>
+
+              {/* Placeholder Animated Graph */}
+              <motion.div
+                  className="relative bg-card p-6 rounded-2xl shadow-xl border border-border overflow-hidden"
+                  variants={scrollRevealVariants}
+                  whileHover={{ scale: 1.01 }}
+                  transition={{ type: "spring", stiffness: 300 }}
+              >
+                  {/* Background Gradient */}
+                  <div className="absolute inset-0 bg-gradient-to-br from-accent/10 via-transparent to-primary/5 opacity-50 pointer-events-none"></div>
+
+                  <div className="flex flex-col md:flex-row items-center justify-between mb-6">
+                      <h3 className="text-xl font-semibold text-foreground mb-4 md:mb-0">Evolución de Reportes (Ejemplo)</h3>
+                      <div className="flex gap-2">
+                          <Badge variant="outline">Mes</Badge>
+                          <Badge variant="secondary">Semana</Badge>
+                          <Badge variant="secondary">Día</Badge>
+                      </div>
+                  </div>
+
+                  {/* Simplified Animated Graph Visualization */}
+                  <div className="relative h-64 w-full">
+                      {/* Grid lines */}
+                      <div className="absolute inset-0 grid grid-rows-4 border-t border-border/50">
+                          {[...Array(4)].map((_, i) => (
+                              <div key={i} className="border-b border-border/30"></div>
+                          ))}
+                      </div>
+
+                      {/* Animated Line/Area */}
+                      <motion.svg
+                          viewBox="0 0 300 100"
+                          preserveAspectRatio="none"
+                          className="absolute bottom-0 left-0 w-full h-full"
+                      >
+                          <motion.path
+                              d="M0 80 C 50 20, 100 90, 150 50 S 250 10, 300 70 L 300 100 L 0 100 Z"
+                              fill="url(#gradient)"
+                              stroke="hsl(var(--primary))"
+                              strokeWidth="2"
+                              initial={{ pathLength: 0, opacity: 0 }}
+                              whileInView={{ pathLength: 1, opacity: 1 }}
+                              transition={{ duration: 2, ease: "easeInOut", delay: 0.5 }}
+                          />
+                          <defs>
+                              <linearGradient id="gradient" x1="0%" y1="0%" x2="0%" y2="100%">
+                                  <stop offset="0%" style={{ stopColor: 'hsl(var(--primary))', stopOpacity: 0.3 }} />
+                                  <stop offset="100%" style={{ stopColor: 'hsl(var(--primary))', stopOpacity: 0 }} />
+                              </linearGradient>
+                          </defs>
+                      </motion.svg>
+
+                      {/* Animated Dots (Optional) */}
+                       <div className="absolute inset-0 flex justify-between items-end pb-[20%] px-4 pointer-events-none">
+                          {[...Array(6)].map((_, i) => (
+                              <motion.div
+                                  key={i}
+                                  className="h-2 w-2 rounded-full bg-primary"
+                                  initial={{ scale: 0, opacity: 0 }}
+                                  whileInView={{ scale: 1, opacity: 1 }}
+                                  transition={{ duration: 0.5, delay: 0.8 + i * 0.2 }}
+                              ></motion.div>
+                          ))}
+                      </div>
+                  </div>
+                  <div className="flex justify-between text-xs text-muted-foreground mt-2 px-2">
+                      <span>Ene</span>
+                      <span>Feb</span>
+                      <span>Mar</span>
+                      <span>Abr</span>
+                      <span>May</span>
+                      <span>Jun</span>
+                  </div>
+              </motion.div>
+
+              <motion.div className="text-center mt-10" variants={scrollRevealVariants}>
+                  <Button variant="outline" className="border-accent text-accent hover:bg-accent/10 flex items-center mx-auto rounded-full" onClick={() => router.push('/auth')}>
+                      Explorar Estadísticas Completas
+                      <ChevronRight className="ml-1 h-4 w-4" />
+                  </Button>
+              </motion.div>
+            </div>
+          </motion.section>
+
       </main>
 
       {/* Footer */}
