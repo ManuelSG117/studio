@@ -4,16 +4,18 @@
 import type { FC } from 'react';
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
+import Link from 'next/link'; // Import Link for internal navigation
 import { useAuth } from '@/context/AuthContext';
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Shield, AlertTriangle, ChevronRight, MapPin, Check, Navigation, ExternalLink, Heart, HelpCircle, Mail, Phone, Facebook, Twitter, Instagram, LineChart, Loader2, ImageIcon, UserCog, FileText } from 'lucide-react'; // Added UserCog, FileText
+import { Shield, AlertTriangle, ChevronRight, MapPin, Check, Navigation, ExternalLink, Heart, HelpCircle, Mail, Phone, Facebook, Twitter, Instagram, LineChart, Loader2, ImageIcon, UserCog, FileText, ThumbsUp, CheckCircle, ArrowUp, ArrowDown } from 'lucide-react'; // Added ThumbsUp, CheckCircle, ArrowUp, ArrowDown
 import { motion, useScroll, useTransform } from 'framer-motion';
 import Image from 'next/image';
 import { HoverCard, HoverCardTrigger, HoverCardContent } from "@/components/ui/hover-card";
 import LandingNavBar from '@/components/layout/landing-nav-bar'; // Import the new navbar
 import { DotLottieReact } from '@lottiefiles/dotlottie-react'; // Import Lottie component
+import { cn } from '@/lib/utils'; // Import cn
 
 const HomePage: FC = () => {
   const router = useRouter();
@@ -99,18 +101,20 @@ const HomePage: FC = () => {
                        </motion.div>
                      </div>
                   </motion.div>
+                  {/* Lottie Animation Below Buttons */}
+                    <motion.div className="relative pt-8 flex justify-center" variants={itemVariants}>
+                       <div className="w-64 h-64 md:w-80 md:h-80"> {/* Adjust size as needed */}
+                          <DotLottieReact
+                            src="https://lottie.host/7734755b-dc79-461d-9ce9-517fc33c65b4/N7eBj4r78D.lottie"
+                            loop
+                            autoplay
+                            className="w-full h-full object-contain"
+                            data-ai-hint="security shield safety animation"
+                          />
+                       </div>
+                    </motion.div>
                </div>
 
-               {/* Lottie Animation moved below hero section */}
-                 <motion.div className="w-full max-w-lg mx-auto mt-8" variants={itemVariants}> {/* Moved Lottie below buttons and text */}
-                    <DotLottieReact
-                        src="https://lottie.host/7734755b-dc79-461d-9ce9-517fc33c65b4/N7eBj4r78D.lottie"
-                        loop
-                        autoplay
-                        className="w-full h-auto" // Adjust size as needed
-                        data-ai-hint="security shield animation"
-                    />
-                </motion.div>
             </motion.div>
           </div>
         </section>
@@ -147,7 +151,7 @@ const HomePage: FC = () => {
                    <CardContent className="p-8">
                      <div className="flex justify-between items-start mb-6">
                        <div className="inline-flex items-center justify-center h-16 w-16 rounded-full bg-primary/10 group-hover:bg-primary/20 transition-colors duration-300">
-                         <Shield className="h-8 w-8 text-primary" />
+                         <UserCog className="h-8 w-8 text-primary" /> {/* Changed icon */}
                        </div>
                        <Badge variant="outline" className="bg-primary/10 text-primary border-primary/20">
                          Funcionarios
@@ -410,20 +414,20 @@ const HomePage: FC = () => {
               </motion.div>
 
               {/* Step 3 */}
-              <motion.div className="relative" initial={{ opacity: 0, y: 50 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true, amount: 0.2 }} transition={{ duration: 0.6, delay: 0.3 }}>
+              <motion.div className="relative mb-16 md:mb-24" initial={{ opacity: 0, y: 50 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true, amount: 0.2 }} transition={{ duration: 0.6, delay: 0.3 }}>
                 <div className="md:grid md:grid-cols-2 gap-8 md:gap-12 items-center">
                   <motion.div className="md:text-right mb-8 md:mb-0 md:pr-12" >
                      <div className="flex items-center justify-start md:justify-end mb-4">
                        <motion.div className="flex-shrink-0 inline-flex items-center justify-center h-12 w-12 rounded-full bg-accent text-white text-xl font-bold z-10 shadow-md" whileHover={{ rotate: 5, scale: 1.1 }}>3</motion.div>
                        <div className="absolute left-4 top-6 transform -translate-x-1/2 md:left-auto md:right-0 md:translate-x-1/2 h-4 w-4 bg-card border-4 border-accent rounded-full z-20 hidden md:block"></div>
                      </div>
-                    <h3 className="text-2xl md:text-3xl font-semibold text-accent mb-3">Visualiza los reportes</h3>
+                    <h3 className="text-2xl md:text-3xl font-semibold text-accent mb-3">Explora y Valida</h3>
                     <p className="text-muted-foreground">
-                      Visualiza los reportes de los demás y observa cómo contribuye tu reporte, visualiza las zonas de riesgo.
+                      Visualiza los reportes de otros usuarios en el mapa comunitario. Revisa la información y valida los reportes que consideres precisos para ayudar a otros a mantenerse informados.
                     </p>
                      <motion.div className="mt-5 flex justify-start md:justify-end" whileTap={{ scale: 0.95 }}>
                       <Button variant="outline" className="border-accent text-accent hover:bg-accent/10 flex items-center rounded-full" onClick={() => router.push('/auth')}> {/* Updated hover */}
-                        Visualizar reportes
+                        Explorar Reportes
                         <ChevronRight className="ml-1 h-4 w-4" />
                       </Button>
                     </motion.div>
@@ -433,7 +437,7 @@ const HomePage: FC = () => {
                      <Card className="overflow-hidden bg-transparent shadow-none border-none">
                          <CardContent className="p-4 sm:p-6 relative z-10">
                            <div className="flex justify-between items-center mb-4">
-                             <h4 className="text-base font-medium text-accent">Ve los reportes de los demás</h4>
+                             <h4 className="text-base font-medium text-accent">Reportes Comunitarios</h4>
                              <span className="inline-flex items-center justify-center h-6 w-6 rounded-full bg-accent/10 text-accent">
                                 <FileText className="h-3 w-3" /> {/* Changed icon to FileText */}
                               </span>
@@ -473,15 +477,87 @@ const HomePage: FC = () => {
                   </motion.div>
                 </div>
               </motion.div>
+
+
+               {/* Step 4 - Voting */}
+               <motion.div className="relative" initial={{ opacity: 0, y: 50 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true, amount: 0.2 }} transition={{ duration: 0.6, delay: 0.4 }}>
+                 <div className="md:grid md:grid-cols-2 gap-8 md:gap-12 items-center">
+                   <motion.div className="order-2 md:order-1 mb-8 md:mb-0 bg-card p-4 rounded-2xl shadow-xl border border-border relative z-10 overflow-hidden">
+                      <div className="absolute inset-0 bg-gradient-to-br from-green-500/30 to-green-500/10 opacity-30 pointer-events-none"></div>
+                      <Card className="overflow-hidden bg-transparent shadow-none border-none">
+                         <CardContent className="p-4 sm:p-6 relative z-10">
+                            <div className="flex justify-between items-center mb-4">
+                              <h4 className="text-base font-medium text-green-700 dark:text-green-400">Vota y Ayuda</h4>
+                              <span className="inline-flex items-center justify-center h-6 w-6 rounded-full bg-green-500/10 text-green-600 dark:text-green-400">
+                                <ThumbsUp className="h-3 w-3" />
+                               </span>
+                            </div>
+                             {/* Simulated voting interaction */}
+                             <div className="space-y-3">
+                                {/* Simulated Report Card with Voting */}
+                               <div className="p-3 bg-muted/50 rounded-lg border border-input">
+                                 <div className="flex justify-between items-start">
+                                     <div className="flex items-center gap-2">
+                                        <AlertTriangle className="h-4 w-4 text-destructive" />
+                                        <span className="text-sm font-medium text-foreground">Intento de Robo</span>
+                                     </div>
+                                      <span className="text-xs text-muted-foreground">Hace 5h</span>
+                                  </div>
+                                  <p className="text-xs text-muted-foreground mt-1 mb-2 line-clamp-2">
+                                     Dos sujetos en motocicleta intentaron arrebatar un bolso en la esquina...
+                                  </p>
+                                   <div className="flex justify-end items-center space-x-1 bg-muted p-1 rounded-full">
+                                       <div className="h-6 w-6 rounded-full flex items-center justify-center cursor-pointer bg-destructive/10 text-destructive hover:bg-destructive/20">
+                                          <ArrowDown className="h-3.5 w-3.5" />
+                                       </div>
+                                       <span className="text-sm font-medium text-foreground tabular-nums w-6 text-center">
+                                          12
+                                       </span>
+                                       <div className="h-6 w-6 rounded-full flex items-center justify-center cursor-pointer bg-green-600/10 text-green-600 hover:bg-green-600/20">
+                                          <ArrowUp className="h-3.5 w-3.5" />
+                                       </div>
+                                   </div>
+                                </div>
+                                <p className="text-xs text-center text-muted-foreground pt-1">
+                                  Tu voto ayuda a destacar los reportes más relevantes.
+                                </p>
+                             </div>
+                            <div className="flex justify-end mt-4">
+                              <div className="h-9 w-36 bg-green-600/80 rounded-full flex items-center justify-center text-sm text-white">Votar Ahora</div>
+                            </div>
+                        </CardContent>
+                      </Card>
+                   </motion.div>
+                   <motion.div className="md:text-left md:pl-12 order-1 md:order-2">
+                      <div className="flex items-center justify-start mb-4">
+                        <motion.div className="flex-shrink-0 inline-flex items-center justify-center h-12 w-12 rounded-full bg-green-600 text-white text-xl font-bold z-10 shadow-md" whileHover={{ rotate: -5, scale: 1.1 }}>4</motion.div>
+                        <div className="absolute left-4 top-6 transform -translate-x-1/2 md:left-1/2 md:-translate-x-1/2 h-4 w-4 bg-card border-4 border-green-600 rounded-full z-20 hidden md:block"></div>
+                      </div>
+                     <h3 className="text-2xl md:text-3xl font-semibold text-green-700 dark:text-green-400 mb-3">Vota por los reportes</h3>
+                     <p className="text-muted-foreground">
+                       Ayuda a la comunidad votando en los reportes. Tus votos aumentan la credibilidad y visibilidad de los incidentes, permitiendo que la información más relevante llegue a más personas y a las autoridades correspondientes.
+                     </p>
+                     <motion.div className="mt-5 flex justify-start" whileTap={{ scale: 0.95 }}>
+                       <Button variant="outline" className="border-green-600 text-green-700 dark:border-green-500 dark:text-green-400 hover:bg-green-600/10 flex items-center rounded-full" onClick={() => router.push('/auth')}>
+                         Ver Reportes de la Comunidad
+                         <ChevronRight className="ml-1 h-4 w-4" />
+                       </Button>
+                     </motion.div>
+                   </motion.div>
+                 </div>
+               </motion.div>
+
+
             </div>
 
-             <motion.div className="text-center mt-16 md:mt-24" initial={{ opacity: 0, y: 30 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ duration: 0.6, delay: 0.4 }}>
+             <motion.div className="text-center mt-16 md:mt-24" initial={{ opacity: 0, y: 30 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ duration: 0.6, delay: 0.5 }}>
               <Button className="bg-primary hover:bg-primary/90 text-primary-foreground px-8 py-3 text-lg rounded-full shadow-lg hover:shadow-xl transition-all" onClick={() => router.push('/auth')}>
-                Comenzar ahora
+                Únete y Reporta Ahora
               </Button>
             </motion.div>
           </div>
         </motion.section>
+
 
          {/* Risk Map Section */}
           <motion.section
@@ -506,13 +582,15 @@ const HomePage: FC = () => {
               </motion.div>
               <motion.div className="rounded-2xl overflow-hidden" variants={scrollRevealVariants} whileHover={{ scale: 1.01 }} transition={{ type: "spring", stiffness: 300 }}>
                        {/* Lottie Animation for Risk Map */}
-                       <DotLottieReact
-                           src="https://lottie.host/e575a174-b6c9-45e1-86bf-f712aad9cf22/yWmVrRdEOm.lottie"
-                           loop
-                           autoplay
-                           className="w-full h-full object-contain" // Adjust sizing as needed
-                           data-ai-hint="map location risk animation"
-                       />
+                       <div className="relative h-96 w-full flex items-center justify-center"> {/* Container for Lottie */}
+                          <DotLottieReact
+                             src="https://lottie.host/e575a174-b6c9-45e1-86bf-f712aad9cf22/yWmVrRdEOm.lottie"
+                             loop
+                             autoplay
+                             className="w-full max-w-3xl h-auto object-contain" // Adjust sizing
+                             data-ai-hint="map location risk animation"
+                          />
+                       </div>
               </motion.div>
             </div>
           </motion.section>
@@ -542,10 +620,15 @@ const HomePage: FC = () => {
 
 
                {/* Increase the size of the lottie animation by making the container full width */}
-               <motion.div className="relative p-6 rounded-2xl overflow-hidden w-full">
+               <motion.div className="relative p-0 rounded-2xl overflow-hidden w-full" variants={scrollRevealVariants}> {/* Removed padding */}
                   {/* Lottie Animation */}
-                  <div className="relative h-96 w-full flex items-center justify-center">
-                     <DotLottieReact src="https://lottie.host/17494221-1efe-4d0d-ab48-bed230af095d/zJNz64aYIu.lottie" loop={true} autoplay className="w-full max-w-4xl" data-ai-hint="data graph animation" />
+                  <div className="relative h-96 w-full flex items-center justify-center"> {/* Container for Lottie */}
+                     <DotLottieReact
+                        src="https://lottie.host/17494221-1efe-4d0d-ab48-bed230af095d/zJNz64aYIu.lottie"
+                        loop={true}
+                        autoplay
+                        className="w-full max-w-4xl h-auto object-contain" // Adjust size
+                        data-ai-hint="data graph animation" />
                   </div>
                </motion.div>
               <motion.div className="text-center mt-10" variants={scrollRevealVariants}>
@@ -571,10 +654,10 @@ const HomePage: FC = () => {
                    Plataforma ciudadana para reportar incidentes y crear una ciudad más segura para todos. Tu participación es clave para el cambio y la transformación de nuestra comunidad.
                  </p>
                  <div className="flex flex-wrap gap-x-4 gap-y-1 text-xs">
-                   <a href="#" className="hover:text-white transition-colors">Preguntas frecuentes</a>
-                   <a href="#" className="hover:text-white transition-colors">Términos</a>
-                   <a href="#" className="hover:text-white transition-colors">Privacidad</a>
-                   <a href="#" className="hover:text-white transition-colors">Cookies</a>
+                   <Link href="#" className="hover:text-white transition-colors">Preguntas frecuentes</Link>
+                   <Link href="#" className="hover:text-white transition-colors">Términos</Link>
+                   <Link href="#" className="hover:text-white transition-colors">Privacidad</Link>
+                   <Link href="#" className="hover:text-white transition-colors">Cookies</Link>
                  </div>
              </div>
 
@@ -623,3 +706,5 @@ const HomePage: FC = () => {
 };
 
 export default HomePage;
+
+    
