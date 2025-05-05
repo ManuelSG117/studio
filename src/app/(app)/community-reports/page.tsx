@@ -1,3 +1,4 @@
+
 "use client";
 
 import type { FC } from 'react';
@@ -20,10 +21,10 @@ import type { Report } from '@/app/(app)/welcome/page'; // Assuming Report type 
 
 const CommunityReportsPage: FC = () => {
   const router = useRouter();
-  const { user, isAuthenticated } = useAuth(); // Use the auth context
+  const { user, isAuthenticated, loading: authLoading } = useAuth(); // Use the auth context and loading state
   const { toast } = useToast();
   const [reports, setReports] = useState<Report[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
+  const [isLoading, setIsLoading] = useState(true); // Combined data loading state
   const [isFetchingMore, setIsFetchingMore] = useState(false);
   const [lastDoc, setLastDoc] = useState<any>(null);
   const [hasMore, setHasMore] = useState(true);
@@ -47,21 +48,18 @@ const CommunityReportsPage: FC = () => {
     }, []);
 
   const fetchReports = useCallback(async (loadMore: boolean = false) => {
-    // Ensure user is authenticated before fetching
-    if (!isAuthenticated) {
-       console.log("User not authenticated, skipping fetch.");
-       setIsLoading(false); // Stop loading if not authenticated
-       router.replace("/login"); // Redirect if not authenticated
-       return;
-    }
-
+    // We need the user to fetch votes, so ensure user exists here too
      if (!user) {
-         console.log("User object not yet available, waiting...");
-         setIsLoading(true); // Keep loading until user object is available
+         console.error("fetchReports (Community) called without a valid user.");
+         setIsLoading(false); // Ensure loading stops
          return;
      }
+    console.log("Fetching community reports. Load More:", loadMore);
 
-    setIsLoading(true);
+
+    if (!loadMore) {
+        setIsLoading(true); // Set loading true only for initial fetch
+    }
     setIsFetchingMore(loadMore);
 
     try {
@@ -72,6 +70,7 @@ const CommunityReportsPage: FC = () => {
       );
 
       if (loadMore && lastDoc) {
+         console.log("Fetching more community reports starting after:", lastDoc.id);
         q = query(
           collection(db, "reports"),
           orderBy("createdAt", "desc"),
@@ -82,6 +81,8 @@ const CommunityReportsPage: FC = () => {
 
       const querySnapshot = await getDocs(q);
       const fetchedReports: Report[] = [];
+      console.log(`Found ${querySnapshot.docs.length} community reports in this batch.`);
+
 
        for (const reportDoc of querySnapshot.docs) { // Renamed variable
          const data = reportDoc.data();
@@ -111,31 +112,57 @@ const CommunityReportsPage: FC = () => {
        }
 
       setReports(prevReports => loadMore ? [...prevReports, ...fetchedReports] : fetchedReports);
-      setLastDoc(querySnapshot.docs[querySnapshot.docs.length - 1] || null);
+      const newLastDoc = querySnapshot.docs[querySnapshot.docs.length - 1] || null;
+      setLastDoc(newLastDoc);
       setHasMore(fetchedReports.length === ITEMS_PER_PAGE);
+      console.log("Community fetch complete. Has More:", fetchedReports.length === ITEMS_PER_PAGE, "New Last Doc:", newLastDoc?.id);
+
     } catch (error) {
-      console.error("Error fetching reports: ", error);
+      console.error("Error fetching community reports: ", error);
       toast({ variant: "destructive", title: "Error", description: "Failed to fetch community reports." });
     } finally {
-      setIsLoading(false);
+      console.log("Setting isLoading to false in community finally block.");
+      setIsLoading(false); // Ensure loading is always set to false
       setIsFetchingMore(false);
     }
-  }, [isAuthenticated, user, router, toast, fetchUserVote, lastDoc]); // Added user and fetchUserVote
+  }, [user, toast, fetchUserVote, lastDoc]); // Added user and fetchUserVote
 
 
     useEffect(() => {
-        if (isAuthenticated !== null) { // Wait until authentication status is determined
-             fetchReports();
+        console.log("CommunityReports useEffect triggered. AuthLoading:", authLoading, "IsAuthenticated:", isAuthenticated, "User:", !!user);
+        // Wait for auth loading to complete
+        if (!authLoading) {
+            if (isAuthenticated && user) {
+                // User is authenticated, fetch reports if not already loading
+                if (isLoading) { // Check internal isLoading state before fetching
+                    console.log("Auth confirmed, user available. Fetching initial community reports.");
+                    fetchReports();
+                } else {
+                     console.log("Auth confirmed, user available, but not fetching community (isLoading is false).");
+                }
+            } else {
+                // Not authenticated or user object not yet ready after auth check
+                console.log("Not authenticated or user not ready, redirecting to login.");
+                setIsLoading(false); // Ensure loading is stopped if redirecting
+                router.replace("/login");
+            }
+        } else {
+            console.log("Auth state still loading...");
+             setIsLoading(true); // Keep loading while auth is resolving
         }
-    }, [fetchReports, isAuthenticated]); // Depend on isAuthenticated status
+    }, [authLoading, isAuthenticated, user, fetchReports, router, isLoading]); // Added isLoading
+
 
   const loadMoreReports = () => {
-    if (hasMore && lastDoc) {
-      fetchReports(true);
-    }
+     if (hasMore && lastDoc && !isFetchingMore) {
+         console.log("Load more community reports triggered.");
+         fetchReports(true);
+     } else {
+         console.log("Load more community reports skipped. HasMore:", hasMore, "LastDoc:", !!lastDoc, "isFetchingMore:", isFetchingMore);
+     }
   };
 
- // Handle Voting Logic - Reused from welcome/page.tsx
+ // Handle Voting Logic - Reused from welcome/page.tsx (remains the same)
   const handleVote = async (reportId: string, voteType: 'up' | 'down') => {
     if (!user) {
         toast({ variant: "destructive", title: "Error", description: "Debes iniciar sesión para votar." });
@@ -239,7 +266,7 @@ const CommunityReportsPage: FC = () => {
       <div className="w-full max-w-2xl space-y-4">
         <h1 className="text-2xl font-semibold text-foreground text-center mb-4">Reportes de la Comunidad</h1>
 
-        {isLoading ? (
+        {isLoading ? ( // Use isLoading for initial load skeleton
            [...Array(5)].map((_, i) => ( // Show more skeletons initially
             <Card key={i} className="shadow-sm bg-card">
               <CardContent className="p-4">
@@ -253,29 +280,8 @@ const CommunityReportsPage: FC = () => {
            reports.map((report) => (
              <Card key={report.id} className="shadow-sm bg-card">
                <CardContent className="p-4">
-                  {/* Link to details page */}
-                 <Link href={`/reports/${report.id}`} className="block">
-                     <div className="flex justify-between items-start mb-1">
-                        <div className="flex items-center gap-2">
-                             {report.reportType === 'funcionario' ? (
-                               <UserCog className="h-4 w-4 text-primary flex-shrink-0" />
-                             ) : (
-                               <TriangleAlert className="h-4 w-4 text-destructive flex-shrink-0" />
-                             )}
-                            <h3 className="font-medium text-foreground leading-tight">{report.title}</h3>
-                        </div>
-                         <span className="text-xs text-muted-foreground shrink-0 ml-2">
-                            {format(report.createdAt, "PPP", { locale: es })} {/* Format date */}
-                         </span>
-                     </div>
-                     <p className="text-sm text-muted-foreground line-clamp-2 my-2">{report.description}</p>
-                     <div className="flex items-center text-xs text-muted-foreground/80">
-                        <MapPin size={12} className="mr-1 flex-shrink-0" />
-                        <span className="truncate">{report.location}</span>
-                     </div>
-                  </Link>
-                  {/* Voting Section */}
-                  <div className="flex justify-end items-center space-x-3 w-full mt-3 pt-3 border-t border-border/50">
+                   {/* Voting Section FIRST */}
+                    <div className="flex justify-end items-center space-x-3 w-full mb-3 pb-3 border-b border-border/50">
                         <Button
                             variant="ghost"
                             size="sm"
@@ -309,6 +315,30 @@ const CommunityReportsPage: FC = () => {
                             <span>{report.downvotes}</span>
                         </Button>
                   </div>
+                  {/* Report Details (Link) */}
+                 <Link href={`/reports/${report.id}`} className="block">
+                     <div className="flex justify-between items-start mb-1">
+                        <div className="flex items-center gap-2">
+                             {report.reportType === 'funcionario' ? (
+                               <UserCog className="h-4 w-4 text-primary flex-shrink-0" />
+                             ) : (
+                               <TriangleAlert className="h-4 w-4 text-destructive flex-shrink-0" />
+                             )}
+                            <h3 className="font-medium text-foreground leading-tight">{report.title}</h3>
+                        </div>
+                         {/* Date moved below location */}
+                     </div>
+                     <p className="text-sm text-muted-foreground line-clamp-2 my-2">{report.description}</p>
+                     <div className="flex items-center text-xs text-muted-foreground/80">
+                        <MapPin size={12} className="mr-1 flex-shrink-0" />
+                        <span className="truncate">{report.location}</span>
+                     </div>
+                      {/* Date Display */}
+                     <div className="text-xs text-muted-foreground mt-1 text-right">
+                         {format(report.createdAt, "PPP", { locale: es })} {/* Format date */}
+                     </div>
+                  </Link>
+                  {/* Voting Section removed from here */}
                </CardContent>
              </Card>
            ))
@@ -324,7 +354,8 @@ const CommunityReportsPage: FC = () => {
            </Card>
         )}
 
-        {hasMore && !isLoading && reports.length > 0 && (
+        {/* Load More Button */}
+        {hasMore && !isLoading && reports.length >= ITEMS_PER_PAGE && ( // Show only if there are enough items to potentially load more
           <div className="text-center mt-4">
             <Button
               variant="outline"

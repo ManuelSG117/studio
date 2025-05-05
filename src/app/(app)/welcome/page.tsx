@@ -38,10 +38,10 @@ export type Report = {
 
 const WelcomePage: FC = () => {
   const router = useRouter();
-  const { user, isAuthenticated } = useAuth();
+  const { user, isAuthenticated, loading: authLoading } = useAuth(); // Use authLoading from context
   const { toast } = useToast();
   const [reports, setReports] = useState<Report[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
+  const [isLoading, setIsLoading] = useState(true); // Combined data loading state
   const [isFetchingMore, setIsFetchingMore] = useState(false);
   const [lastDoc, setLastDoc] = useState<any>(null); // Type any as it's a Firestore DocumentSnapshot
   const [hasMore, setHasMore] = useState(true);
@@ -65,12 +65,17 @@ const WelcomePage: FC = () => {
   }, []);
 
   const fetchReports = useCallback(async (loadMore: boolean = false) => {
-    if (!isAuthenticated || !user) {
-      router.replace("/login");
+    // Double-check user existence within the fetch function itself
+    if (!user) {
+      console.error("fetchReports called without a valid user.");
+      setIsLoading(false); // Ensure loading stops if user is somehow null
       return;
     }
+    console.log("Fetching reports for user:", user.uid, "Load More:", loadMore);
 
-    setIsLoading(true);
+    if (!loadMore) {
+        setIsLoading(true); // Set loading true only for initial fetch
+    }
     setIsFetchingMore(loadMore);
 
     try {
@@ -82,6 +87,7 @@ const WelcomePage: FC = () => {
       );
 
       if (loadMore && lastDoc) {
+         console.log("Fetching more reports starting after:", lastDoc.id);
         q = query(
           collection(db, "reports"),
           where("userId", "==", user.uid), // Filter by the logged-in user's ID
@@ -93,6 +99,7 @@ const WelcomePage: FC = () => {
 
       const querySnapshot = await getDocs(q);
       const fetchedReports: Report[] = [];
+      console.log(`Found ${querySnapshot.docs.length} reports in this batch.`);
 
       for (const reportDoc of querySnapshot.docs) { // Use a different variable name
         const data = reportDoc.data();
@@ -122,35 +129,55 @@ const WelcomePage: FC = () => {
       }
 
       setReports(prevReports => loadMore ? [...prevReports, ...fetchedReports] : fetchedReports);
-      setLastDoc(querySnapshot.docs[querySnapshot.docs.length - 1] || null);
+      const newLastDoc = querySnapshot.docs[querySnapshot.docs.length - 1] || null;
+      setLastDoc(newLastDoc);
       setHasMore(fetchedReports.length === ITEMS_PER_PAGE);
+      console.log("Fetch complete. Has More:", fetchedReports.length === ITEMS_PER_PAGE, "New Last Doc:", newLastDoc?.id);
     } catch (error) {
       console.error("Error fetching reports: ", error);
       toast({ variant: "destructive", title: "Error", description: "Failed to fetch reports." });
     } finally {
-      setIsLoading(false);
+      console.log("Setting isLoading to false in finally block.");
+      setIsLoading(false); // Ensure loading is always set to false
       setIsFetchingMore(false);
     }
-  }, [isAuthenticated, user, router, toast, fetchUserVote, lastDoc]); // Added lastDoc to dependencies
+  }, [user, toast, fetchUserVote, lastDoc]); // Added lastDoc to dependencies
 
   useEffect(() => {
-    // Check if user exists before fetching
-    if (isAuthenticated && user) {
-       fetchReports();
-    } else if (!isAuthenticated && !isLoading) {
-      // Only redirect if auth state is confirmed and user is not authenticated
-      router.replace("/login");
+    console.log("WelcomePage useEffect triggered. AuthLoading:", authLoading, "IsAuthenticated:", isAuthenticated, "User:", !!user);
+    // Wait for auth loading to complete
+    if (!authLoading) {
+        if (isAuthenticated && user) {
+            // User is authenticated, fetch reports if not already loading
+            if (isLoading) { // Check internal isLoading state before fetching
+                 console.log("Auth confirmed, user available. Fetching initial reports.");
+                 fetchReports();
+            } else {
+                 console.log("Auth confirmed, user available, but not fetching (isLoading is false).");
+            }
+        } else {
+            // Not authenticated or user object not yet ready after auth check
+            console.log("Not authenticated or user not ready, redirecting to login.");
+            setIsLoading(false); // Ensure loading is stopped if redirecting
+            router.replace("/login");
+        }
+    } else {
+        console.log("Auth state still loading...");
+        setIsLoading(true); // Keep loading while auth is resolving
     }
-  }, [fetchReports, isAuthenticated, user, isLoading, router]); // Added isLoading and router
+  }, [authLoading, isAuthenticated, user, fetchReports, router, isLoading]); // Added isLoading to prevent re-fetch if already loading
 
 
   const loadMoreReports = () => {
-    if (hasMore && lastDoc) {
-      fetchReports(true);
+    if (hasMore && lastDoc && !isFetchingMore) {
+        console.log("Load more reports triggered.");
+        fetchReports(true);
+    } else {
+        console.log("Load more reports skipped. HasMore:", hasMore, "LastDoc:", !!lastDoc, "isFetchingMore:", isFetchingMore);
     }
   };
 
-  // Handle Voting Logic
+  // Handle Voting Logic (remains the same)
   const handleVote = async (reportId: string, voteType: 'up' | 'down') => {
     if (!user) {
         toast({ variant: "destructive", title: "Error", description: "Debes iniciar sesión para votar." });
@@ -270,7 +297,7 @@ const WelcomePage: FC = () => {
             </Button>
         </div>
 
-        {isLoading ? (
+        {isLoading ? ( // Use isLoading for initial load skeleton
           [...Array(3)].map((_, i) => (
             <Card key={i} className="shadow-sm bg-card">
               <CardContent className="p-4">
@@ -284,27 +311,8 @@ const WelcomePage: FC = () => {
           reports.map((report) => (
             <Card key={report.id} className="shadow-sm bg-card">
               <CardContent className="p-4">
-                <Link href={`/reports/${report.id}`} className="block">
-                    <div className="flex justify-between items-start mb-1">
-                        <div className="flex items-center gap-2">
-                             {report.reportType === 'funcionario' ? (
-                               <UserCog className="h-4 w-4 text-primary flex-shrink-0" />
-                             ) : (
-                               <TriangleAlert className="h-4 w-4 text-destructive flex-shrink-0" />
-                             )}
-                            <h3 className="font-medium text-foreground leading-tight">{report.title}</h3>
-                        </div>
-                         <span className="text-xs text-muted-foreground shrink-0 ml-2">
-                            {format(report.createdAt, "PPP", { locale: es })} {/* Changed format */}
-                         </span>
-                    </div>
-                    <p className="text-sm text-muted-foreground line-clamp-2 my-2">{report.description}</p>
-                    <div className="flex items-center text-xs text-muted-foreground/80">
-                        <MapPin size={12} className="mr-1 flex-shrink-0" />
-                        <span className="truncate">{report.location}</span> {/* Added truncate */}
-                    </div>
-                 </Link>
-                  <div className="flex justify-end items-center space-x-3 w-full mt-3 pt-3 border-t border-border/50">
+                 {/* Voting Section FIRST */}
+                 <div className="flex justify-end items-center space-x-3 w-full mb-3 pb-3 border-b border-border/50">
                         <Button
                             variant="ghost"
                             size="sm"
@@ -314,7 +322,7 @@ const WelcomePage: FC = () => {
                                 votingState[report.id] && "opacity-50 cursor-not-allowed"
                             )}
                             onClick={() => handleVote(report.id, 'up')}
-                            disabled={votingState[report.id]}
+                            disabled={votingState[report.id] || user?.uid === report.userId} // Disable if voting or user owns report
                             aria-pressed={report.userVote === 'up'}
                             title="Votar positivamente"
                         >
@@ -330,7 +338,7 @@ const WelcomePage: FC = () => {
                                 votingState[report.id] && "opacity-50 cursor-not-allowed"
                              )}
                             onClick={() => handleVote(report.id, 'down')}
-                            disabled={votingState[report.id]}
+                            disabled={votingState[report.id] || user?.uid === report.userId} // Disable if voting or user owns report
                              aria-pressed={report.userVote === 'down'} // Corrected aria-pressed
                              title="Votar negativamente"
                          >
@@ -338,6 +346,30 @@ const WelcomePage: FC = () => {
                             <span>{report.downvotes}</span>
                         </Button>
                   </div>
+                {/* Report Details (Link) */}
+                <Link href={`/reports/${report.id}`} className="block">
+                    <div className="flex justify-between items-start mb-1">
+                        <div className="flex items-center gap-2">
+                             {report.reportType === 'funcionario' ? (
+                               <UserCog className="h-4 w-4 text-primary flex-shrink-0" />
+                             ) : (
+                               <TriangleAlert className="h-4 w-4 text-destructive flex-shrink-0" />
+                             )}
+                            <h3 className="font-medium text-foreground leading-tight">{report.title}</h3>
+                        </div>
+                         {/* Date moved below location */}
+                    </div>
+                    <p className="text-sm text-muted-foreground line-clamp-2 my-2">{report.description}</p>
+                    <div className="flex items-center text-xs text-muted-foreground/80">
+                        <MapPin size={12} className="mr-1 flex-shrink-0" />
+                        <span className="truncate">{report.location}</span> {/* Added truncate */}
+                    </div>
+                    {/* Date Display */}
+                     <div className="text-xs text-muted-foreground mt-1 text-right">
+                         {format(report.createdAt, "PPP", { locale: es })} {/* Changed format */}
+                     </div>
+                 </Link>
+                 {/* Voting Section removed from here */}
               </CardContent>
             </Card>
           ))
@@ -356,7 +388,8 @@ const WelcomePage: FC = () => {
           </Card>
         )}
 
-        {hasMore && !isLoading && reports.length > 0 && (
+        {/* Load More Button */}
+        {hasMore && !isLoading && reports.length >= ITEMS_PER_PAGE && ( // Show only if there are enough items to potentially load more
           <div className="text-center mt-4">
             <Button
               variant="outline"
