@@ -1,4 +1,3 @@
-
 "use client";
 
 import type { FC } from 'react';
@@ -13,7 +12,6 @@ import { Loader2 } from 'lucide-react';
 import { motion, useScroll, useTransform } from 'framer-motion';
 import Image from 'next/image';
 import { Input } from '@/components/ui/input';
-import { RiskMap } from '@/components/RiskMap';
 import { HoverCard, HoverCardTrigger, HoverCardContent } from "@/components/ui/hover-card";
 import LandingNavBar from '@/components/layout/landing-nav-bar'; // Import the new navbar
 import { DotLottieReact } from '@lottiefiles/dotlottie-react'; // Import Lottie component
@@ -462,8 +460,15 @@ const HomePage: FC = () => {
                   </p>
               </motion.div>
               <motion.div className="rounded-2xl overflow-hidden shadow-xl border border-border" variants={scrollRevealVariants} whileHover={{ scale: 1.01 }} transition={{ type: "spring", stiffness: 300 }}>
-                  <div className="relative h-[500px] w-full">
-                      <RiskMap />
+                  <div className="relative h-[500px] w-full flex items-center justify-center bg-muted">
+                       {/* Lottie Animation for Risk Map */}
+                       <DotLottieReact
+                           src="https://lottie.host/e575a174-b6c9-45e1-86bf-f712aad9cf22/yWmVrRdEOm.lottie"
+                           loop
+                           autoplay
+                           className="w-full h-full object-contain" // Adjust sizing as needed
+                           data-ai-hint="map location risk animation"
+                       />
                   </div>
               </motion.div>
               <motion.div className="mt-8 grid grid-cols-2 md:grid-cols-4 gap-4 max-w-3xl mx-auto" variants={scrollRevealVariants}>
@@ -509,7 +514,7 @@ const HomePage: FC = () => {
                   </p>
               </motion.div>
 
-              {/* Lottie Animation Graph - Removed Card wrapper */}
+              {/* Lottie Animation Graph */}
               <motion.div
                   className="relative p-6 rounded-2xl overflow-hidden" // Removed bg-card, shadow, border
                   variants={scrollRevealVariants}
