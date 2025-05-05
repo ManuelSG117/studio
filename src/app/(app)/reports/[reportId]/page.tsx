@@ -179,11 +179,11 @@ const ReportDetailPage: FC = () => {
                     if (voteType === 'up') {
                        newUpvotes++;
                        if (existingVote === 'down') newDownvotes = Math.max(0, newDownvotes - 1);
-                        transaction.set(voteRef, { type: 'up', timestamp: Timestamp.now() });
+                        transaction.set(voteRef, { type: 'up' }); // Removed timestamp
                     } else {
                        newDownvotes++;
                        if (existingVote === 'up') newUpvotes = Math.max(0, newUpvotes - 1);
-                        transaction.set(voteRef, { type: 'down', timestamp: Timestamp.now() });
+                        transaction.set(voteRef, { type: 'down' }); // Removed timestamp
                     }
                 }
                 transaction.update(reportRef, { upvotes: newUpvotes, downvotes: newDownvotes });
@@ -372,12 +372,12 @@ const ReportDetailPage: FC = () => {
                     )}
 
                      {/* Map Preview */}
-                    {/*<div className="pt-0">
+                    <div className="pt-0">
                          <h3 className="text-base font-semibold text-primary mb-2 flex items-center">
                              <MapPin className="h-5 w-5 mr-2 opacity-70" /> Ubicación en Mapa
                          </h3>
                          <div className="h-48 w-full bg-muted border border-border rounded-lg overflow-hidden">
-                             {/* Render the ReportsMap component if coordinates exist *}
+                             {/* Render the ReportsMap component if coordinates exist */}
                              {isClient && report.latitude && report.longitude ? (
                                 <ReportsMap
                                      reports={[report]} // Pass the single report in an array
@@ -393,7 +393,7 @@ const ReportDetailPage: FC = () => {
                                  </div>
                              )}
                          </div>
-                    </div>*/}
+                    </div>
 
                 </CardContent>
 

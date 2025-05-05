@@ -260,12 +260,12 @@ const WelcomePage: FC = () => {
                     if (voteType === 'up') {
                         newUpvotes++;
                         if (existingVote === 'down') newDownvotes = Math.max(0, newDownvotes - 1); // Remove downvote if changing
-                        transaction.set(voteRef, { type: 'up', timestamp: Timestamp.now() });
+                        transaction.set(voteRef, { type: 'up' }); // Removed timestamp
                         console.log(`Added upvote for report ${reportId} by user ${user.uid}`);
                     } else { // voteType is 'down'
                         newDownvotes++;
                         if (existingVote === 'up') newUpvotes = Math.max(0, newUpvotes - 1); // Remove upvote if changing
-                        transaction.set(voteRef, { type: 'down', timestamp: Timestamp.now() });
+                        transaction.set(voteRef, { type: 'down' }); // Removed timestamp
                         console.log(`Added downvote for report ${reportId} by user ${user.uid}`);
                     }
                 }
@@ -412,6 +412,5 @@ const WelcomePage: FC = () => {
 };
 
 export default WelcomePage;
-
 
     

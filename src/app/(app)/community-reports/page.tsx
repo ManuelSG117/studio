@@ -240,11 +240,11 @@ const CommunityReportsPage: FC = () => {
                 if (voteType === 'up') {
                     newUpvotes++;
                     if (existingVote === 'down') newDownvotes = Math.max(0, newDownvotes - 1);
-                    transaction.set(voteRef, { type: 'up', timestamp: Timestamp.now() });
+                    transaction.set(voteRef, { type: 'up' }); // Removed timestamp
                 } else {
                     newDownvotes++;
                     if (existingVote === 'up') newUpvotes = Math.max(0, newUpvotes - 1);
-                    transaction.set(voteRef, { type: 'down', timestamp: Timestamp.now() });
+                    transaction.set(voteRef, { type: 'down' }); // Removed timestamp
                 }
             }
             transaction.update(reportRef, { upvotes: newUpvotes, downvotes: newDownvotes });
