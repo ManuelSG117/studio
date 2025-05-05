@@ -279,66 +279,71 @@ const CommunityReportsPage: FC = () => {
         ) : reports.length > 0 ? (
            reports.map((report) => (
              <Card key={report.id} className="shadow-sm bg-card">
-               <CardContent className="p-4">
-                   {/* Voting Section FIRST */}
-                    <div className="flex justify-end items-center space-x-3 w-full mb-3 pb-3 border-b border-border/50">
-                        <Button
-                            variant="ghost"
-                            size="sm"
-                            className={cn(
-                                "flex items-center gap-1.5 h-7 px-2 rounded-md text-xs text-muted-foreground hover:text-green-600 hover:bg-green-100/50 dark:hover:bg-green-900/20",
-                                report.userVote === 'up' && "text-green-600 bg-green-100/60 dark:bg-green-900/30",
-                                votingState[report.id] && "opacity-50 cursor-not-allowed"
-                            )}
-                            onClick={() => handleVote(report.id, 'up')}
-                            disabled={votingState[report.id] || user?.uid === report.userId} // Disable if voting or user owns report
-                            aria-pressed={report.userVote === 'up'}
-                            title="Votar positivamente"
-                        >
-                            {votingState[report.id] && report.userVote !== 'up' ? <Loader2 className="h-3.5 w-3.5 animate-spin"/> : <ArrowUp className="h-4 w-4"/>}
-                             <span>{report.upvotes}</span>
-                        </Button>
-                         <Button
-                             variant="ghost"
-                             size="sm"
-                             className={cn(
-                                "flex items-center gap-1.5 h-7 px-2 rounded-md text-xs text-muted-foreground hover:text-red-600 hover:bg-red-100/50 dark:hover:bg-red-900/20",
-                                report.userVote === 'down' && "text-red-600 bg-red-100/60 dark:bg-red-900/30",
-                                votingState[report.id] && "opacity-50 cursor-not-allowed"
-                             )}
-                            onClick={() => handleVote(report.id, 'down')}
-                            disabled={votingState[report.id] || user?.uid === report.userId} // Disable if voting or user owns report
-                            aria-pressed={report.userVote === 'down'}
-                            title="Votar negativamente"
-                         >
-                            {votingState[report.id] && report.userVote !== 'down' ? <Loader2 className="h-3.5 w-3.5 animate-spin"/> : <ArrowDown className="h-4 w-4"/>}
-                            <span>{report.downvotes}</span>
-                        </Button>
-                  </div>
-                  {/* Report Details (Link) */}
-                 <Link href={`/reports/${report.id}`} className="block">
-                     <div className="flex justify-between items-start mb-1">
-                        <div className="flex items-center gap-2">
-                             {report.reportType === 'funcionario' ? (
+               <CardContent className="p-4 space-y-3"> {/* Added space-y-3 */}
+                    {/* Top Section: Title and Voting */}
+                    <div className="flex justify-between items-center w-full border-b border-border/50 pb-3">
+                        {/* Title and Type */}
+                        <Link href={`/reports/${report.id}`} className="flex items-center gap-2 flex-1 min-w-0 mr-3"> {/* Added flex-1, min-w-0, mr-3 */}
+                            {report.reportType === 'funcionario' ? (
                                <UserCog className="h-4 w-4 text-primary flex-shrink-0" />
                              ) : (
                                <TriangleAlert className="h-4 w-4 text-destructive flex-shrink-0" />
                              )}
-                            <h3 className="font-medium text-foreground leading-tight">{report.title}</h3>
+                            <h3 className="font-medium text-foreground leading-tight truncate">{report.title}</h3> {/* Added truncate */}
+                        </Link>
+                         {/* Voting Buttons */}
+                        <div className="flex items-center space-x-2 flex-shrink-0"> {/* Added flex-shrink-0 */}
+                            <Button
+                                variant="ghost"
+                                size="sm"
+                                className={cn(
+                                    "flex items-center gap-1.5 h-7 px-2 rounded-md text-xs text-muted-foreground hover:text-green-600 hover:bg-green-100/50 dark:hover:bg-green-900/20",
+                                    report.userVote === 'up' && "text-green-600 bg-green-100/60 dark:bg-green-900/30",
+                                    votingState[report.id] && "opacity-50 cursor-not-allowed"
+                                )}
+                                onClick={() => handleVote(report.id, 'up')}
+                                disabled={votingState[report.id] || user?.uid === report.userId} // Disable if voting or user owns report
+                                aria-pressed={report.userVote === 'up'}
+                                title="Votar positivamente"
+                            >
+                                {votingState[report.id] && report.userVote !== 'up' ? <Loader2 className="h-3.5 w-3.5 animate-spin"/> : <ArrowUp className="h-4 w-4"/>}
+                                <span>{report.upvotes}</span>
+                            </Button>
+                             <Button
+                                 variant="ghost"
+                                 size="sm"
+                                 className={cn(
+                                    "flex items-center gap-1.5 h-7 px-2 rounded-md text-xs text-muted-foreground hover:text-red-600 hover:bg-red-100/50 dark:hover:bg-red-900/20",
+                                    report.userVote === 'down' && "text-red-600 bg-red-100/60 dark:bg-red-900/30",
+                                    votingState[report.id] && "opacity-50 cursor-not-allowed"
+                                 )}
+                                onClick={() => handleVote(report.id, 'down')}
+                                disabled={votingState[report.id] || user?.uid === report.userId} // Disable if voting or user owns report
+                                aria-pressed={report.userVote === 'down'}
+                                title="Votar negativamente"
+                             >
+                                {votingState[report.id] && report.userVote !== 'down' ? <Loader2 className="h-3.5 w-3.5 animate-spin"/> : <ArrowDown className="h-4 w-4"/>}
+                                <span>{report.downvotes}</span>
+                            </Button>
                         </div>
-                         {/* Date moved below location */}
-                     </div>
-                     <p className="text-sm text-muted-foreground line-clamp-2 my-2">{report.description}</p>
-                     <div className="flex items-center text-xs text-muted-foreground/80">
-                        <MapPin size={12} className="mr-1 flex-shrink-0" />
-                        <span className="truncate">{report.location}</span>
-                     </div>
-                      {/* Date Display */}
-                     <div className="text-xs text-muted-foreground mt-1 text-right">
-                         {format(report.createdAt, "PPP", { locale: es })} {/* Format date */}
+                  </div>
+
+                  {/* Report Details (Link) */}
+                 <Link href={`/reports/${report.id}`} className="block">
+                     {/* Description */}
+                     <p className="text-sm text-muted-foreground line-clamp-2 mb-2">{report.description}</p> {/* Removed my-2, added mb-2 */}
+                      {/* Location and Date */}
+                     <div className="flex justify-between items-center text-xs text-muted-foreground/80">
+                        <div className="flex items-center min-w-0 mr-2"> {/* Added min-w-0, mr-2 */}
+                            <MapPin size={12} className="mr-1 flex-shrink-0" />
+                            <span className="truncate">{report.location}</span>
+                        </div>
+                        <div className="flex items-center flex-shrink-0"> {/* Added flex-shrink-0 */}
+                            <CalendarDays size={12} className="mr-1 flex-shrink-0" />
+                            <span>{format(report.createdAt, "PPP", { locale: es })}</span> {/* Format date */}
+                        </div>
                      </div>
                   </Link>
-                  {/* Voting Section removed from here */}
                </CardContent>
              </Card>
            ))
@@ -373,3 +378,5 @@ const CommunityReportsPage: FC = () => {
 };
 
 export default CommunityReportsPage;
+
+    
