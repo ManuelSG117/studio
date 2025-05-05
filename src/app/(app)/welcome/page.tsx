@@ -323,40 +323,41 @@ const WelcomePage: FC = () => {
                             <h3 className="font-medium text-foreground leading-tight truncate">{report.title}</h3> {/* Added truncate */}
                         </Link>
                          {/* Voting Buttons */}
-                        <div className="flex items-center space-x-2 flex-shrink-0"> {/* Added flex-shrink-0 */}
-                            <Button
+                         <div className="flex items-center space-x-1 bg-muted p-1 rounded-full flex-shrink-0"> {/* Container for votes */}
+                             <Button
+                                 variant="ghost"
+                                 size="icon"
+                                 className={cn(
+                                    "h-6 w-6 rounded-full text-muted-foreground hover:bg-destructive/10 hover:text-destructive",
+                                    report.userVote === 'down' && "bg-destructive/20 text-destructive",
+                                    votingState[report.id] && "opacity-50 cursor-not-allowed"
+                                 )}
+                                onClick={() => handleVote(report.id, 'down')}
+                                disabled={votingState[report.id] || user?.uid === report.userId} // Disable if voting or user owns report
+                                aria-pressed={report.userVote === 'down'}
+                                title="Votar negativamente"
+                             >
+                                {votingState[report.id] && report.userVote !== 'down' ? <Loader2 className="h-3.5 w-3.5 animate-spin"/> : <ArrowDown className="h-4 w-4"/>}
+                             </Button>
+                             <span className="text-sm font-medium text-foreground tabular-nums w-6 text-center">
+                                 {report.upvotes - report.downvotes}
+                              </span>
+                             <Button
                                 variant="ghost"
-                                size="sm"
+                                size="icon"
                                 className={cn(
-                                    "flex items-center gap-1.5 h-7 px-2 rounded-md text-xs text-muted-foreground hover:text-green-600 hover:bg-green-100/50 dark:hover:bg-green-900/20",
-                                    report.userVote === 'up' && "text-green-600 bg-green-100/60 dark:bg-green-900/30",
+                                    "h-6 w-6 rounded-full text-muted-foreground hover:bg-green-600/10 hover:text-green-600",
+                                    report.userVote === 'up' && "bg-green-600/20 text-green-600",
                                     votingState[report.id] && "opacity-50 cursor-not-allowed"
                                 )}
                                 onClick={() => handleVote(report.id, 'up')}
                                 disabled={votingState[report.id] || user?.uid === report.userId} // Disable if voting or user owns report
                                 aria-pressed={report.userVote === 'up'}
                                 title="Votar positivamente"
-                            >
-                                {votingState[report.id] && report.userVote !== 'up' ? <Loader2 className="h-3.5 w-3.5 animate-spin"/> : <ArrowUp className="h-4 w-4"/>}
-                                <span>{report.upvotes}</span>
-                            </Button>
-                             <Button
-                                 variant="ghost"
-                                 size="sm"
-                                 className={cn(
-                                    "flex items-center gap-1.5 h-7 px-2 rounded-md text-xs text-muted-foreground hover:text-red-600 hover:bg-red-100/50 dark:hover:bg-red-900/20",
-                                    report.userVote === 'down' && "text-red-600 bg-red-100/60 dark:bg-red-900/30", // Corrected bg color
-                                    votingState[report.id] && "opacity-50 cursor-not-allowed"
-                                 )}
-                                onClick={() => handleVote(report.id, 'down')}
-                                disabled={votingState[report.id] || user?.uid === report.userId} // Disable if voting or user owns report
-                                 aria-pressed={report.userVote === 'down'} // Corrected aria-pressed
-                                 title="Votar negativamente"
                              >
-                                {votingState[report.id] && report.userVote !== 'down' ? <Loader2 className="h-3.5 w-3.5 animate-spin"/> : <ArrowDown className="h-4 w-4"/>}
-                                <span>{report.downvotes}</span>
-                            </Button>
-                        </div>
+                                {votingState[report.id] && report.userVote !== 'up' ? <Loader2 className="h-3.5 w-3.5 animate-spin"/> : <ArrowUp className="h-4 w-4"/>}
+                             </Button>
+                         </div>
                   </div>
                  {/* Report Details (Link) */}
                  <Link href={`/reports/${report.id}`} className="block">
@@ -412,3 +413,5 @@ const WelcomePage: FC = () => {
 
 export default WelcomePage;
 
+
+    

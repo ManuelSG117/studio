@@ -1,3 +1,4 @@
+
 "use client";
 
 import type { FC } from 'react';
@@ -18,7 +19,7 @@ import { format } from 'date-fns'; // Import format for date display
 import { es } from 'date-fns/locale'; // Import Spanish locale for date formatting
 import { ReportsMap } from '@/components/reports-map'; // Import the ReportsMap component
 import { useToast } from '@/hooks/use-toast'; // Import useToast
-import { cn } from '@/lib/utils'; // Import cn
+import { cn, formatLocation } from '@/lib/utils'; // Import cn and formatLocation
 
 const ReportDetailPage: FC = () => {
     const router = useRouter();
@@ -322,7 +323,7 @@ const ReportDetailPage: FC = () => {
                          <h3 className="text-base font-semibold text-primary mb-2 flex items-center">
                              <MapPin className="h-5 w-5 mr-2 opacity-70" /> Ubicación
                          </h3>
-                         <p className="text-foreground/90 leading-relaxed">{report.location}</p>
+                         <p className="text-foreground/90 leading-relaxed">{formatLocation(report.location)}</p> {/* Use formatLocation */}
                      </div>
 
 
@@ -398,39 +399,40 @@ const ReportDetailPage: FC = () => {
 
                  {/* Voting Section in Footer */}
                 <CardFooter className="px-6 sm:px-8 pt-4 pb-6 border-t border-border/50">
-                    <div className="flex justify-end items-center space-x-3 w-full">
-                        <Button
-                            variant="ghost"
-                            size="sm"
-                            className={cn(
-                                "flex items-center gap-1.5 h-7 px-2 rounded-md text-xs text-muted-foreground hover:text-green-600 hover:bg-green-100/50 dark:hover:bg-green-900/20",
-                                report.userVote === 'up' && "text-green-600 bg-green-100/60 dark:bg-green-900/30",
-                                votingState && "opacity-50 cursor-not-allowed"
-                             )}
-                            onClick={() => handleVote('up')}
-                            disabled={votingState}
-                            aria-pressed={report.userVote === 'up'}
-                            title="Votar positivamente"
-                        >
-                            {votingState && report.userVote !== 'up' ? <Loader2 className="h-3.5 w-3.5 animate-spin"/> : <ArrowUp className="h-4 w-4"/>}
-                             <span>{report.upvotes}</span>
-                        </Button>
-                         <Button
-                             variant="ghost"
-                             size="sm"
-                             className={cn(
-                                "flex items-center gap-1.5 h-7 px-2 rounded-md text-xs text-muted-foreground hover:text-red-600 hover:bg-red-100/50 dark:hover:bg-red-900/20",
-                                report.userVote === 'down' && "text-red-600 bg-green-100/60 dark:bg-red-900/30",
-                                votingState && "opacity-50 cursor-not-allowed"
-                              )}
-                             onClick={() => handleVote('down')}
-                             disabled={votingState}
-                             aria-pressed={report.userVote === 'down'}
-                             title="Votar negativamente"
-                         >
-                            {votingState && report.userVote !== 'down' ? <Loader2 className="h-3.5 w-3.5 animate-spin"/> : <ArrowDown className="h-4 w-4"/>}
-                            <span>{report.downvotes}</span>
-                        </Button>
+                     <div className="flex justify-end items-center space-x-1 bg-muted p-1 rounded-full w-full"> {/* Container for votes */}
+                             <Button
+                                 variant="ghost"
+                                 size="icon"
+                                 className={cn(
+                                    "h-6 w-6 rounded-full text-muted-foreground hover:bg-destructive/10 hover:text-destructive",
+                                    report.userVote === 'down' && "bg-destructive/20 text-destructive",
+                                    votingState && "opacity-50 cursor-not-allowed"
+                                 )}
+                                onClick={() => handleVote('down')}
+                                disabled={votingState}
+                                aria-pressed={report.userVote === 'down'}
+                                title="Votar negativamente"
+                             >
+                                {votingState && report.userVote !== 'down' ? <Loader2 className="h-3.5 w-3.5 animate-spin"/> : <ArrowDown className="h-4 w-4"/>}
+                             </Button>
+                             <span className="text-sm font-medium text-foreground tabular-nums w-6 text-center">
+                                 {report.upvotes - report.downvotes}
+                              </span>
+                             <Button
+                                variant="ghost"
+                                size="icon"
+                                className={cn(
+                                    "h-6 w-6 rounded-full text-muted-foreground hover:bg-green-600/10 hover:text-green-600",
+                                    report.userVote === 'up' && "bg-green-600/20 text-green-600",
+                                    votingState && "opacity-50 cursor-not-allowed"
+                                )}
+                                onClick={() => handleVote('up')}
+                                disabled={votingState}
+                                aria-pressed={report.userVote === 'up'}
+                                title="Votar positivamente"
+                             >
+                                {votingState && report.userVote !== 'up' ? <Loader2 className="h-3.5 w-3.5 animate-spin"/> : <ArrowUp className="h-4 w-4"/>}
+                             </Button>
                      </div>
                 </CardFooter>
             </Card>
@@ -439,3 +441,6 @@ const ReportDetailPage: FC = () => {
 };
 
 export default ReportDetailPage;
+
+
+    
