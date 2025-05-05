@@ -97,18 +97,17 @@ const LandingNavBar: FC = () => {
   return (
     <header
       className={cn(
-        'fixed top-0 left-0 right-0 z-50 flex h-20 items-center justify-center px-4 md:px-8 transition-all duration-500 pointer-events-none',
-        scrolled ? 'bg-muted/95 backdrop-blur-lg shadow-xl border-b border-border/50 pointer-events-auto' : 'bg-transparent'
+        'fixed top-0 left-0 right-0 z-50 flex h-20 items-center justify-center px-4 md:px-8 transition-all duration-500'
       )}
     >
       {/* Desktop Navigation in Pill Container - Centered */}
       <div className={cn(
-        "absolute left-1/2 top-1/2 transform -translate-x-1/2 -translate-y-1/2 transition-all duration-500 ease-in-out hidden md:flex scale-100",
-        scrolled ? "opacity-100 pointer-events-auto translate-y-0" : "opacity-0 pointer-events-none -translate-y-2"
+        "absolute left-1/2 top-1/2 transform -translate-x-1/2 -translate-y-1/2 transition-all duration-500 ease-in-out hidden md:flex",
+        scrolled ? "opacity-100 translate-y-0 pointer-events-auto" : "opacity-0 -translate-y-full pointer-events-none"
       )}>
         <nav className={cn(
-          "flex items-center gap-3 text-sm font-medium rounded-full px-3 py-2.5 transition-all duration-500 ease-in-out backdrop-blur-lg",
-          scrolled ? "bg-background/95 shadow-xl border border-border/50 scale-100" : "bg-white/10 scale-95"
+          "flex items-center gap-3 text-sm font-medium rounded-full px-3 py-2.5 transition-all duration-300 ease-in-out backdrop-blur-2xl",
+          scrolled ? "bg-background/80 shadow-xl border border-border/50 scale-100" : "bg-white/10 scale-95 shadow-lg border border-white/20"
         )}>
           {/* +Seguro Link (Home/Top) */}
           <Link
