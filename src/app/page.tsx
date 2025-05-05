@@ -1,3 +1,4 @@
+
 "use client";
 
 import type { FC } from 'react';
@@ -7,11 +8,10 @@ import { useAuth } from '@/context/AuthContext';
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Shield, AlertTriangle, ChevronRight, MapPin, Check, Navigation, ExternalLink, Heart, HelpCircle, Mail, Phone, Facebook, Twitter, Instagram, LineChart } from 'lucide-react'; // Added LineChart
-import { Loader2 } from 'lucide-react';
+import { Shield, AlertTriangle, ChevronRight, MapPin, Check, Navigation, ExternalLink, Heart, HelpCircle, Mail, Phone, Facebook, Twitter, Instagram, LineChart, Loader2 } from 'lucide-react'; // Added Loader2
 import { motion, useScroll, useTransform } from 'framer-motion';
 import Image from 'next/image';
-import { Input } from '@/components/ui/input';
+import { Input } from '@/components/ui/input'; // Keep Input import if needed elsewhere, otherwise remove
 import { HoverCard, HoverCardTrigger, HoverCardContent } from "@/components/ui/hover-card";
 import LandingNavBar from '@/components/layout/landing-nav-bar'; // Import the new navbar
 import { DotLottieReact } from '@lottiefiles/dotlottie-react'; // Import Lottie component
@@ -102,7 +102,7 @@ const HomePage: FC = () => {
                   </motion.div>
                </div>
 
-               {/* Right Side - Lottie Animation moved below hero section */}
+               {/* Lottie Animation moved below hero section */}
                  <motion.div className="w-full max-w-lg mx-auto mt-8" variants={itemVariants}> {/* Moved Lottie below buttons and text */}
                     <DotLottieReact
                         src="https://lottie.host/7734755b-dc79-461d-9ce9-517fc33c65b4/N7eBj4r78D.lottie"
@@ -249,7 +249,7 @@ const HomePage: FC = () => {
           </div>
         </motion.section>
 
-        {/* How it Works Section */}
+        {/* Enhanced How It Works Section */}
         <motion.section
           id="how-it-works" // Add ID for navigation
           className="w-full py-16 md:py-24 lg:py-32 bg-gradient-to-b from-white to-secondary overflow-hidden"
@@ -272,6 +272,7 @@ const HomePage: FC = () => {
             </motion.div>
 
             <div className="relative max-w-5xl mx-auto">
+              {/* Timeline line */}
               <div className="absolute left-4 md:left-1/2 transform md:-translate-x-1/2 h-full w-1 bg-border rounded-full z-0 hidden md:block"></div>
 
               {/* Step 1 */}
@@ -297,19 +298,35 @@ const HomePage: FC = () => {
                      <div className="absolute inset-0 bg-gradient-to-br from-primary/50 to-primary/20 opacity-30 pointer-events-none"></div>
                      <Card className="overflow-hidden bg-transparent shadow-none border-none">
                         <CardContent className="p-4 sm:p-6 relative z-10">
-                           <div className="flex justify-between items-center mb-4">
+                           <div className="flex justify-between items-center mb-2">
                              <h4 className="text-base font-medium text-primary">Crear Cuenta</h4>
                              <span className="inline-flex items-center justify-center h-6 w-6 rounded-full bg-primary/10 text-primary">
                                <Check className="h-3 w-3" />
                              </span>
                            </div>
-                           <div className="space-y-3">
-                             <div className="h-9 w-full bg-muted rounded animate-pulse"></div>
-                             <div className="h-9 w-full bg-muted rounded animate-pulse"></div>
-                             <div className="h-9 w-3/4 bg-muted rounded animate-pulse"></div>
+                            {/* Simulated form content */}
+                            <div className="space-y-3 mb-4">
+                                <div className="space-y-1">
+                                   <div className="h-4 w-1/3 bg-muted rounded"></div>
+                                   <div className="h-9 w-full bg-muted/70 rounded border border-input flex items-center px-2">
+                                      <span className="text-sm text-muted-foreground/70">usuario@ejemplo.com</span>
+                                   </div>
+                                </div>
+                                <div className="space-y-1">
+                                  <div className="h-4 w-1/4 bg-muted rounded"></div>
+                                  <div className="h-9 w-full bg-muted/70 rounded border border-input flex items-center px-2">
+                                      <span className="text-sm text-muted-foreground/70">••••••••</span>
+                                  </div>
+                                </div>
+                                <div className="space-y-1">
+                                  <div className="h-4 w-1/3 bg-muted rounded"></div>
+                                  <div className="h-9 w-full bg-muted/70 rounded border border-input flex items-center px-2">
+                                      <span className="text-sm text-muted-foreground/70">••••••••</span>
+                                  </div>
+                                </div>
                            </div>
-                           <div className="flex justify-end mt-4">
-                             <div className="h-8 w-24 bg-primary/20 rounded-full animate-pulse"></div>
+                           <div className="flex justify-end">
+                             <div className="h-9 w-24 bg-primary/80 rounded-full flex items-center justify-center text-sm text-primary-foreground">Registrar</div>
                            </div>
                          </CardContent>
                       </Card>
@@ -568,3 +585,5 @@ const HomePage: FC = () => {
 };
 
 export default HomePage;
+
+    
