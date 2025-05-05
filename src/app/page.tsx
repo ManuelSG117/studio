@@ -84,7 +84,7 @@ const HomePage: FC = () => {
                           <Button
                             onClick={() => router.push('/auth')} // Navigate to the unified auth page
                             variant="outline"
-                            className="w-full transition-all border-2 border-primary text-primary hover:bg-primary/10 h-11 rounded-full"
+                            className="w-full transition-all border-2 border-primary text-primary hover:bg-primary/60 h-11 rounded-full"
                             size="lg"
                            >
                             Iniciar Sesión
@@ -103,15 +103,7 @@ const HomePage: FC = () => {
                   </motion.div>
                   {/* Lottie Animation Below Buttons */}
                     <motion.div className="relative pt-8 flex justify-center" variants={itemVariants}>
-                       <div className="w-64 h-64 md:w-80 md:h-80"> {/* Adjust size as needed */}
-                          <DotLottieReact
-                            src="https://lottie.host/7734755b-dc79-461d-9ce9-517fc33c65b4/N7eBj4r78D.lottie"
-                            loop
-                            autoplay
-                            className="w-full h-full object-contain"
-                            data-ai-hint="security shield safety animation"
-                          />
-                       </div>
+             
                     </motion.div>
                </div>
 
@@ -291,7 +283,7 @@ const HomePage: FC = () => {
                       Regístrate rápidamente con tu correo electrónico o usa tu cuenta de Google. En pocos minutos podrás añadir tu información y personalizar tu perfil, además de obtener mayor confianza al verificarlo.
                     </p>
                     <motion.div className="mt-5 flex justify-start md:justify-end" whileTap={{ scale: 0.95 }}>
-                      <Button variant="outline" className="border-primary text-primary hover:bg-primary/10 flex items-center rounded-full" onClick={() => router.push('/auth')}>
+                      <Button variant="outline" className="border-primary text-primary hover:bg-primary/60 flex items-center rounded-full" onClick={() => router.push('/auth')}>
                         Crear cuenta
                         <ChevronRight className="ml-1 h-4 w-4" />
                       </Button>
@@ -404,7 +396,7 @@ const HomePage: FC = () => {
                       Describe el incidente con precisión, añade la ubicación exacta en el mapa, adjunta fotografías o videos como evidencia y clasifica correctamente el tipo de incidente. Cuanto más detallado sea tu reporte, más útil será para la comunidad.
                     </p>
                     <motion.div className="mt-5 flex justify-start" whileTap={{ scale: 0.95 }}>
-                      <Button variant="outline" className="border-destructive text-destructive hover:bg-destructive/10 flex items-center rounded-full" onClick={() => router.push('/auth')}>
+                      <Button variant="outline" className="border-destructive text-destructive hover:bg-destructive/60 flex items-center rounded-full" onClick={() => router.push('/auth')}>
                         Crear reporte
                         <ChevronRight className="ml-1 h-4 w-4" />
                       </Button>
@@ -421,12 +413,12 @@ const HomePage: FC = () => {
                        <motion.div className="flex-shrink-0 inline-flex items-center justify-center h-12 w-12 rounded-full bg-accent text-white text-xl font-bold z-10 shadow-md" whileHover={{ rotate: 5, scale: 1.1 }}>3</motion.div>
                        <div className="absolute left-4 top-6 transform -translate-x-1/2 md:left-auto md:right-0 md:translate-x-1/2 h-4 w-4 bg-card border-4 border-accent rounded-full z-20 hidden md:block"></div>
                      </div>
-                    <h3 className="text-2xl md:text-3xl font-semibold text-accent mb-3">Explora y Valida</h3>
+                    <h3 className="text-2xl md:text-3xl font-semibold text-accent mb-3">Ve los reportes de la comunidad</h3>
                     <p className="text-muted-foreground">
                       Visualiza los reportes de otros usuarios en el mapa comunitario. Revisa la información y valida los reportes que consideres precisos para ayudar a otros a mantenerse informados.
                     </p>
                      <motion.div className="mt-5 flex justify-start md:justify-end" whileTap={{ scale: 0.95 }}>
-                      <Button variant="outline" className="border-accent text-accent hover:bg-accent/10 flex items-center rounded-full" onClick={() => router.push('/auth')}> {/* Updated hover */}
+                      <Button variant="outline" className="border-accent text-accent hover:bg-accent/60 flex items-center rounded-full" onClick={() => router.push('/auth')}> {/* Updated hover */}
                         Explorar Reportes
                         <ChevronRight className="ml-1 h-4 w-4" />
                       </Button>
@@ -513,7 +505,7 @@ const HomePage: FC = () => {
                                        <span className="text-sm font-medium text-foreground tabular-nums w-6 text-center">
                                           12
                                        </span>
-                                       <div className="h-6 w-6 rounded-full flex items-center justify-center cursor-pointer bg-green-600/10 text-green-600 hover:bg-green-600/20">
+                                       <div className="h-6 w-6 rounded-full flex items-center justify-center cursor-pointer bg-blue-600/10 text-blue-600 hover:bg-blue-600/20">
                                           <ArrowUp className="h-3.5 w-3.5" />
                                        </div>
                                    </div>
@@ -538,7 +530,7 @@ const HomePage: FC = () => {
                        Ayuda a la comunidad votando en los reportes. Tus votos aumentan la credibilidad y visibilidad de los incidentes, permitiendo que la información más relevante llegue a más personas y a las autoridades correspondientes.
                      </p>
                      <motion.div className="mt-5 flex justify-start" whileTap={{ scale: 0.95 }}>
-                       <Button variant="outline" className="border-green-600 text-green-700 dark:border-green-500 dark:text-green-400 hover:bg-green-600/10 flex items-center rounded-full" onClick={() => router.push('/auth')}>
+                       <Button variant="outline" className="border-green-600 text-green-700 dark:border-green-500 dark:text-green-400 hover:bg-green-600/60 flex items-center rounded-full" onClick={() => router.push('/auth')}>
                          Ver Reportes de la Comunidad
                          <ChevronRight className="ml-1 h-4 w-4" />
                        </Button>
