@@ -1,3 +1,4 @@
+
 "use client";
 
 import type { FC } from 'react';
@@ -7,10 +8,9 @@ import { useAuth } from '@/context/AuthContext';
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Shield, AlertTriangle, ChevronRight, MapPin, Check, Navigation, ExternalLink, Heart, HelpCircle, Mail, Phone, Facebook, Twitter, Instagram, LineChart, Loader2 } from 'lucide-react'; // Added Loader2
+import { Shield, AlertTriangle, ChevronRight, MapPin, Check, Navigation, ExternalLink, Heart, HelpCircle, Mail, Phone, Facebook, Twitter, Instagram, LineChart, Loader2, ImageIcon } from 'lucide-react'; // Added ImageIcon
 import { motion, useScroll, useTransform } from 'framer-motion';
 import Image from 'next/image';
-import { Input } from '@/components/ui/input'; // Keep Input import if needed elsewhere, otherwise remove
 import { HoverCard, HoverCardTrigger, HoverCardContent } from "@/components/ui/hover-card";
 import LandingNavBar from '@/components/layout/landing-nav-bar'; // Import the new navbar
 import { DotLottieReact } from '@lottiefiles/dotlottie-react'; // Import Lottie component
@@ -277,9 +277,9 @@ const HomePage: FC = () => {
               {/* Step 1 */}
               <motion.div className="relative mb-16 md:mb-24" initial={{ opacity: 0, y: 50 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true, amount: 0.2 }} transition={{ duration: 0.6, delay: 0.1 }}>
                 <div className="md:grid md:grid-cols-2 gap-8 md:gap-12 items-center">
-                  <motion.div className="md:text-right mb-8 md:mb-0 md:pr-12" whileHover={{ scale: 1.02 }} transition={{ type: "spring", stiffness: 300 }}>
+                  <motion.div className="md:text-right mb-8 md:mb-0 md:pr-12">
                     <div className="flex items-center justify-start md:justify-end mb-4">
-                       <motion.div className="flex-shrink-0 inline-flex items-center justify-center h-12 w-12 rounded-full bg-primary text-white text-xl font-bold z-10 shadow-md" whileHover={{ rotate: 5, scale: 1.1 }}>1</motion.div>
+                       <motion.div className="flex-shrink-0 inline-flex items-center justify-center h-12 w-12 rounded-full bg-primary text-white text-xl font-bold z-10 shadow-md" >1</motion.div>
                        <div className="absolute left-4 top-6 transform -translate-x-1/2 md:left-auto md:right-0 md:translate-x-1/2 h-4 w-4 bg-card border-4 border-primary rounded-full z-20 hidden md:block"></div>
                     </div>
                     <h3 className="text-2xl md:text-3xl font-semibold text-primary mb-3">Crea una cuenta</h3>
@@ -293,7 +293,7 @@ const HomePage: FC = () => {
                       </Button>
                     </motion.div>
                   </motion.div>
-                  <motion.div className="bg-card p-4 rounded-2xl shadow-xl border border-border relative z-10 overflow-hidden" whileHover={{ y: -8, boxShadow: "0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05)" }} transition={{ type: "spring", stiffness: 300 }}>
+                  <motion.div className="bg-card p-4 rounded-2xl shadow-xl border border-border relative z-10 overflow-hidden" >
                      <div className="absolute inset-0 bg-gradient-to-br from-primary/50 to-primary/20 opacity-30 pointer-events-none"></div>
                      <Card className="overflow-hidden bg-transparent shadow-none border-none">
                         <CardContent className="p-4 sm:p-6 relative z-10">
@@ -306,19 +306,19 @@ const HomePage: FC = () => {
                             {/* Simulated form content */}
                             <div className="space-y-3 mb-4">
                                 <div className="space-y-1">
-                                   <div className="h-4 w-1/3 bg-muted rounded mb-1">Correo</div>
+                                   <div className="h-3 w-1/4 bg-muted rounded mb-1 text-xs text-muted-foreground/70">Correo</div>
                                    <div className="h-9 w-full bg-muted/70 rounded border border-input flex items-center px-2">
                                       <span className="text-sm text-muted-foreground/70">usuario@ejemplo.com</span>
                                    </div>
                                 </div>
                                 <div className="space-y-1">
-                                  <div className="h-4 w-1/4 bg-muted rounded mb-1">Contraseña</div>
+                                  <div className="h-3 w-1/3 bg-muted rounded mb-1 text-xs text-muted-foreground/70">Contraseña</div>
                                   <div className="h-9 w-full bg-muted/70 rounded border border-input flex items-center px-2">
                                       <span className="text-sm text-muted-foreground/70">••••••••</span>
                                   </div>
                                 </div>
                                 <div className="space-y-1">
-                                  <div className="h-4 w-1/3 bg-muted rounded mb-1">Confirmar contraseña</div>
+                                  <div className="h-3 w-2/5 bg-muted rounded mb-1 text-xs text-muted-foreground/70">Confirmar</div>
                                   <div className="h-9 w-full bg-muted/70 rounded border border-input flex items-center px-2">
                                       <span className="text-sm text-muted-foreground/70">••••••••</span>
                                   </div>
@@ -336,35 +336,61 @@ const HomePage: FC = () => {
               {/* Step 2 */}
               <motion.div className="relative mb-16 md:mb-24" initial={{ opacity: 0, y: 50 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true, amount: 0.2 }} transition={{ duration: 0.6, delay: 0.2 }}>
                 <div className="md:grid md:grid-cols-2 gap-8 md:gap-12 items-center">
-                  <motion.div className="order-2 md:order-1 mb-8 md:mb-0 bg-card p-4 rounded-2xl shadow-xl border border-border relative z-10 overflow-hidden" whileHover={{ y: -8, boxShadow: "0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05)" }} transition={{ type: "spring", stiffness: 300 }}>
+                  <motion.div className="order-2 md:order-1 mb-8 md:mb-0 bg-card p-4 rounded-2xl shadow-xl border border-border relative z-10 overflow-hidden">
                      <div className="absolute inset-0 bg-gradient-to-br from-destructive/50 to-destructive/20 opacity-30 pointer-events-none"></div>
                      <Card className="overflow-hidden bg-transparent shadow-none border-none">
                         <CardContent className="p-4 sm:p-6 relative z-10">
-                          <div className="flex justify-between items-center mb-4">
+                           <div className="flex justify-between items-center mb-4">
                              <h4 className="text-base font-medium text-destructive">Crear Reporte</h4>
                              <span className="inline-flex items-center justify-center h-6 w-6 rounded-full bg-destructive/10 text-destructive">
-                                <AlertTriangle className="h-3 w-3" />
-                              </span>
-                          </div>
-                          <div className="space-y-3">
-                             <div className="flex gap-2">
-                               <div className="h-9 w-1/3 bg-muted rounded animate-pulse"></div>
-                               <div className="h-9 w-1/3 bg-muted rounded animate-pulse"></div>
-                               <div className="h-9 w-1/3 bg-muted rounded animate-pulse"></div>
-                             </div>
-                             <div className="h-16 w-full bg-muted rounded animate-pulse"></div>
-                             <div className="h-9 w-full bg-muted rounded animate-pulse"></div>
+                               <AlertTriangle className="h-3 w-3" />
+                             </span>
                            </div>
-                           <div className="h-20 mt-4 w-full bg-muted rounded flex items-center justify-center animate-pulse">
-                             <MapPin className="h-6 w-6 text-muted-foreground/50" />
+                            {/* Simulated report form content */}
+                           <div className="space-y-3 mb-4">
+                              <div className="flex justify-between gap-2">
+                                  <div className="p-2 w-1/2 border border-destructive/30 rounded-md bg-destructive/5 text-center">
+                                       <AlertTriangle className="h-4 w-4 text-destructive mx-auto mb-1" />
+                                       <span className="text-xs text-destructive">Incidente</span>
+                                  </div>
+                                   <div className="p-2 w-1/2 border border-input rounded-md bg-muted/50 text-center opacity-60">
+                                       <Shield className="h-4 w-4 text-muted-foreground mx-auto mb-1" />
+                                       <span className="text-xs text-muted-foreground">Funcionario</span>
+                                  </div>
+                              </div>
+                              <div className="space-y-1">
+                                 <div className="h-3 w-1/4 bg-muted rounded mb-1 text-xs">Título</div>
+                                 <div className="h-9 w-full bg-muted/70 rounded border border-input flex items-center px-2">
+                                     <span className="text-sm text-muted-foreground/70">Robo en Calle Principal</span>
+                                 </div>
+                              </div>
+                               <div className="space-y-1">
+                                 <div className="h-3 w-1/3 bg-muted rounded mb-1 text-xs">Descripción</div>
+                                 <div className="h-16 w-full bg-muted/70 rounded border border-input p-2">
+                                     <p className="text-xs text-muted-foreground/70 leading-snug">Ocurrió un asalto a mano armada cerca de la esquina...</p>
+                                 </div>
+                              </div>
+                              <div className="space-y-1">
+                                  <div className="h-3 w-1/4 bg-muted rounded mb-1 text-xs">Ubicación</div>
+                                 <div className="h-9 w-full bg-muted/70 rounded border border-input flex items-center px-2 gap-1">
+                                     <MapPin className="h-3 w-3 text-muted-foreground/50"/>
+                                     <span className="text-sm text-muted-foreground/70">Calle Principal #123, Col. Centro</span>
+                                 </div>
+                              </div>
+                               <div className="flex items-center gap-2">
+                                   <div className="h-9 w-9 bg-muted/70 rounded border border-input flex items-center justify-center">
+                                      <ImageIcon className="h-4 w-4 text-muted-foreground/50"/>
+                                   </div>
+                                   <span className="text-xs text-muted-foreground">Adjuntar evidencia (opcional)</span>
+                               </div>
                            </div>
-                           <div className="flex justify-end mt-4">
-                             <div className="h-8 w-32 bg-destructive/20 rounded-full animate-pulse"></div>
+                           <div className="flex justify-end">
+                             <div className="h-9 w-28 bg-destructive/80 rounded-full flex items-center justify-center text-sm text-destructive-foreground">Enviar</div>
                            </div>
                        </CardContent>
                      </Card>
                   </motion.div>
-                  <motion.div className="md:text-left md:pl-12 order-1 md:order-2" whileHover={{ scale: 1.02 }} transition={{ type: "spring", stiffness: 300 }}>
+                  <motion.div className="md:text-left md:pl-12 order-1 md:order-2">
                      <div className="flex items-center justify-start mb-4">
                        <motion.div className="flex-shrink-0 inline-flex items-center justify-center h-12 w-12 rounded-full bg-destructive text-white text-xl font-bold z-10 shadow-md" whileHover={{ rotate: -5, scale: 1.1 }}>2</motion.div>
                        <div className="absolute left-4 top-6 transform -translate-x-1/2 md:left-1/2 md:-translate-x-1/2 h-4 w-4 bg-card border-4 border-destructive rounded-full z-20 hidden md:block"></div>
@@ -386,7 +412,7 @@ const HomePage: FC = () => {
               {/* Step 3 */}
               <motion.div className="relative" initial={{ opacity: 0, y: 50 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true, amount: 0.2 }} transition={{ duration: 0.6, delay: 0.3 }}>
                 <div className="md:grid md:grid-cols-2 gap-8 md:gap-12 items-center">
-                  <motion.div className="md:text-right mb-8 md:mb-0 md:pr-12" whileHover={{ scale: 1.02 }} transition={{ type: "spring", stiffness: 300 }}>
+                  <motion.div className="md:text-right mb-8 md:mb-0 md:pr-12" >
                      <div className="flex items-center justify-start md:justify-end mb-4">
                        <motion.div className="flex-shrink-0 inline-flex items-center justify-center h-12 w-12 rounded-full bg-accent text-white text-xl font-bold z-10 shadow-md" whileHover={{ rotate: 5, scale: 1.1 }}>3</motion.div>
                        <div className="absolute left-4 top-6 transform -translate-x-1/2 md:left-auto md:right-0 md:translate-x-1/2 h-4 w-4 bg-card border-4 border-accent rounded-full z-20 hidden md:block"></div>
@@ -396,13 +422,13 @@ const HomePage: FC = () => {
                       Visualiza los reportes de los demás y observa cómo contribuye tu reporte, visualiza las zonas de riesgo.
                     </p>
                      <motion.div className="mt-5 flex justify-start md:justify-end" whileTap={{ scale: 0.95 }}>
-                      <Button variant="outline" className="border-accent text-accent hover:bg-accent/10 flex items-center rounded-full" onClick={() => router.push('/auth')}>
+                      <Button variant="outline" className="border-accent text-accent hover:bg-accent/30 flex items-center rounded-full" onClick={() => router.push('/auth')}>
                         Visualizar reportes
                         <ChevronRight className="ml-1 h-4 w-4" />
                       </Button>
                     </motion.div>
                   </motion.div>
-                  <motion.div className="bg-card p-4 rounded-2xl shadow-xl border border-border relative z-10 overflow-hidden" whileHover={{ y: -8, boxShadow: "0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05)" }} transition={{ type: "spring", stiffness: 300 }}>
+                  <motion.div className="bg-card p-4 rounded-2xl shadow-xl border border-border relative z-10 overflow-hidden" >
                      <div className="absolute inset-0 bg-gradient-to-br from-accent/50 to-accent/20 opacity-30 pointer-events-none"></div>
                      <Card className="overflow-hidden bg-transparent shadow-none border-none">
                          <CardContent className="p-4 sm:p-6 relative z-10">
