@@ -58,28 +58,28 @@ const HomePage: FC = () => {
         {/* Hero Section */}
         <section className="w-full py-16 md:py-24 lg:py-32 bg-gradient-to-b from-white to-secondary pt-24 md:pt-32 lg:pt-40"> {/* Added more padding-top to hero */}
           <div className="container px-4 md:px-6">
-             <motion.div className="flex flex-col md:flex-row items-center justify-center space-y-8 md:space-y-0 md:space-x-12 text-center md:text-left" initial="hidden" animate="visible" variants={containerVariants}>
+             <motion.div className="flex flex-col items-center justify-center space-y-8 text-center" initial="hidden" animate="visible" variants={containerVariants}> {/* Changed md:flex-row and text-center */}
                {/* Left Side - Text Content */}
-               <div className="flex-1 space-y-4">
+               <div className="flex-1 space-y-4 text-center"> {/* Added text-center */}
                   <motion.div className="space-y-2" variants={itemVariants}>
                      <Image
                         src="/logo.png"
                         alt="App Logo"
                         width={100} // Reduced logo size
                         height={100}
-                        className="mx-auto md:mx-0 mb-4 rounded-lg shadow-lg" // Adjust margin for alignment
+                        className="mx-auto mb-4 rounded-lg shadow-lg" // Ensure mx-auto for centering
                         priority
                         data-ai-hint="app logo safety shield"
                      />
                     <h1 className="text-4xl font-bold tracking-tighter sm:text-5xl md:text-6xl">
                       <span className="text-primary">+Seguro</span>
                     </h1>
-                    <p className="mx-auto md:mx-0 max-w-[700px] text-muted-foreground md:text-xl/relaxed lg:text-base/relaxed xl:text-xl/relaxed">
+                    <p className="mx-auto max-w-[700px] text-muted-foreground md:text-xl/relaxed lg:text-base/relaxed xl:text-xl/relaxed"> {/* Ensure mx-auto */}
                        Tu plataforma para reportar incidentes y construir un Uruapan más seguro.
                     </p>
                   </motion.div>
 
-                   <motion.div className="w-full max-w-xs sm:max-w-sm mx-auto md:mx-0 space-y-2" variants={itemVariants}>
+                   <motion.div className="w-full max-w-xs sm:max-w-sm mx-auto space-y-2" variants={itemVariants}> {/* Ensure mx-auto */}
                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                       <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
                           <Button
