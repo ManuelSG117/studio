@@ -1,4 +1,3 @@
-
 "use client";
 
 import type { FC } from 'react';
@@ -509,7 +508,7 @@ const HomePage: FC = () => {
                   </p>
               </motion.div>
 
-              {/* Placeholder Animated Graph */}
+              {/* Lottie Animation Graph */}
               <motion.div
                   className="relative bg-card p-6 rounded-2xl shadow-xl border border-border overflow-hidden"
                   variants={scrollRevealVariants}
@@ -520,7 +519,7 @@ const HomePage: FC = () => {
                   <div className="absolute inset-0 bg-gradient-to-br from-accent/10 via-transparent to-primary/5 opacity-50 pointer-events-none"></div>
 
                   <div className="flex flex-col md:flex-row items-center justify-between mb-6">
-                      <h3 className="text-xl font-semibold text-foreground mb-4 md:mb-0">Evolución de Reportes (Ejemplo)</h3>
+                      <h3 className="text-xl font-semibold text-foreground mb-4 md:mb-0">Evolución de Reportes</h3>
                       <div className="flex gap-2">
                           <Badge variant="outline">Mes</Badge>
                           <Badge variant="secondary">Semana</Badge>
@@ -528,52 +527,18 @@ const HomePage: FC = () => {
                       </div>
                   </div>
 
-                  {/* Simplified Animated Graph Visualization */}
-                  <div className="relative h-64 w-full">
-                      {/* Grid lines */}
-                      <div className="absolute inset-0 grid grid-rows-4 border-t border-border/50">
-                          {[...Array(4)].map((_, i) => (
-                              <div key={i} className="border-b border-border/30"></div>
-                          ))}
-                      </div>
-
-                      {/* Animated Line/Area */}
-                      <motion.svg
-                          viewBox="0 0 300 100"
-                          preserveAspectRatio="none"
-                          className="absolute bottom-0 left-0 w-full h-full"
-                      >
-                          <motion.path
-                              d="M0 80 C 50 20, 100 90, 150 50 S 250 10, 300 70 L 300 100 L 0 100 Z"
-                              fill="url(#gradient)"
-                              stroke="hsl(var(--primary))"
-                              strokeWidth="2"
-                              initial={{ pathLength: 0, opacity: 0 }}
-                              whileInView={{ pathLength: 1, opacity: 1 }}
-                              transition={{ duration: 2, ease: "easeInOut", delay: 0.5 }}
-                          />
-                          <defs>
-                              <linearGradient id="gradient" x1="0%" y1="0%" x2="0%" y2="100%">
-                                  <stop offset="0%" style={{ stopColor: 'hsl(var(--primary))', stopOpacity: 0.3 }} />
-                                  <stop offset="100%" style={{ stopColor: 'hsl(var(--primary))', stopOpacity: 0 }} />
-                              </linearGradient>
-                          </defs>
-                      </motion.svg>
-
-                      {/* Animated Dots (Optional) */}
-                       <div className="absolute inset-0 flex justify-between items-end pb-[20%] px-4 pointer-events-none">
-                          {[...Array(6)].map((_, i) => (
-                              <motion.div
-                                  key={i}
-                                  className="h-2 w-2 rounded-full bg-primary"
-                                  initial={{ scale: 0, opacity: 0 }}
-                                  whileInView={{ scale: 1, opacity: 1 }}
-                                  transition={{ duration: 0.5, delay: 0.8 + i * 0.2 }}
-                              ></motion.div>
-                          ))}
-                      </div>
+                  {/* Lottie Animation */}
+                  <div className="relative h-64 w-full flex items-center justify-center">
+                     <DotLottieReact
+                        src="https://lottie.host/17494221-1efe-4d0d-ab48-bed230af095d/zJNz64aYIu.lottie"
+                        loop
+                        autoplay
+                        className="w-full max-w-lg" // Adjust width as needed
+                        data-ai-hint="data graph animation"
+                      />
                   </div>
                   <div className="flex justify-between text-xs text-muted-foreground mt-2 px-2">
+                      {/* Labels can be adjusted or removed based on animation context */}
                       <span>Ene</span>
                       <span>Feb</span>
                       <span>Mar</span>
