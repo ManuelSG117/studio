@@ -109,24 +109,6 @@ const HomePage: FC = () => {
           </div>
         </section>
 
-        {/* Lottie Animation Section */}
-        <section className="w-full py-16 md:py-24 bg-secondary">
-            <div className="container px-4 md:px-6">
-                <motion.div
-                   variants={itemVariants} // Reuse itemVariants or create a new one
-                   initial="hidden"
-                   animate="visible"
-                 >
-                  <DotLottieReact
-                    src="https://lottie.host/7734755b-dc79-461d-9ce9-517fc33c65b4/N7eBj4r78D.lottie"
-                    loop
-                    autoplay
-                    className="w-full max-w-md mx-auto" // Adjust size and positioning as needed
-                    data-ai-hint="security shield animation"
-                  />
-                </motion.div>
-            </div>
-        </section>
 
         {/* Report Types Section */}
          <motion.section
@@ -139,7 +121,7 @@ const HomePage: FC = () => {
         >
           <div className="container px-4 md:px-6">
              <motion.div className="text-center mb-12 max-w-3xl mx-auto" variants={scrollRevealVariants}>
-               <Badge variant="secondary" className="mb-4 bg-primary/10 text-primary hover:bg-primary/20">
+               <Badge variant="secondary" className="mb-4 bg-primary/20 text-primary hover:bg-primary/30">
                  ¿QUÉ HACEMOS?
                </Badge>
                <h2 className="text-3xl md:text-4xl font-bold mb-4 text-foreground">Reporta incidentes en Uruapan</h2>
@@ -271,7 +253,7 @@ const HomePage: FC = () => {
         >
           <div className="container px-4 md:px-6">
             <motion.div className="text-center mb-16 max-w-3xl mx-auto" variants={scrollRevealVariants}>
-              <Badge className="mb-4 bg-primary/10 text-primary hover:bg-primary/20">
+              <Badge className="mb-4 bg-primary/20 text-primary hover:bg-primary/30">
                 PROCESO
               </Badge>
               <h2 className="text-3xl md:text-5xl font-bold tracking-tight mb-4 text-foreground">
@@ -460,8 +442,7 @@ const HomePage: FC = () => {
                       Explora las áreas con mayor número de reportes para mantenerte informado y tomar precauciones
                   </p>
               </motion.div>
-              <motion.div className="rounded-2xl overflow-hidden shadow-xl border border-border" variants={scrollRevealVariants} whileHover={{ scale: 1.01 }} transition={{ type: "spring", stiffness: 300 }}>
-                  <div className="relative h-[500px] w-full flex items-center justify-center bg-muted">
+              <motion.div className="rounded-2xl overflow-hidden" variants={scrollRevealVariants} whileHover={{ scale: 1.01 }} transition={{ type: "spring", stiffness: 300 }}>
                        {/* Lottie Animation for Risk Map */}
                        <DotLottieReact
                            src="https://lottie.host/e575a174-b6c9-45e1-86bf-f712aad9cf22/yWmVrRdEOm.lottie"
@@ -470,25 +451,6 @@ const HomePage: FC = () => {
                            className="w-full h-full object-contain" // Adjust sizing as needed
                            data-ai-hint="map location risk animation"
                        />
-                  </div>
-              </motion.div>
-              <motion.div className="mt-8 grid grid-cols-2 md:grid-cols-4 gap-4 max-w-3xl mx-auto" variants={scrollRevealVariants}>
-                  <div className="flex items-center gap-2 justify-center p-3 rounded-lg bg-card shadow-sm border border-border">
-                      <div className="h-4 w-4 rounded-full bg-red-500"></div>
-                      <span className="text-sm font-medium text-muted-foreground">Alta incidencia</span>
-                  </div>
-                  <div className="flex items-center gap-2 justify-center p-3 rounded-lg bg-card shadow-sm border border-border">
-                      <div className="h-4 w-4 rounded-full bg-orange-500"></div>
-                      <span className="text-sm font-medium text-muted-foreground">Media incidencia</span>
-                  </div>
-                  <div className="flex items-center gap-2 justify-center p-3 rounded-lg bg-card shadow-sm border border-border">
-                      <div className="h-4 w-4 rounded-full bg-yellow-500"></div>
-                      <span className="text-sm font-medium text-muted-foreground">Baja incidencia</span>
-                  </div>
-                  <div className="flex items-center gap-2 justify-center p-3 rounded-lg bg-card shadow-sm border border-border">
-                      <div className="h-4 w-4 rounded-full bg-green-500"></div>
-                      <span className="text-sm font-medium text-muted-foreground">Zona segura</span>
-                  </div>
               </motion.div>
             </div>
           </motion.section>
@@ -504,38 +466,28 @@ const HomePage: FC = () => {
           >
             <div className="container px-4 md:px-6">
               <motion.div className="text-center mb-12 max-w-3xl mx-auto" variants={scrollRevealVariants}>
-                  <Badge className="mb-4 bg-accent/10 text-accent hover:bg-accent/20">
+                  <Badge className="mb-4 bg-accent/20 text-accent hover:bg-accent/30">
                       ESTADÍSTICAS
                   </Badge>
-                  <h2 className="text-3xl md:text-5xl font-bold tracking-tight mb-4 text-foreground">
+                  <h3 className="text-3xl md:text-5xl font-bold tracking-tight mb-4 text-foreground">
                       Tendencias de Seguridad en Uruapan
-                  </h2>
+                  </h3>
                   <p className="mx-auto max-w-[700px] text-muted-foreground md:text-xl/relaxed">
                       Visualiza las tendencias de reportes para entender mejor la seguridad en tu área y tomar decisiones informadas.
                   </p>
               </motion.div>
 
-              {/* Lottie Animation Graph */}
-              <motion.div
-                  className="relative p-6 rounded-2xl overflow-hidden" // Removed bg-card, shadow, border
-                  variants={scrollRevealVariants}
-                  whileHover={{ scale: 1.01 }}
-                  transition={{ type: "spring", stiffness: 300 }}
-              >
-                  {/* Lottie Animation */}
-                  <div className="relative h-64 w-full flex items-center justify-center">
-                     <DotLottieReact
-                        src="https://lottie.host/17494221-1efe-4d0d-ab48-bed230af095d/zJNz64aYIu.lottie"
-                        loop
-                        autoplay
-                        className="w-full max-w-lg" // Adjust width as needed
-                        data-ai-hint="data graph animation"
-                      />
-                  </div>
-              </motion.div>
 
+
+               {/* Increase the size of the lottie animation by making the container full width */}
+               <motion.div className="relative p-6 rounded-2xl overflow-hidden w-full">
+                  {/* Lottie Animation */}
+                  <div className="relative h-96 w-full flex items-center justify-center">
+                     <DotLottieReact src="https://lottie.host/17494221-1efe-4d0d-ab48-bed230af095d/zJNz64aYIu.lottie" loop={true} autoplay className="w-full max-w-4xl" data-ai-hint="data graph animation" />
+                  </div>
+               </motion.div>
               <motion.div className="text-center mt-10" variants={scrollRevealVariants}>
-                  <Button variant="outline" className="border-accent text-accent hover:bg-accent/10 flex items-center mx-auto rounded-full" onClick={() => router.push('/auth')}>
+                  <Button variant="outline" className="border-accent text-accent hover:bg-accent/50 flex items-center mx-auto rounded-full" onClick={() => router.push('/auth')}>
                       Explorar Estadísticas Completas
                       <ChevronRight className="ml-1 h-4 w-4" />
                   </Button>
