@@ -2,7 +2,6 @@
 import type {Metadata} from 'next';
 import {Geist, Geist_Mono} from 'next/font/google';
 import './globals.css';
-import 'leaflet/dist/leaflet.css'; // Import Leaflet CSS globally
 import { Toaster } from "@/components/ui/toaster"; // Import Toaster
 import { AuthProvider } from '@/context/AuthContext'; // Import AuthProvider
 
@@ -18,7 +17,7 @@ const geistMono = Geist_Mono({
 
 export const metadata: Metadata = {
   title: '+Seguro', // Updated title
-  description: 'Plataforma de reportes de seguridad y prevención', // Updated description
+  description: 'Plataforma de reportes de seguridad y prevención de incidentes en Uruapan', // Updated description
 };
 
 export default function RootLayout({
@@ -27,7 +26,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
+    <html lang="es">
       <body className={`${geistSans.variable} ${geistMono.variable} antialiased bg-secondary`}> {/* Use secondary as body background */}
         <AuthProvider> {/* Wrap the entire application with AuthProvider */}
           {children}

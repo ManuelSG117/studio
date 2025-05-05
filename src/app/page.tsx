@@ -64,9 +64,9 @@ const HomePage: FC = () => {
                      <Image
                         src="/logo.png"
                         alt="App Logo"
-                        width={100} // Reduced logo size
-                        height={100}
-                        className="mx-auto mb-4 rounded-lg shadow-lg" // Ensure mx-auto for centering
+                        width={200} // Reduced logo size
+                        height={200}
+                        className="mx-auto mb-4 " // Ensure mx-auto for centering
                         priority
                         data-ai-hint="app logo safety shield"
                      />
@@ -137,7 +137,7 @@ const HomePage: FC = () => {
                 <motion.div
                     className="group"
                     variants={reportCardVariants}
-                    whileHover={{ y: -10, transition: { duration: 0.3 } }}
+                    whileHover={{ scale: 1.05, transition: { duration: 0.3 } }}
                 >
                  <Card className="h-full overflow-hidden shadow-lg hover:shadow-xl transition-all duration-300 border-t-4 border-t-primary bg-card">
                    <CardContent className="p-8">
@@ -191,7 +191,7 @@ const HomePage: FC = () => {
                 <motion.div
                     className="group"
                     variants={reportCardVariants}
-                    whileHover={{ y: -10, transition: { duration: 0.3 } }}
+                    whileHover={{ scale: 1.05, transition: { duration: 0.3 } }}
                 >
                  <Card className="h-full overflow-hidden shadow-lg hover:shadow-xl transition-all duration-300 border-t-4 border-t-destructive bg-card">
                    <CardContent className="p-8">
@@ -276,7 +276,7 @@ const HomePage: FC = () => {
                   <motion.div className="md:text-right mb-8 md:mb-0 md:pr-12">
                     <div className="flex items-center justify-start md:justify-end mb-4">
                        <motion.div className="flex-shrink-0 inline-flex items-center justify-center h-12 w-12 rounded-full bg-primary text-white text-xl font-bold z-10 shadow-md" >1</motion.div>
-                       <div className="absolute left-4 top-6 transform -translate-x-1/2 md:left-auto md:right-0 md:translate-x-1/2 h-4 w-4 bg-card border-4 border-primary rounded-full z-20 hidden md:block"></div>
+                       <div className="absolute left-4 md:left-1/2 top-1/2 transform -translate-y-1/2 md:-translate-x-1/2 h-4 w-4 bg-card border-4 border-primary rounded-full z-20 hidden md:block"></div>
                     </div>
                     <h3 className="text-2xl md:text-3xl font-semibold text-primary mb-3">Crea una cuenta</h3>
                     <p className="text-muted-foreground">
@@ -388,8 +388,8 @@ const HomePage: FC = () => {
                   </motion.div>
                   <motion.div className="md:text-left md:pl-12 order-1 md:order-2">
                      <div className="flex items-center justify-start mb-4">
-                       <motion.div className="flex-shrink-0 inline-flex items-center justify-center h-12 w-12 rounded-full bg-destructive text-white text-xl font-bold z-10 shadow-md" whileHover={{ rotate: -5, scale: 1.1 }}>2</motion.div>
-                       <div className="absolute left-4 top-6 transform -translate-x-1/2 md:left-1/2 md:-translate-x-1/2 h-4 w-4 bg-card border-4 border-destructive rounded-full z-20 hidden md:block"></div>
+                       <motion.div className="flex-shrink-0 inline-flex items-center justify-center h-12 w-12 rounded-full bg-destructive text-white text-xl font-bold z-10 shadow-md" >2</motion.div>
+                       <div className="absolute left-4 md:left-1/2 top-1/2 transform -translate-y-1/2 md:-translate-x-1/2 h-4 w-4 bg-card border-4  border-destructive rounded-full z-20 hidden md:block"></div>
                      </div>
                     <h3 className="text-2xl md:text-3xl font-semibold text-destructive mb-3">Crea un reporte detallado</h3>
                     <p className="text-muted-foreground">
@@ -410,8 +410,8 @@ const HomePage: FC = () => {
                 <div className="md:grid md:grid-cols-2 gap-8 md:gap-12 items-center">
                   <motion.div className="md:text-right mb-8 md:mb-0 md:pr-12" >
                      <div className="flex items-center justify-start md:justify-end mb-4">
-                       <motion.div className="flex-shrink-0 inline-flex items-center justify-center h-12 w-12 rounded-full bg-accent text-white text-xl font-bold z-10 shadow-md" whileHover={{ rotate: 5, scale: 1.1 }}>3</motion.div>
-                       <div className="absolute left-4 top-6 transform -translate-x-1/2 md:left-auto md:right-0 md:translate-x-1/2 h-4 w-4 bg-card border-4 border-accent rounded-full z-20 hidden md:block"></div>
+                       <motion.div className="flex-shrink-0 inline-flex items-center justify-center h-12 w-12 rounded-full bg-accent text-white text-xl font-bold z-10 shadow-md">3</motion.div>
+                       <div className="absolute left-4 md:left-1/2 top-1/2 transform -translate-y-1/2 md:-translate-x-1/2 h-4 w-4 bg-card border-4  border-accent rounded-full z-20 hidden md:block"></div>
                      </div>
                     <h3 className="text-2xl md:text-3xl font-semibold text-accent mb-3">Ve los reportes de la comunidad</h3>
                     <p className="text-muted-foreground">
@@ -522,8 +522,8 @@ const HomePage: FC = () => {
                    </motion.div>
                    <motion.div className="md:text-left md:pl-12 order-1 md:order-2">
                       <div className="flex items-center justify-start mb-4">
-                        <motion.div className="flex-shrink-0 inline-flex items-center justify-center h-12 w-12 rounded-full bg-green-600 text-white text-xl font-bold z-10 shadow-md" whileHover={{ rotate: -5, scale: 1.1 }}>4</motion.div>
-                        <div className="absolute left-4 top-6 transform -translate-x-1/2 md:left-1/2 md:-translate-x-1/2 h-4 w-4 bg-card border-4 border-green-600 rounded-full z-20 hidden md:block"></div>
+                        <motion.div className="flex-shrink-0 inline-flex items-center justify-center h-12 w-12 rounded-full bg-green-600 text-white text-xl font-bold z-10 shadow-md" >4</motion.div>
+                        <div className="absolute left-4 md:left-1/2 top-1/2 transform -translate-y-1/2 md:-translate-x-1/2 h-4 w-4 bg-card border-4 border-green-600 rounded-full z-20 hidden md:block"></div>
                       </div>
                      <h3 className="text-2xl md:text-3xl font-semibold text-green-700 dark:text-green-400 mb-3">Vota por los reportes</h3>
                      <p className="text-muted-foreground">

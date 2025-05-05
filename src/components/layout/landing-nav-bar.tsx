@@ -9,7 +9,8 @@ import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import { useEffect, useState } from 'react';
 // Import icons for the navbar links
-import { LogIn } from 'lucide-react';
+import { LogIn, Menu, X } from 'lucide-react';
+import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
 
 const LandingNavBar: FC = () => {
   const router = useRouter();
@@ -96,113 +97,120 @@ const LandingNavBar: FC = () => {
   return (
     <header
       className={cn(
-        'fixed top-0 left-0 right-0 z-50 flex h-20 items-center justify-center px-4 md:px-8 transition-all duration-300 pointer-events-none', // Add pointer-events-none to header
-        // Apply background/blur only when scrolled for the container
-        scrolled ? 'bg-muted/80 backdrop-blur-sm shadow-sm border-b border-border pointer-events-auto' : 'bg-transparent' // Re-enable pointer-events when scrolled
+        'fixed top-0 left-0 right-0 z-50 flex h-20 items-center justify-center px-4 md:px-8 transition-all duration-500 pointer-events-none',
+        scrolled ? 'bg-muted/95 backdrop-blur-lg shadow-xl border-b border-border/50 pointer-events-auto' : 'bg-transparent'
       )}
     >
       {/* Desktop Navigation in Pill Container - Centered */}
-      {/* Visibility controlled by opacity and pointer-events based on scroll */}
       <div className={cn(
-        "absolute left-1/2 top-1/2 transform -translate-x-1/2 -translate-y-1/2 transition-opacity duration-300 hidden md:flex",
-        scrolled ? "opacity-100 pointer-events-auto" : "opacity-0 pointer-events-none" // Control visibility of inner nav
+        "absolute left-1/2 top-1/2 transform -translate-x-1/2 -translate-y-1/2 transition-all duration-500 ease-in-out hidden md:flex scale-100",
+        scrolled ? "opacity-100 pointer-events-auto translate-y-0" : "opacity-0 pointer-events-none -translate-y-2"
       )}>
         <nav className={cn(
-             "flex items-center gap-1 text-sm font-medium rounded-full p-1.5 transition-all duration-300",
-             // Apply background/shadow only when scrolled for the inner nav
-             scrolled ? "bg-background/80 shadow-md border border-border" : "bg-transparent"
-         )}>
-
-            {/* +Seguro Link (Home/Top) */}
-             <Link
-               href="#top" // Link to top of the page
-               onClick={handleScrollTo('top')}
-               className={cn(
-                 "transition-colors px-4 py-1.5 rounded-full flex items-center gap-1.5",
-                 isLinkActive('top')
-                   ? "bg-primary/10 text-primary font-medium" // Active state style
-                   : "text-muted-foreground hover:text-primary hover:bg-primary/5" // Inactive state style
-               )}
-               aria-current={isLinkActive('top') ? 'page' : undefined}
-             >
-                {/* Icon removed */}
-                +Seguro
-             </Link>
-
-
-          {/* What We Do Link */}
+          "flex items-center gap-3 text-sm font-medium rounded-full px-3 py-2.5 transition-all duration-500 ease-in-out backdrop-blur-lg",
+          scrolled ? "bg-background/95 shadow-xl border border-border/50 scale-100" : "bg-white/10 scale-95"
+        )}>
+          {/* +Seguro Link (Home/Top) */}
           <Link
-            href="#what-we-do"
-            onClick={handleScrollTo('what-we-do')}
+            href="#top"
+            onClick={handleScrollTo('top')}
             className={cn(
-              "transition-colors px-4 py-1.5 rounded-full flex items-center gap-1.5",
-              isLinkActive('what-we-do')
-                ? "bg-primary/10 text-primary font-medium" // Active state style
-                : "text-muted-foreground hover:text-primary hover:bg-primary/5" // Inactive state style
+              "transition-all duration-300 px-5 py-2.5 rounded-full flex items-center gap-2 hover:scale-105 font-semibold",
+              isLinkActive('top')
+                ? "bg-primary/20 text-primary shadow-inner ring-1 ring-primary/30" 
+                : "text-muted-foreground hover:text-primary hover:bg-primary/10"
             )}
-            aria-current={isLinkActive('what-we-do') ? 'page' : undefined}
+            aria-current={isLinkActive('top') ? 'page' : undefined}
           >
-             {/* Icon removed */}
-            ¿Qué hacemos?
+            +Seguro
           </Link>
 
-          {/* How It Works Link */}
-          <Link
-            href="#how-it-works"
-            onClick={handleScrollTo('how-it-works')}
-             className={cn(
-              "transition-colors px-4 py-1.5 rounded-full flex items-center gap-1.5",
-              isLinkActive('how-it-works')
-                ? "bg-primary/10 text-primary font-medium" // Active state style
-                : "text-muted-foreground hover:text-primary hover:bg-primary/5" // Inactive state style
-            )}
-            aria-current={isLinkActive('how-it-works') ? 'page' : undefined}
-          >
-             {/* Icon removed */}
-            ¿Cómo funciona?
-          </Link>
+          {/* Navigation Links with enhanced styles */}
+          {[
+            { href: '#what-we-do', label: '¿Qué hacemos?' },
+            { href: '#how-it-works', label: '¿Cómo funciona?' },
+            { href: '#risk-map', label: 'Zonas de Riesgo' },
+          ].map(({ href, label }) => (
+            <Link
+              key={href}
+              href={href}
+              onClick={handleScrollTo(href.slice(1))}
+              className={cn(
+                "transition-all duration-300 px-4 py-2 rounded-full flex items-center gap-1.5 hover:scale-105",
+                isLinkActive(href.slice(1))
+                  ? "bg-primary/15 text-primary font-medium ring-1 ring-primary/20 shadow-inner"
+                  : "text-muted-foreground hover:text-primary hover:bg-primary/10"
+              )}
+              aria-current={isLinkActive(href.slice(1)) ? 'page' : undefined}
+            >
+              {label}
+            </Link>
+          ))}
 
-          {/* Risk Map Link */}
-          <Link
-            href="#risk-map"
-            onClick={handleScrollTo('risk-map')}
-             className={cn(
-              "transition-colors px-4 py-1.5 rounded-full flex items-center gap-1.5",
-              isLinkActive('risk-map')
-                ? "bg-primary/10 text-primary font-medium" // Active state style
-                : "text-muted-foreground hover:text-primary hover:bg-primary/5" // Inactive state style
-            )}
-            aria-current={isLinkActive('risk-map') ? 'page' : undefined}
-          >
-             {/* Icon removed */}
-            Zonas de Riesgo
-          </Link>
-
-          {/* Sign In Link */}
+          {/* Sign In Link with enhanced style */}
           <Link
             href="/auth"
-             className={cn(
-                 "transition-colors px-4 py-1.5 rounded-full flex items-center gap-1.5",
-                 "text-muted-foreground hover:text-primary hover:bg-primary/5" // Consistent inactive style
-             )}
+            className="transition-all duration-300 px-4 py-2 rounded-full flex items-center gap-1.5 text-primary border border-primary/20 hover:bg-primary/10 hover:scale-105"
           >
-            {/* Icon removed */}
             Iniciar Sesión
           </Link>
         </nav>
       </div>
 
-      {/* Mobile Menu Trigger - Always visible if needed */}
-       <div className="absolute right-4 top-1/2 transform -translate-y-1/2 md:hidden pointer-events-auto"> {/* Ensure this can always be clicked */}
-            {/* Use Link to navigate to auth page on mobile */}
-            <Button asChild size="icon" variant="ghost" className="text-muted-foreground hover:text-primary hover:bg-primary/10">
-                 <Link href="/auth">
-                     <LogIn className="h-5 w-5" />
-                     <span className="sr-only">Iniciar Sesión / Registrarse</span>
-                 </Link>
+      {/* Mobile Menu with enhanced styles */}
+      <div className="absolute right-4 top-1/2 transform -translate-y-1/2 md:hidden pointer-events-auto flex items-center gap-3">
+        <Button
+          asChild
+          size="icon"
+          variant="ghost"
+          className="text-primary border border-primary/20 hover:bg-primary/10 transition-all duration-300 hover:scale-105 rounded-full p-2.5"
+        >
+          <Link href="/auth" className="flex items-center justify-center">
+            <LogIn className="h-5 w-5" />
+            <span className="sr-only">Iniciar Sesión</span>
+          </Link>
+        </Button>
+
+        <Sheet>
+          <SheetTrigger asChild>
+            <Button
+              variant="ghost"
+              size="icon"
+              className="text-primary border border-primary/20 hover:bg-primary/10 transition-all duration-300 hover:scale-105 rounded-full p-2.5"
+            >
+              <Menu className="h-5 w-5" />
+              <span className="sr-only">Menú</span>
             </Button>
-            {/* If a full mobile menu is needed later, replace Button with a SheetTrigger */}
-       </div>
+          </SheetTrigger>
+          <SheetContent
+            side="right"
+            className="w-[300px] sm:w-[400px] bg-background/95 backdrop-blur-xl border-l border-border/50 shadow-2xl"
+          >
+            <nav className="flex flex-col space-y-3 mt-8">
+              {[
+                { href: '#top', label: '+Seguro' },
+                { href: '#what-we-do', label: '¿Qué hacemos?' },
+                { href: '#how-it-works', label: '¿Cómo funciona?' },
+                { href: '#risk-map', label: 'Zonas de Riesgo' },
+              ].map(({ href, label }) => (
+                <Link
+                  key={href}
+                  href={href}
+                  onClick={handleScrollTo(href.slice(1))}
+                  className={cn(
+                    "transition-all duration-300 px-4 py-3 rounded-lg flex items-center gap-2 hover:scale-102",
+                    isLinkActive(href.slice(1))
+                      ? "bg-primary/15 text-primary font-semibold ring-1 ring-primary/20"
+                      : "text-muted-foreground hover:text-primary hover:bg-primary/10"
+                  )}
+                >
+                  {label}
+                </Link>
+              ))}
+            </nav>
+          </SheetContent>
+        </Sheet>
+      </div>
     </header>
   );
 };
