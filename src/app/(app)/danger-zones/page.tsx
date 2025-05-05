@@ -16,21 +16,10 @@ import type { Report } from '@/app/(app)/welcome/page';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
 import Link from 'next/link';
-import { cn } from '@/lib/utils'; // Import cn
+import { cn, formatLocation } from "@/lib/utils"; // Import cn and formatLocation
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"; // Import Select components
 
-// Helper function to format location (remains the same)
-const formatLocation = (location: string): string => {
-    if (!location) return "Ubicación no disponible";
-    const parts = location.split(',').map(part => part.trim());
-    if (parts.length >= 2) {
-        if (/^Lat: .+ Lon: .+$/.test(parts[0])) {
-           return parts[0];
-        }
-        return `${parts[0]}, ${parts[1]}`;
-    }
-    return location;
-};
+// Helper function to format location moved to utils
 
 type MapViewMode = 'markers' | 'heatmap'; // Define view modes
 type ReportTypeFilter = 'Todos' | 'Funcionario' | 'Incidente'; // Define report type filters
@@ -259,7 +248,7 @@ const DangerZonesPage: FC = () => {
                                      <p className="text-sm text-muted-foreground line-clamp-2">{report.description}</p>
                                      <p className="text-xs text-muted-foreground/70 mt-1 flex items-center">
                                          <MapPin size={12} className="mr-1" />
-                                         {formatLocation(report.location)}
+                                         {formatLocation(report.location)} {/* Apply formatting here */}
                                      </p>
                                  </li>
                                 </Link>

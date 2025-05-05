@@ -16,7 +16,7 @@ import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
 import { useToast } from "@/hooks/use-toast";
 import Image from 'next/image';
-import { cn } from "@/lib/utils";
+import { cn, formatLocation } from "@/lib/utils"; // Import formatLocation
 
 // Define report type
 export type Report = {
@@ -366,7 +366,7 @@ const WelcomePage: FC = () => {
                       <div className="flex justify-between items-center text-xs text-muted-foreground/80">
                         <div className="flex items-center min-w-0 mr-2"> {/* Added min-w-0, mr-2 */}
                             <MapPin size={12} className="mr-1 flex-shrink-0" />
-                            <span className="truncate">{report.location}</span> {/* Added truncate */}
+                            <span className="truncate">{formatLocation(report.location)}</span> {/* Apply formatting here */}
                         </div>
                         <div className="flex items-center flex-shrink-0"> {/* Added flex-shrink-0 */}
                             <CalendarDays size={12} className="mr-1 flex-shrink-0" />
@@ -412,4 +412,3 @@ const WelcomePage: FC = () => {
 
 export default WelcomePage;
 
-    
