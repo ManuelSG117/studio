@@ -1,93 +1,101 @@
 "use client";
 
-import type { FC } from "react";
-import { useEffect, useState, useMemo, useCallback } from "react"; // Added useCallback
-import Link from "next/link"; // Import Link
-import { useRouter } from "next/navigation";
-import { onAuthStateChanged, type User } from "firebase/auth";
-import { auth, db } from "@/lib/firebase/client";
-import { collection, getDocs, query, orderBy, Timestamp, doc, runTransaction } from "firebase/firestore"; // Removed 'where', added doc, runTransaction
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import type { FC } from 'react';
+import { useEffect, useState, useCallback } from 'react';
+import { useRouter } from 'next/navigation';
+import Link from 'next/link';
+import { useAuth } from '@/context/AuthContext'; // Import useAuth
+import { auth, db } from '@/lib/firebase/client';
+import { collection, query, where, getDocs, orderBy, Timestamp, limit, startAfter, doc, getDoc, runTransaction } from 'firebase/firestore';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-// import { Badge } from "@/components/ui/badge"; // Badge removed
 import { Skeleton } from "@/components/ui/skeleton";
-import { LogOut, Search, UserCog, TriangleAlert, MapPin, Plus, Loader2, CalendarDays, Globe, ArrowUp, ArrowDown } from "lucide-react"; // Added Globe icon, ArrowUp, ArrowDown
-import Image from "next/image"; // Import Image
-import { format } from 'date-fns'; // Import format for date display
-import { es } from 'date-fns/locale'; // Import Spanish locale for date formatting
-import type { Report } from '@/app/(app)/welcome/page'; // Reuse Report type from welcome page
-import { useToast } from "@/hooks/use-toast"; // Import useToast
-import { cn } from "@/lib/utils"; // Import cn
-
-// Helper function to extract street and neighborhood from location string (same as welcome page)
-const formatLocation = (location: string): string => {
-    if (!location) return "Ubicación no disponible";
-    const parts = location.split(',').map(part => part.trim());
-    if (parts.length >= 2) {
-        if (/^Lat: .+ Lon: .+$/.test(parts[0])) {
-           return parts[0];
-        }
-        return `${parts[0]}, ${parts[1]}`;
-    }
-    return location;
-};
-
+import { FileText, MapPin, CalendarDays, ArrowUp, ArrowDown, Loader2, UserCog, TriangleAlert } from 'lucide-react'; // Ensure all used icons are imported
+import { format } from 'date-fns';
+import { es } from 'date-fns/locale';
+import { useToast } from "@/hooks/use-toast";
+import Image from 'next/image';
+import { cn } from "@/lib/utils";
+import type { Report } from '@/app/(app)/welcome/page'; // Assuming Report type is exported from welcome
 
 const CommunityReportsPage: FC = () => {
   const router = useRouter();
+  const { user, isAuthenticated } = useAuth(); // Use the auth context
   const { toast } = useToast();
-  const [user, setUser] = useState<User | null>(null);
-  const [isLoading, setIsLoading] = useState(true); // Combined loading state
-  const [reports, setReports] = useState<Report[]>([]); // State for fetched reports
-  const [searchTerm, setSearchTerm] = useState("");
-  const [filter, setFilter] = useState<'Todos' | 'Funcionarios' | 'Incidentes'>('Todos');
-  const [votingState, setVotingState] = useState<Record<string, boolean>>({}); // Track voting status per report
+  const [reports, setReports] = useState<Report[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [isFetchingMore, setIsFetchingMore] = useState(false);
+  const [lastDoc, setLastDoc] = useState<any>(null);
+  const [hasMore, setHasMore] = useState(true);
+  const [votingState, setVotingState] = useState<{ [reportId: string]: boolean }>({});
 
-   // Function to fetch user's votes (same as welcome page)
-   const fetchUserVotes = useCallback(async (userId: string, reportIds: string[]) => {
-     const votes: Record<string, 'up' | 'down'> = {};
-     console.log("Simulating fetch for user votes for community reports:", reportIds);
-     // In a real app, fetch from Firestore 'votes' subcollection for each report
-     // Example:
-     // const batch = writeBatch(db); // Consider batch reads if performance is critical
-     // const votePromises = reportIds.map(async (reportId) => {
-     //   const voteDocRef = doc(db, `reports/${reportId}/votes/${userId}`);
-     //   const voteDocSnap = await getDoc(voteDocRef); // Use getDoc directly for individual reads
-     //   if (voteDocSnap.exists()) {
-     //     votes[reportId] = voteDocSnap.data().type as 'up' | 'down';
-     //   }
-     // });
-     // await Promise.all(votePromises);
-     return votes;
-   }, []);
+  const ITEMS_PER_PAGE = 10; // Adjust as needed
 
+    // Function to fetch user's vote for a specific report
+    const fetchUserVote = useCallback(async (userId: string, reportId: string) => {
+      try {
+          const voteDocRef = doc(db, `reports/${reportId}/votes/${userId}`);
+          const voteDocSnap = await getDoc(voteDocRef);
 
-  useEffect(() => {
-    setIsLoading(true); // Start loading
-    const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
-      if (currentUser) {
-        setUser(currentUser);
-        // Fetch ALL reports from Firestore
-        try {
-          console.log("Fetching all community reports from Firestore...");
-          const reportsCollectionRef = collection(db, "reports");
-          // Query all reports, ordered by creation date descending
-          const q = query(reportsCollectionRef, orderBy("createdAt", "desc"));
-          const querySnapshot = await getDocs(q);
+          if (voteDocSnap.exists()) {
+              return voteDocSnap.data().type as 'up' | 'down';
+          }
+      } catch (error) {
+          console.error("Error fetching user vote: ", error);
+      }
+      return null;
+    }, []);
 
-          const reportIds: string[] = [];
-          const fetchedReports: Report[] = querySnapshot.docs.map(doc => {
-            const data = doc.data();
-            const createdAtDate = data.createdAt instanceof Timestamp
-              ? data.createdAt.toDate()
-              : new Date();
-            reportIds.push(doc.id); // Collect report IDs
+  const fetchReports = useCallback(async (loadMore: boolean = false) => {
+    // Ensure user is authenticated before fetching
+    if (!isAuthenticated) {
+       console.log("User not authenticated, skipping fetch.");
+       setIsLoading(false); // Stop loading if not authenticated
+       router.replace("/login"); // Redirect if not authenticated
+       return;
+    }
 
-            return {
-              id: doc.id,
-              userId: data.userId,
-              userEmail: data.userEmail,
+     if (!user) {
+         console.log("User object not yet available, waiting...");
+         setIsLoading(true); // Keep loading until user object is available
+         return;
+     }
+
+    setIsLoading(true);
+    setIsFetchingMore(loadMore);
+
+    try {
+      let q = query(
+        collection(db, "reports"),
+        orderBy("createdAt", "desc"),
+        limit(ITEMS_PER_PAGE)
+      );
+
+      if (loadMore && lastDoc) {
+        q = query(
+          collection(db, "reports"),
+          orderBy("createdAt", "desc"),
+          startAfter(lastDoc),
+          limit(ITEMS_PER_PAGE)
+        );
+      }
+
+      const querySnapshot = await getDocs(q);
+      const fetchedReports: Report[] = [];
+
+       for (const reportDoc of querySnapshot.docs) { // Renamed variable
+         const data = reportDoc.data();
+          // Fetch the current user's vote for this report
+          const userVote = await fetchUserVote(user.uid, reportDoc.id); // Pass correct user ID
+
+          const createdAtDate = data.createdAt instanceof Timestamp
+            ? data.createdAt.toDate()
+            : new Date();
+
+          fetchedReports.push({
+              id: reportDoc.id,
+              userId: data.userId, // Make sure userId is fetched
+              userEmail: data.userEmail || null,
               reportType: data.reportType,
               title: data.title,
               description: data.description,
@@ -96,81 +104,73 @@ const CommunityReportsPage: FC = () => {
               latitude: data.latitude || null,
               longitude: data.longitude || null,
               createdAt: createdAtDate,
-              upvotes: data.upvotes || 0, // Default to 0
-              downvotes: data.downvotes || 0, // Default to 0
-              userVote: null, // Initialize userVote
-            } as Report;
+              upvotes: data.upvotes || 0,
+              downvotes: data.downvotes || 0,
+              userVote: userVote, // Include the fetched vote
           });
+       }
 
-          // Fetch user votes for the fetched community reports
-          const userVotes = await fetchUserVotes(currentUser.uid, reportIds);
+      setReports(prevReports => loadMore ? [...prevReports, ...fetchedReports] : fetchedReports);
+      setLastDoc(querySnapshot.docs[querySnapshot.docs.length - 1] || null);
+      setHasMore(fetchedReports.length === ITEMS_PER_PAGE);
+    } catch (error) {
+      console.error("Error fetching reports: ", error);
+      toast({ variant: "destructive", title: "Error", description: "Failed to fetch community reports." });
+    } finally {
+      setIsLoading(false);
+      setIsFetchingMore(false);
+    }
+  }, [isAuthenticated, user, router, toast, fetchUserVote, lastDoc]); // Added user and fetchUserVote
 
-          // Merge user votes into the fetched reports
-          const reportsWithVotes = fetchedReports.map(report => ({
-            ...report,
-            userVote: userVotes[report.id] || null,
-          }));
 
-          console.log("Fetched community reports:", reportsWithVotes.length);
-          setReports(reportsWithVotes);
-        } catch (error) {
-          console.error("Error fetching community reports: ", error);
-          toast({ variant: "destructive", title: "Error", description: "No se pudieron cargar los reportes de la comunidad." });
-        } finally {
-           setIsLoading(false); // Stop loading after fetch attempt
+    useEffect(() => {
+        if (isAuthenticated !== null) { // Wait until authentication status is determined
+             fetchReports();
         }
-      } else {
-        router.replace("/login"); // Redirect to login if not authenticated
-        setIsLoading(false); // Stop loading if no user
-      }
-    });
+    }, [fetchReports, isAuthenticated]); // Depend on isAuthenticated status
 
-    return () => unsubscribe();
-  }, [router, toast, fetchUserVotes]); // Added dependencies
+  const loadMoreReports = () => {
+    if (hasMore && lastDoc) {
+      fetchReports(true);
+    }
+  };
 
-  // Memoize filtered reports (same logic as welcome page)
-  const filteredReports = useMemo(() => {
-    return reports.filter(report => {
-      const matchesFilter =
-        filter === 'Todos' ||
-        (filter === 'Funcionarios' && report.reportType === 'funcionario') ||
-        (filter === 'Incidentes' && report.reportType === 'incidente');
-
-      const matchesSearch =
-        report.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        report.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        report.location.toLowerCase().includes(searchTerm.toLowerCase());
-
-      return matchesFilter && matchesSearch;
-    });
-  }, [reports, searchTerm, filter]);
-
-   // Handle Voting Logic (same as welcome page)
-   const handleVote = async (reportId: string, voteType: 'up' | 'down') => {
+ // Handle Voting Logic - Reused from welcome/page.tsx
+  const handleVote = async (reportId: string, voteType: 'up' | 'down') => {
     if (!user) {
         toast({ variant: "destructive", title: "Error", description: "Debes iniciar sesión para votar." });
         return;
     }
-    if (votingState[reportId]) return;
+
+    const currentReport = reports.find(report => report.id === reportId);
+    if (!currentReport) {
+        toast({ variant: "destructive", title: "Error", description: "Reporte no encontrado." });
+        setVotingState(prev => ({ ...prev, [reportId]: false }));
+        return;
+    }
+
+    // Prevent voting on own reports
+    if (user.uid === currentReport.userId) {
+        toast({ variant: "destructive", title: "Error", description: "No puedes votar en tus propios reportes." });
+        return;
+    }
+
+    if (votingState[reportId]) return; // Prevent multiple clicks while processing
 
     setVotingState(prev => ({ ...prev, [reportId]: true }));
 
-    const reportIndex = reports.findIndex(r => r.id === reportId);
-    if (reportIndex === -1) return;
-
-    const currentReport = reports[reportIndex];
     const currentVote = currentReport.userVote;
-    const originalReport = { ...currentReport };
+    const originalReport = { ...currentReport }; // Store original state for rollback
 
     // Optimistic UI Update
     let optimisticUpvotes = currentReport.upvotes;
     let optimisticDownvotes = currentReport.downvotes;
     let optimisticUserVote: 'up' | 'down' | null = null;
 
-    if (currentVote === voteType) {
+    if (currentVote === voteType) { // Removing vote
         optimisticUserVote = null;
         if (voteType === 'up') optimisticUpvotes--; else optimisticDownvotes--;
-    } else {
+    } else { // Adding or changing vote
         optimisticUserVote = voteType;
         if (voteType === 'up') {
             optimisticUpvotes++;
@@ -181,229 +181,162 @@ const CommunityReportsPage: FC = () => {
         }
     }
 
-    const optimisticReports = [...reports];
-    optimisticReports[reportIndex] = {
-        ...currentReport,
+    const optimisticReports = reports.map(rep => rep.id === reportId ? {
+        ...rep,
         upvotes: optimisticUpvotes,
         downvotes: optimisticDownvotes,
         userVote: optimisticUserVote,
-    };
+    } : rep);
     setReports(optimisticReports);
 
     // --- Firestore Update ---
     try {
         const reportRef = doc(db, "reports", reportId);
-        // const voteRef = doc(db, `reports/${reportId}/votes/${user.uid}`); // For real implementation
+        const voteRef = doc(db, `reports/${reportId}/votes/${user.uid}`);
 
         await runTransaction(db, async (transaction) => {
             const reportSnap = await transaction.get(reportRef);
             if (!reportSnap.exists()) throw new Error("El reporte ya no existe.");
 
+            const voteDocSnap = await transaction.get(voteRef);
+            const existingVote = voteDocSnap.exists() ? voteDocSnap.data().type : null;
+
             const reportData = reportSnap.data();
             let newUpvotes = reportData.upvotes || 0;
             let newDownvotes = reportData.downvotes || 0;
 
-            // Logic based on assumed `currentVote` (ideally fetch from subcollection)
-            if (currentVote === voteType) {
+            if (existingVote === voteType) { // Removing vote
                 if (voteType === 'up') newUpvotes = Math.max(0, newUpvotes - 1);
                 else newDownvotes = Math.max(0, newDownvotes - 1);
-                 // In real app: transaction.delete(voteRef);
-            } else {
+                transaction.delete(voteRef);
+            } else { // Adding or changing vote
                 if (voteType === 'up') {
-                   newUpvotes++;
-                   if (currentVote === 'down') newDownvotes = Math.max(0, newDownvotes - 1);
-                    // In real app: transaction.set(voteRef, { type: 'up', timestamp: Timestamp.now() });
+                    newUpvotes++;
+                    if (existingVote === 'down') newDownvotes = Math.max(0, newDownvotes - 1);
+                    transaction.set(voteRef, { type: 'up', timestamp: Timestamp.now() });
                 } else {
-                   newDownvotes++;
-                   if (currentVote === 'up') newUpvotes = Math.max(0, newUpvotes - 1);
-                    // In real app: transaction.set(voteRef, { type: 'down', timestamp: Timestamp.now() });
+                    newDownvotes++;
+                    if (existingVote === 'up') newUpvotes = Math.max(0, newUpvotes - 1);
+                    transaction.set(voteRef, { type: 'down', timestamp: Timestamp.now() });
                 }
             }
             transaction.update(reportRef, { upvotes: newUpvotes, downvotes: newDownvotes });
         });
-        console.log("Vote updated successfully for community report:", reportId);
+        console.log("Vote updated successfully for report:", reportId);
     } catch (error: any) {
         console.error("Error updating vote:", error);
         toast({ variant: "destructive", title: "Error", description: `No se pudo registrar el voto: ${error.message}` });
-        // Revert optimistic update
-        setReports(prevReports => {
-            const revertedReports = [...prevReports];
-            revertedReports[reportIndex] = originalReport;
-            return revertedReports;
-        });
+        // Revert optimistic update on error
+        setReports(prevReports => prevReports.map(rep => rep.id === reportId ? originalReport : rep));
     } finally {
         setVotingState(prev => ({ ...prev, [reportId]: false }));
     }
 };
 
 
-  if (isLoading) {
-    return (
-      <main className="flex min-h-screen flex-col items-center p-4 sm:p-6 bg-secondary">
-        <div className="w-full max-w-2xl space-y-4">
-           {/* Header Skeleton Removed */}
-           <Skeleton className="h-11 w-full mb-4 rounded-full" />
-           <div className="flex space-x-3 mb-6">
-             <Skeleton className="h-9 w-24 rounded-full" />
-             <Skeleton className="h-9 w-32 rounded-full" />
-             <Skeleton className="h-9 w-28 rounded-full" />
-           </div>
-           {/* Report Card Skeletons */}
-           {[1, 2, 3].map((i) => (
-             <Card key={i} className="w-full shadow-sm mb-4 bg-card rounded-lg border border-border">
-               <CardHeader className="flex flex-row items-start justify-between pb-2 space-y-0 pt-4 px-4 sm:px-5 relative">
-                  <div className="flex items-center space-x-2 flex-1 pr-16">
-                     <Skeleton className="h-5 w-5 rounded-full flex-shrink-0" />
-                     <Skeleton className="h-5 w-3/5" />
-                  </div>
-                  {/* Vote Skeletons in Header */}
-                   <div className="absolute top-3 right-3 flex items-center space-x-2">
-                        <Skeleton className="h-6 w-12 rounded-md" />
-                        <Skeleton className="h-6 w-12 rounded-md" />
-                   </div>
-               </CardHeader>
-               <CardContent className="space-y-2 pt-1 pb-4 px-4 sm:px-5">
-                 <Skeleton className="h-4 w-full" />
-                 <Skeleton className="h-4 w-4/5" />
-                 <div className="flex justify-between items-center text-sm text-muted-foreground pt-2">
-                    <Skeleton className="h-4 w-1/3" />
-                    <Skeleton className="h-4 w-1/4" />
-                  </div>
-                   {/* Vote Skeletons Removed from Content */}
-               </CardContent>
-             </Card>
-           ))}
-           {/* FAB Skeleton (if applicable to this view) */}
-           {/* <Skeleton className="fixed bottom-20 right-4 sm:right-6 h-14 w-14 rounded-full shadow-lg z-40" /> */}
-        </div>
-      </main>
-    );
-  }
-
-
   return (
-    <main className="flex flex-col items-center p-4 sm:p-6 bg-secondary">
-      <div className="w-full max-w-2xl">
-        {/* Header Removed */}
+    <main className="flex flex-col items-center p-4 sm:p-6 bg-secondary min-h-screen">
+      <div className="w-full max-w-2xl space-y-4">
+        <h1 className="text-2xl font-semibold text-foreground text-center mb-4">Reportes de la Comunidad</h1>
 
-        {/* Search Input */}
-        <div className="relative mb-4">
-          <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-          <Input
-            type="search"
-            placeholder="Buscar reportes en la comunidad..."
-            className="w-full rounded-full bg-background pl-9 pr-4 h-11 shadow-sm"
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-          />
-        </div>
-
-        {/* Filter Buttons */}
-        <div className="flex space-x-3 mb-6 overflow-x-auto pb-2">
-          {(['Todos', 'Funcionarios', 'Incidentes'] as const).map((filterType) => (
-            <Button
-              key={filterType}
-              variant={filter === filterType ? 'default' : 'outline'}
-              size="sm"
-              className={`rounded-full px-5 h-9 shrink-0 ${
-                filter === filterType
-                  ? 'bg-primary text-primary-foreground shadow hover:bg-primary/90'
-                  : 'bg-card border border-border text-foreground hover:bg-muted'
-              }`}
-              onClick={() => setFilter(filterType)}
-            >
-              {filterType}
-            </Button>
-          ))}
-        </div>
-
-        {/* Report List */}
-        <div className="space-y-4 pb-20"> {/* Add padding-bottom if using bottom nav */}
-          {filteredReports.length > 0 ? (
-            filteredReports.map((report) => (
-               <Card key={report.id} className="w-full shadow-sm rounded-lg overflow-hidden border border-border bg-card transition-colors duration-150">
-                 <CardHeader className="flex flex-row items-start justify-between pb-2 space-y-0 pt-4 px-4 sm:px-5 relative"> {/* Added relative */}
-                     {/* Title and Type Icon (Left Side) */}
-                     <Link href={`/reports/${report.id}`} className="flex items-center space-x-2 flex-1 pr-4 cursor-pointer">
-                         {report.reportType === 'funcionario' ? (
-                           <UserCog className="h-5 w-5 text-blue-600 flex-shrink-0" />
-                         ) : (
-                           <TriangleAlert className="h-5 w-5 text-red-600 flex-shrink-0" />
-                         )}
-                        <CardTitle className="text-base font-semibold text-foreground line-clamp-1 hover:text-primary">{report.title}</CardTitle>
-                     </Link>
-                     {/* Voting Section (Right Side) - Outside Link */}
-                      <div className="flex items-center space-x-2 flex-shrink-0">
+        {isLoading ? (
+           [...Array(5)].map((_, i) => ( // Show more skeletons initially
+            <Card key={i} className="shadow-sm bg-card">
+              <CardContent className="p-4">
+                <Skeleton className="h-4 w-[70%]" />
+                <Skeleton className="h-3 w-[90%] mt-2" />
+                <Skeleton className="h-3 w-[50%] mt-1" />
+              </CardContent>
+            </Card>
+          ))
+        ) : reports.length > 0 ? (
+           reports.map((report) => (
+             <Card key={report.id} className="shadow-sm bg-card">
+               <CardContent className="p-4">
+                  {/* Link to details page */}
+                 <Link href={`/reports/${report.id}`} className="block">
+                     <div className="flex justify-between items-start mb-1">
+                        <div className="flex items-center gap-2">
+                             {report.reportType === 'funcionario' ? (
+                               <UserCog className="h-4 w-4 text-primary flex-shrink-0" />
+                             ) : (
+                               <TriangleAlert className="h-4 w-4 text-destructive flex-shrink-0" />
+                             )}
+                            <h3 className="font-medium text-foreground leading-tight">{report.title}</h3>
+                        </div>
+                         <span className="text-xs text-muted-foreground shrink-0 ml-2">
+                            {format(report.createdAt, "PPP", { locale: es })} {/* Format date */}
+                         </span>
+                     </div>
+                     <p className="text-sm text-muted-foreground line-clamp-2 my-2">{report.description}</p>
+                     <div className="flex items-center text-xs text-muted-foreground/80">
+                        <MapPin size={12} className="mr-1 flex-shrink-0" />
+                        <span className="truncate">{report.location}</span>
+                     </div>
+                  </Link>
+                  {/* Voting Section */}
+                  <div className="flex justify-end items-center space-x-3 w-full mt-3 pt-3 border-t border-border/50">
+                        <Button
+                            variant="ghost"
+                            size="sm"
+                            className={cn(
+                                "flex items-center gap-1.5 h-7 px-2 rounded-md text-xs text-muted-foreground hover:text-green-600 hover:bg-green-100/50 dark:hover:bg-green-900/20",
+                                report.userVote === 'up' && "text-green-600 bg-green-100/60 dark:bg-green-900/30",
+                                votingState[report.id] && "opacity-50 cursor-not-allowed"
+                            )}
+                            onClick={() => handleVote(report.id, 'up')}
+                            disabled={votingState[report.id] || user?.uid === report.userId} // Disable if voting or user owns report
+                            aria-pressed={report.userVote === 'up'}
+                            title="Votar positivamente"
+                        >
+                            {votingState[report.id] && report.userVote !== 'up' ? <Loader2 className="h-3.5 w-3.5 animate-spin"/> : <ArrowUp className="h-4 w-4"/>}
+                             <span>{report.upvotes}</span>
+                        </Button>
                          <Button
                              variant="ghost"
                              size="sm"
                              className={cn(
-                                "flex items-center gap-1.5 h-7 px-2 rounded-md text-xs text-muted-foreground hover:text-green-600 hover:bg-green-100/50 dark:hover:bg-green-900/20",
-                                report.userVote === 'up' && "text-green-600 bg-green-100/60 dark:bg-green-900/30",
+                                "flex items-center gap-1.5 h-7 px-2 rounded-md text-xs text-muted-foreground hover:text-red-600 hover:bg-red-100/50 dark:hover:bg-red-900/20",
+                                report.userVote === 'down' && "text-red-600 bg-red-100/60 dark:bg-red-900/30",
                                 votingState[report.id] && "opacity-50 cursor-not-allowed"
-                              )}
-                             onClick={(e) => { e.stopPropagation(); handleVote(report.id, 'up'); }} // Prevent link navigation
-                             disabled={votingState[report.id]}
-                             aria-pressed={report.userVote === 'up'}
-                             title="Votar positivamente"
+                             )}
+                            onClick={() => handleVote(report.id, 'down')}
+                            disabled={votingState[report.id] || user?.uid === report.userId} // Disable if voting or user owns report
+                            aria-pressed={report.userVote === 'down'}
+                            title="Votar negativamente"
                          >
-                              {votingState[report.id] && report.userVote !== 'up' ? <Loader2 className="h-3.5 w-3.5 animate-spin"/> : <ArrowUp className="h-4 w-4"/>}
-                              <span>{report.upvotes}</span>
-                          </Button>
-                          <Button
-                               variant="ghost"
-                               size="sm"
-                                className={cn(
-                                  "flex items-center gap-1.5 h-7 px-2 rounded-md text-xs text-muted-foreground hover:text-red-600 hover:bg-red-100/50 dark:hover:bg-red-900/20",
-                                  report.userVote === 'down' && "text-red-600 bg-red-100/60 dark:bg-red-900/30",
-                                  votingState[report.id] && "opacity-50 cursor-not-allowed"
-                                )}
-                               onClick={(e) => { e.stopPropagation(); handleVote(report.id, 'down'); }} // Prevent link navigation
-                               disabled={votingState[report.id]}
-                               aria-pressed={report.userVote === 'down'}
-                               title="Votar negativamente"
-                          >
-                               {votingState[report.id] && report.userVote !== 'down' ? <Loader2 className="h-3.5 w-3.5 animate-spin"/> : <ArrowDown className="h-4 w-4"/>}
-                               <span>{report.downvotes}</span>
-                          </Button>
-                       </div>
-                  </CardHeader>
-                  <Link href={`/reports/${report.id}`} className="block hover:bg-card/50">
-                      <CardContent className="space-y-2 pt-1 pb-4 px-4 sm:px-5 cursor-pointer border-t border-border/50"> {/* Add border-top */}
-                        <CardDescription className="text-sm text-foreground/90 leading-relaxed line-clamp-2">{report.description}</CardDescription>
-                         <div className="flex justify-between items-center text-sm text-muted-foreground pt-2">
-                           {/* Formatted Location */}
-                           <div className="flex items-center">
-                               <MapPin className="h-4 w-4 mr-1.5 flex-shrink-0"/>
-                               <span className="line-clamp-1">{formatLocation(report.location)}</span>
-                           </div>
-                           {/* Date */}
-                           <div className="flex items-center text-xs">
-                               <CalendarDays className="h-3.5 w-3.5 mr-1 flex-shrink-0" />
-                               <span>{format(report.createdAt, "PPP", { locale: es })}</span>
-                           </div>
-                         </div>
-                      </CardContent>
-                 </Link>
-                </Card>
-            ))
-          ) : (
-            <Card className="w-full shadow-sm rounded-lg border border-border bg-card">
-               <CardContent className="p-6 text-center text-muted-foreground">
-                 {isLoading ? (
-                   <span className="flex items-center justify-center">
-                       <Loader2 className="mr-2 h-4 w-4 animate-spin" /> Cargando reportes...
-                   </span>
-                 ) : (
-                   `No se encontraron reportes en la comunidad ${searchTerm ? `que coincidan con "${searchTerm}"` : ''}${filter !== 'Todos' ? ` en la categoría "${filter}"` : ''}.`
-                 )}
+                            {votingState[report.id] && report.userVote !== 'down' ? <Loader2 className="h-3.5 w-3.5 animate-spin"/> : <ArrowDown className="h-4 w-4"/>}
+                            <span>{report.downvotes}</span>
+                        </Button>
+                  </div>
                </CardContent>
-            </Card>
-          )}
-        </div>
+             </Card>
+           ))
+        ) : (
+           <Card className="shadow-sm bg-card">
+             <CardContent className="p-6 text-center">
+               <FileText className="mx-auto h-12 w-12 text-muted-foreground mb-4" />
+               <CardTitle className="text-xl font-semibold mb-2">No hay reportes de la comunidad</CardTitle>
+               <CardDescription className="text-muted-foreground">
+                 Aún no se han creado reportes por otros usuarios. ¡Sé el primero en crear uno!
+               </CardDescription>
+             </CardContent>
+           </Card>
+        )}
 
+        {hasMore && !isLoading && reports.length > 0 && (
+          <div className="text-center mt-4">
+            <Button
+              variant="outline"
+              onClick={loadMoreReports}
+              disabled={isFetchingMore}
+            >
+              {isFetchingMore ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
+              Cargar más reportes
+            </Button>
+          </div>
+        )}
       </div>
-       {/* FAB removed as it's less relevant here, users create reports from their 'welcome' page */}
     </main>
   );
 };

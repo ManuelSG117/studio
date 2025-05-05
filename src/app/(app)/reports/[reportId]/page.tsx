@@ -33,14 +33,20 @@ const ReportDetailPage: FC = () => {
 
     // Function to fetch user's vote for this specific report
     const fetchUserVote = useCallback(async (userId: string, reportId: string) => {
-        console.log(`Simulating fetch for user vote for report ${reportId}`);
-        // In a real app, fetch from Firestore 'votes' subcollection:
-        // const voteDocRef = doc(db, `reports/${reportId}/votes/${userId}`);
-        // const voteDocSnap = await getDoc(voteDocRef);
-        // if (voteDocSnap.exists()) {
-        //   return voteDocSnap.data().type as 'up' | 'down';
-        // }
-        return null;
+        console.log(`Fetching user vote for report ${reportId} for user ${userId}`);
+        try {
+            const voteDocRef = doc(db, `reports/${reportId}/votes/${userId}`);
+            const voteDocSnap = await getDoc(voteDocRef);
+
+            if (voteDocSnap.exists()) {
+                return voteDocSnap.data().type as 'up' | 'down';
+            }
+        } catch (error) {
+            console.error("Error fetching user vote: ", error);
+            // Log the error to a service like Sentry in a real-world application
+            // It's important to understand why the vote is failing to load.
+        }
+        return null; // Indicate no vote or an error
     }, []);
 
 
@@ -150,30 +156,33 @@ const ReportDetailPage: FC = () => {
         // --- Firestore Update ---
         try {
             const reportRef = doc(db, "reports", reportId);
-            // const voteRef = doc(db, `reports/${reportId}/votes/${user.uid}`); // Real implementation
+            const voteRef = doc(db, `reports/${reportId}/votes/${user.uid}`); // Real implementation
 
             await runTransaction(db, async (transaction) => {
                 const reportSnap = await transaction.get(reportRef);
                 if (!reportSnap.exists()) throw new Error("El reporte ya no existe.");
+
+                const voteDocSnap = await transaction.get(voteRef);
+                const existingVote = voteDocSnap.exists() ? voteDocSnap.data().type : null
 
                 const reportData = reportSnap.data();
                 let newUpvotes = reportData.upvotes || 0;
                 let newDownvotes = reportData.downvotes || 0;
 
                 // Logic based on assumed `currentVote`
-                if (currentVote === voteType) {
+                if (existingVote === voteType) {
                     if (voteType === 'up') newUpvotes = Math.max(0, newUpvotes - 1);
                     else newDownvotes = Math.max(0, newDownvotes - 1);
-                     // transaction.delete(voteRef);
+                     transaction.delete(voteRef);
                 } else {
                     if (voteType === 'up') {
                        newUpvotes++;
-                       if (currentVote === 'down') newDownvotes = Math.max(0, newDownvotes - 1);
-                        // transaction.set(voteRef, { type: 'up', timestamp: Timestamp.now() });
+                       if (existingVote === 'down') newDownvotes = Math.max(0, newDownvotes - 1);
+                        transaction.set(voteRef, { type: 'up', timestamp: Timestamp.now() });
                     } else {
                        newDownvotes++;
-                       if (currentVote === 'up') newUpvotes = Math.max(0, newUpvotes - 1);
-                        // transaction.set(voteRef, { type: 'down', timestamp: Timestamp.now() });
+                       if (existingVote === 'up') newUpvotes = Math.max(0, newUpvotes - 1);
+                        transaction.set(voteRef, { type: 'down', timestamp: Timestamp.now() });
                     }
                 }
                 transaction.update(reportRef, { upvotes: newUpvotes, downvotes: newDownvotes });
@@ -362,12 +371,12 @@ const ReportDetailPage: FC = () => {
                     )}
 
                      {/* Map Preview */}
-                    <div className="pt-0">
+                    {/*<div className="pt-0">
                          <h3 className="text-base font-semibold text-primary mb-2 flex items-center">
                              <MapPin className="h-5 w-5 mr-2 opacity-70" /> Ubicación en Mapa
                          </h3>
                          <div className="h-48 w-full bg-muted border border-border rounded-lg overflow-hidden">
-                             {/* Render the ReportsMap component if coordinates exist */}
+                             {/* Render the ReportsMap component if coordinates exist *}
                              {isClient && report.latitude && report.longitude ? (
                                 <ReportsMap
                                      reports={[report]} // Pass the single report in an array
@@ -383,7 +392,7 @@ const ReportDetailPage: FC = () => {
                                  </div>
                              )}
                          </div>
-                    </div>
+                    </div>*/}
 
                 </CardContent>
 
