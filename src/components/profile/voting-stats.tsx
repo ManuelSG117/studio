@@ -63,7 +63,7 @@ export const VotingStats: FC<VotingStatsProps> = ({ userId }) => {
         setVotes(votesData);
         setStats({ upvotes: upCount, downvotes: downCount });
       } catch (error) {
-        console.error('Error al obtener estadísticas de votos:', error);
+        console.error('Error al obtener estadísticas de votos revisar consola:', error);
       } finally {
         setIsLoading(false);
       }
