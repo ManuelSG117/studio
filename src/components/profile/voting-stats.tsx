@@ -17,14 +17,29 @@ interface VoteData {
   timestamp: Date;
 }
 
+interface ActivityData {
+  type: 'report' | 'vote' | 'comment';
+  title: string;
+  timestamp: Date;
+  status?: string;
+  votes?: number;
+}
+
 interface VotingStatsProps {
   userId: string;
 }
 
 export const VotingStats: FC<VotingStatsProps> = ({ userId }) => {
   const [votes, setVotes] = useState<VoteData[]>([]);
+  const [activities, setActivities] = useState<ActivityData[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [stats, setStats] = useState({ upvotes: 0, downvotes: 0 });
+  const [stats, setStats] = useState({
+    upvotes: 0,
+    downvotes: 0,
+    totalVotes: 0,
+    participationRate: 0,
+    mostActiveDay: 'Lun'
+  });
 
   useEffect(() => {
     const fetchVotingStats = async () => {
@@ -60,8 +75,37 @@ export const VotingStats: FC<VotingStatsProps> = ({ userId }) => {
           votesData.push(voteData);
         });
 
+        // Simular actividades recientes
+        const recentActivities: ActivityData[] = [
+          {
+            type: 'report',
+            title: 'Reportaste un asalto en Av. Insurgentes',
+            timestamp: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000),
+            status: 'pendiente'
+          },
+          {
+            type: 'vote',
+            title: 'Denunciaste una irregularidad policial',
+            timestamp: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000),
+            votes: 5
+          },
+          {
+            type: 'comment',
+            title: 'Comentaste en reporte de Zona Norte',
+            timestamp: new Date(Date.now() - 14 * 24 * 60 * 60 * 1000),
+            votes: 4
+          }
+        ];
+
         setVotes(votesData);
-        setStats({ upvotes: upCount, downvotes: downCount });
+        setActivities(recentActivities);
+        setStats({
+          upvotes: upCount,
+          downvotes: downCount,
+          totalVotes: upCount + downCount,
+          participationRate: 4.2,
+          mostActiveDay: 'Lun'
+        });
       } catch (error) {
         console.error('Error al obtener estadísticas de votos revisar consola:', error);
       } finally {
@@ -97,50 +141,73 @@ export const VotingStats: FC<VotingStatsProps> = ({ userId }) => {
   }
 
   return (
-    <div className="space-y-4">
-      {/* Resumen de estadísticas */}
-      <div className="grid grid-cols-2 gap-4">
-        <Card className="bg-card/50">
-          <CardContent className="p-3 flex items-center justify-between">
-            <div>
-              <p className="text-xs text-muted-foreground">Votos Positivos</p>
-              <p className="text-xl font-semibold text-foreground">{stats.upvotes}</p>
-            </div>
-            <ThumbsUp className="h-8 w-8 text-blue-500" />
-          </CardContent>
-        </Card>
-        
-        <Card className="bg-card/50">
-          <CardContent className="p-3 flex items-center justify-between">
-            <div>
-              <p className="text-xs text-muted-foreground">Votos Negativos</p>
-              <p className="text-xl font-semibold text-foreground">{stats.downvotes}</p>
-            </div>
-            <ThumbsDown className="h-8 w-8 text-destructive" />
-          </CardContent>
-        </Card>
+    <div className="space-y-6">
+      {/* Estadísticas de participación */}
+      <div className="text-center space-y-2">
+        <div className="flex justify-center items-baseline gap-8">
+          <div>
+            <p className="text-3xl font-bold text-primary">{stats.upvotes}</p>
+            <p className="text-xs text-muted-foreground">Votos positivos</p>
+          </div>
+          <div>
+            <p className="text-3xl font-bold text-destructive">{stats.downvotes}</p>
+            <p className="text-xs text-muted-foreground">Votos negativos</p>
+          </div>
+        </div>
+        <div className="flex justify-center items-baseline gap-8 mt-4">
+          <div>
+            <p className="text-2xl font-semibold text-primary">{stats.participationRate}</p>
+            <p className="text-xs text-muted-foreground">Promedio de votos</p>
+          </div>
+          <div>
+            <p className="text-2xl font-semibold text-primary">{stats.mostActiveDay}</p>
+            <p className="text-xs text-muted-foreground">Día con más votos</p>
+          </div>
+        </div>
       </div>
 
-      {/* Lista de votos recientes */}
-      <div className="mt-4">
-        <h4 className="text-sm font-medium mb-2">Votos Recientes</h4>
-        <div className="space-y-2 max-h-[200px] overflow-y-auto pr-1">
-          {votes.slice(0, 5).map((vote, index) => (
-            <div key={index} className="flex items-center justify-between p-2 bg-muted/50 rounded-md text-xs">
-              <div className="flex items-center">
-                {vote.type === 'up' ? (
-                  <ThumbsUp className="h-3 w-3 text-blue-500 mr-2" />
-                ) : (
-                  <ThumbsDown className="h-3 w-3 text-destructive mr-2" />
-                )}
-                <span className="truncate max-w-[150px]">{vote.reportTitle}</span>
+      {/* Actividad reciente */}
+      <div className="space-y-3">
+        <h4 className="text-sm font-medium">Actividad reciente</h4>
+        <div className="space-y-2">
+          {activities.map((activity, index) => (
+            <div key={index} className="flex items-center justify-between p-3 bg-muted/50 rounded-lg text-sm">
+              <div className="flex-1">
+                <p className="text-foreground font-medium">{activity.title}</p>
+                <p className="text-xs text-muted-foreground">
+                  Hace {Math.floor((Date.now() - activity.timestamp.getTime()) / (24 * 60 * 60 * 1000))} días
+                </p>
               </div>
-              <span className="text-muted-foreground text-[10px]">
-                {format(vote.timestamp, "dd MMM, HH:mm", { locale: es })}
-              </span>
+              {activity.votes !== undefined && (
+                <div className="text-xs text-muted-foreground bg-background/50 px-2 py-1 rounded">
+                  {activity.votes} votos
+                </div>
+              )}
+              {activity.status && (
+                <div className="text-xs text-muted-foreground bg-background/50 px-2 py-1 rounded">
+                  {activity.status}
+                </div>
+              )}
             </div>
           ))}
         </div>
+      </div>
+
+      {/* Progreso de participación */}
+      <div className="space-y-2">
+        <h4 className="text-sm font-medium">Progreso de participación</h4>
+        <div className="w-full bg-muted rounded-full h-2 overflow-hidden">
+          <div
+            className="bg-primary h-full rounded-full transition-all duration-500"
+            style={{ width: '65%' }}
+          />
+        </div>
+        <p className="text-xs text-muted-foreground text-center">
+          ¡A solo 20 puntos del siguiente nivel!
+        </p>
+        <p className="text-xs text-muted-foreground text-center">
+          Tu participación ha aumentado un 12% este mes
+        </p>
       </div>
     </div>
   );
