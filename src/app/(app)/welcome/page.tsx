@@ -62,7 +62,7 @@ const WelcomePage: FC = () => {
   const [isFetchingMore, setIsFetchingMore] = useState(false);
   const [lastDoc, setLastDoc] = useState<any>(null); // Type any as it's a Firestore DocumentSnapshot
   const [hasMore, setHasMore] = useState(true);
-  const [votingState, setVotingState = useState<{ [reportId: string]: boolean }>({});
+  const [votingState, setVotingState] = useState<{ [reportId: string]: boolean }>({});
 
   const ITEMS_PER_PAGE = 5; // Define items per page
 
@@ -211,10 +211,10 @@ const WelcomePage: FC = () => {
     }
 
     // Prevent voting on own reports (already handled in the community page logic, but good to keep)
-    // if (user.uid === currentReport.userId) {
-    //     toast({ variant: "destructive", title: "Error", description: "No puedes votar en tus propios reportes." });
-    //     return;
-    // }
+     if (user.uid === currentReport.userId) {
+         toast({ variant: "destructive", title: "Error", description: "No puedes votar en tus propios reportes." });
+         return;
+     }
 
     if (votingState[reportId]) return;
 
@@ -466,3 +466,4 @@ const WelcomePage: FC = () => {
 };
 
 export default WelcomePage;
+    

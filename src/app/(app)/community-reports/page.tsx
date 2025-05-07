@@ -45,7 +45,7 @@ const CommunityReportsPage: FC = () => {
   const [isFetchingMore, setIsFetchingMore] = useState(false);
   const [lastDoc, setLastDoc] = useState<any>(null);
   const [hasMore, setHasMore] = useState(true);
-  const [votingState, setVotingState = useState<{ [reportId: string]: boolean }>({});
+  const [votingState, setVotingState] = useState<{ [reportId: string]: boolean }>({});
 
   const ITEMS_PER_PAGE = 9; // Adjust to fit 3 columns
 
@@ -545,3 +545,4 @@ const CommunityReportsPage: FC = () => {
 };
 
 export default CommunityReportsPage;
+    
