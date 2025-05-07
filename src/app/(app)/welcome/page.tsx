@@ -1,4 +1,3 @@
-
 "use client";
 
 import type { FC } from 'react';
@@ -8,17 +7,33 @@ import Link from 'next/link';
 import { useAuth } from '@/context/AuthContext';
 import { auth, db } from '@/lib/firebase/client';
 import { collection, query, where, getDocs, orderBy, Timestamp, limit, startAfter, doc, getDoc, runTransaction } from 'firebase/firestore';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card'; // Added CardFooter
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
-import { FileText, MapPin, CalendarDays, ArrowUp, ArrowDown, Loader2, UserCog, TriangleAlert } from 'lucide-react';
-import { format } from 'date-fns';
+import { FileText, MapPin, CalendarDays, ThumbsUp, ThumbsDown, MessageSquare, Loader2, UserCog, TriangleAlert, Plus, Ellipsis } from 'lucide-react'; // Updated icons
+import { format, formatDistanceToNow } from 'date-fns'; // Added formatDistanceToNow
 import { es } from 'date-fns/locale';
 import { useToast } from "@/hooks/use-toast";
-import Image from 'next/image';
+import Image from 'next/image'; // Keep Image import
 import { cn, formatLocation } from "@/lib/utils"; // Import formatLocation
+import { Badge } from "@/components/ui/badge"; // Import Badge
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu"; // Import DropdownMenu components
+import {
+  Pagination,
+  PaginationContent,
+  PaginationEllipsis,
+  PaginationItem,
+  PaginationLink,
+  PaginationNext,
+  PaginationPrevious,
+} from "@/components/ui/pagination" // Import Pagination
 
-// Define report type
+// Define report type including optional status and commentCount
 export type Report = {
     id: string;
     userId: string;
@@ -34,6 +49,8 @@ export type Report = {
     upvotes: number;
     downvotes: number;
     userVote?: 'up' | 'down' | null;
+    status?: string; // Optional status
+    commentCount?: number; // Optional comment count
 };
 
 const WelcomePage: FC = () => {
@@ -45,11 +62,11 @@ const WelcomePage: FC = () => {
   const [isFetchingMore, setIsFetchingMore] = useState(false);
   const [lastDoc, setLastDoc] = useState<any>(null); // Type any as it's a Firestore DocumentSnapshot
   const [hasMore, setHasMore] = useState(true);
-  const [votingState, setVotingState] = useState<{ [reportId: string]: boolean }>({});
+  const [votingState, setVotingState = useState<{ [reportId: string]: boolean }>({});
 
   const ITEMS_PER_PAGE = 5; // Define items per page
 
-  // Function to fetch user's vote for this specific report
+  // Function to fetch user's vote for this specific report (remains the same)
   const fetchUserVote = useCallback(async (userId: string, reportId: string) => {
       try {
           const voteDocRef = doc(db, `reports/${reportId}/votes/${userId}`);
@@ -64,24 +81,24 @@ const WelcomePage: FC = () => {
       return null; // Indicate no vote or an error
   }, []);
 
+  // Fetch reports logic (remains the same, but adds placeholder status/comments)
   const fetchReports = useCallback(async (loadMore: boolean = false) => {
-    // Double-check user existence within the fetch function itself
     if (!user) {
       console.error("fetchReports called without a valid user.");
-      setIsLoading(false); // Ensure loading stops if user is somehow null
+      setIsLoading(false);
       return;
     }
     console.log("Fetching reports for user:", user.uid, "Load More:", loadMore);
 
     if (!loadMore) {
-        setIsLoading(true); // Set loading true only for initial fetch
+        setIsLoading(true);
     }
     setIsFetchingMore(loadMore);
 
     try {
       let q = query(
         collection(db, "reports"),
-        where("userId", "==", user.uid), // Filter by the logged-in user's ID
+        where("userId", "==", user.uid),
         orderBy("createdAt", "desc"),
         limit(ITEMS_PER_PAGE)
       );
@@ -90,7 +107,7 @@ const WelcomePage: FC = () => {
          console.log("Fetching more reports starting after:", lastDoc.id);
         q = query(
           collection(db, "reports"),
-          where("userId", "==", user.uid), // Filter by the logged-in user's ID
+          where("userId", "==", user.uid),
           orderBy("createdAt", "desc"),
           startAfter(lastDoc),
           limit(ITEMS_PER_PAGE)
@@ -101,14 +118,16 @@ const WelcomePage: FC = () => {
       const fetchedReports: Report[] = [];
       console.log(`Found ${querySnapshot.docs.length} reports in this batch.`);
 
-      for (const reportDoc of querySnapshot.docs) { // Use a different variable name
+      for (const reportDoc of querySnapshot.docs) {
         const data = reportDoc.data();
-        // Fetch the current user's vote for this report
-        const userVote = await fetchUserVote(user.uid, reportDoc.id); // Pass correct user ID
+        const userVote = await fetchUserVote(user.uid, reportDoc.id);
 
         const createdAtDate = data.createdAt instanceof Timestamp
           ? data.createdAt.toDate()
           : new Date();
+
+        // Placeholder status - replace with actual logic if status is added
+        const status = ['Nuevo', 'En Revisión', 'Verificado', 'Resuelto'][Math.floor(Math.random() * 4)];
 
         fetchedReports.push({
             id: reportDoc.id,
@@ -122,9 +141,11 @@ const WelcomePage: FC = () => {
             latitude: data.latitude || null,
             longitude: data.longitude || null,
             createdAt: createdAtDate,
-            upvotes: data.upvotes || 0, // Default to 0
-            downvotes: data.downvotes || 0, // Default to 0
-            userVote: userVote, // Add fetched user vote
+            upvotes: data.upvotes || 0,
+            downvotes: data.downvotes || 0,
+            userVote: userVote,
+            status: status, // Add placeholder status
+            commentCount: Math.floor(Math.random() * 15), // Add placeholder comment count
         });
       }
 
@@ -138,34 +159,32 @@ const WelcomePage: FC = () => {
       toast({ variant: "destructive", title: "Error", description: "Failed to fetch reports." });
     } finally {
       console.log("Setting isLoading to false in finally block.");
-      setIsLoading(false); // Ensure loading is always set to false
+      setIsLoading(false);
       setIsFetchingMore(false);
     }
-  }, [user, toast, fetchUserVote, lastDoc]); // Added lastDoc to dependencies
+  }, [user, toast, fetchUserVote, lastDoc]);
 
+  // useEffect for initial load and auth check (remains the same)
   useEffect(() => {
     console.log("WelcomePage useEffect triggered. AuthLoading:", authLoading, "IsAuthenticated:", isAuthenticated, "User:", !!user);
-    // Wait for auth loading to complete
     if (!authLoading) {
         if (isAuthenticated && user) {
-            // User is authenticated, fetch reports if not already loading
-            if (isLoading) { // Check internal isLoading state before fetching
+            if (isLoading) {
                  console.log("Auth confirmed, user available. Fetching initial reports.");
                  fetchReports();
             } else {
                  console.log("Auth confirmed, user available, but not fetching (isLoading is false).");
             }
         } else {
-            // Not authenticated or user object not yet ready after auth check
             console.log("Not authenticated or user not ready, redirecting to login.");
-            setIsLoading(false); // Ensure loading is stopped if redirecting
+            setIsLoading(false);
             router.replace("/login");
         }
     } else {
         console.log("Auth state still loading...");
-        setIsLoading(true); // Keep loading while auth is resolving
+        setIsLoading(true);
     }
-  }, [authLoading, isAuthenticated, user, fetchReports, router, isLoading]); // Added isLoading to prevent re-fetch if already loading
+  }, [authLoading, isAuthenticated, user, fetchReports, router, isLoading]);
 
 
   const loadMoreReports = () => {
@@ -191,29 +210,29 @@ const WelcomePage: FC = () => {
         return;
     }
 
-    // Prevent voting on own reports
-    if (user.uid === currentReport.userId) {
-        toast({ variant: "destructive", title: "Error", description: "No puedes votar en tus propios reportes." });
-        return;
-    }
+    // Prevent voting on own reports (already handled in the community page logic, but good to keep)
+    // if (user.uid === currentReport.userId) {
+    //     toast({ variant: "destructive", title: "Error", description: "No puedes votar en tus propios reportes." });
+    //     return;
+    // }
 
-    if (votingState[reportId]) return; // Prevent multiple clicks while processing
+    if (votingState[reportId]) return;
 
     setVotingState(prev => ({ ...prev, [reportId]: true }));
 
 
         const currentVote = currentReport.userVote;
-        const originalReport = { ...currentReport }; // Store original state for rollback
+        const originalReport = { ...currentReport };
 
-        // Optimistic UI Update
+        // Optimistic UI Update (same as community page)
         let optimisticUpvotes = currentReport.upvotes;
         let optimisticDownvotes = currentReport.downvotes;
         let optimisticUserVote: 'up' | 'down' | null = null;
 
-        if (currentVote === voteType) { // Removing vote
+        if (currentVote === voteType) {
             optimisticUserVote = null;
             if (voteType === 'up') optimisticUpvotes--; else optimisticDownvotes--;
-        } else { // Adding or changing vote
+        } else {
             optimisticUserVote = voteType;
             if (voteType === 'up') {
                 optimisticUpvotes++;
@@ -232,173 +251,177 @@ const WelcomePage: FC = () => {
         } : rep);
         setReports(optimisticReports);
 
-        // --- Firestore Update ---
+        // Firestore Update (same as community page)
         try {
             const reportRef = doc(db, "reports", reportId);
-            const voteRef = doc(db, `reports/${reportId}/votes/${user.uid}`); // Real implementation
+            const voteRef = doc(db, `reports/${reportId}/votes/${user.uid}`);
+            const userVoteRef = doc(db, 'userVotes', `${user.uid}_${reportId}`);
 
             await runTransaction(db, async (transaction) => {
                 const reportSnap = await transaction.get(reportRef);
                 if (!reportSnap.exists()) throw new Error("El reporte ya no existe.");
 
                 const voteDocSnap = await transaction.get(voteRef);
-                const existingVote = voteDocSnap.exists() ? voteDocSnap.data().type : null
+                const existingVote = voteDocSnap.exists() ? voteDocSnap.data().type : null;
 
                 const reportData = reportSnap.data();
                 let newUpvotes = reportData.upvotes || 0;
                 let newDownvotes = reportData.downvotes || 0;
+                const reportTitle = reportData.title || 'Reporte sin título';
 
-                // Logic based on assumed `currentVote`
-                // Referencia a la colección de votos del usuario
-                const userVoteRef = doc(db, 'userVotes', `${user.uid}_${reportId}`);
-                
                 if (existingVote === voteType) {
-                    // Vote removal
                     if (voteType === 'up') newUpvotes = Math.max(0, newUpvotes - 1);
                     else newDownvotes = Math.max(0, newDownvotes - 1);
                     transaction.delete(voteRef);
-                    transaction.delete(userVoteRef); // Eliminar también de userVotes
-                    console.log(`Removed ${voteType}vote for report ${reportId} by user ${user.uid}`);
+                    transaction.delete(userVoteRef);
                 } else {
-                    // Obtener título del reporte para guardar en userVotes
-                    const reportTitle = reportData.title || 'Reporte sin título';
-                    
-                    // Adding a new vote or changing an existing one
                     if (voteType === 'up') {
                         newUpvotes++;
-                        if (existingVote === 'down') newDownvotes = Math.max(0, newDownvotes - 1); // Remove downvote if changing
+                        if (existingVote === 'down') newDownvotes = Math.max(0, newDownvotes - 1);
                         transaction.set(voteRef, { type: 'up' });
-                        // Guardar en userVotes con timestamp
-                        transaction.set(userVoteRef, {
-                            userId: user.uid,
-                            reportId: reportId,
-                            reportTitle: reportTitle,
-                            type: 'up',
-                            timestamp: Timestamp.now()
-                        });
-                        console.log(`Added upvote for report ${reportId} by user ${user.uid}`);
-                    } else { // voteType is 'down'
+                        transaction.set(userVoteRef, { userId: user.uid, reportId: reportId, reportTitle: reportTitle, type: 'up', timestamp: Timestamp.now() });
+                    } else {
                         newDownvotes++;
-                        if (existingVote === 'up') newUpvotes = Math.max(0, newUpvotes - 1); // Remove upvote if changing
+                        if (existingVote === 'up') newUpvotes = Math.max(0, newUpvotes - 1);
                         transaction.set(voteRef, { type: 'down' });
-                        // Guardar en userVotes con timestamp
-                        transaction.set(userVoteRef, {
-                            userId: user.uid,
-                            reportId: reportId,
-                            reportTitle: reportTitle,
-                            type: 'down',
-                            timestamp: Timestamp.now()
-                        });
-                        console.log(`Added downvote for report ${reportId} by user ${user.uid}`);
+                        transaction.set(userVoteRef, { userId: user.uid, reportId: reportId, reportTitle: reportTitle, type: 'down', timestamp: Timestamp.now() });
                     }
                 }
-                console.log(`Updating report ${reportId}: upvotes=${newUpvotes}, downvotes=${newDownvotes}`);
                 transaction.update(reportRef, { upvotes: newUpvotes, downvotes: newDownvotes });
             });
             console.log("Vote transaction committed successfully for report:", reportId);
-            // Optionally refetch the report data here to ensure sync after transaction
-            // const updatedDocSnap = await getDoc(reportRef);
-            // if (updatedDocSnap.exists()) { ... update state ... }
 
         } catch (error: any) {
             console.error("Error updating vote:", error);
             toast({ variant: "destructive", title: "Error", description: `No se pudo registrar el voto: ${error.message}` });
-            // Revert optimistic update on error
             setReports(prevReports => prevReports.map(rep => rep.id === reportId ? originalReport : rep));
         } finally {
             setVotingState(prev => ({ ...prev, [reportId]: false }));
         }
     };
 
+     // Helper function to determine badge color based on status (same as community)
+    const getStatusBadgeVariant = (status?: string): 'default' | 'secondary' | 'destructive' | 'outline' => {
+        switch (status) {
+        case 'Verificado':
+        case 'Resuelto':
+            return 'default';
+        case 'En Revisión':
+            return 'secondary';
+        case 'Nuevo':
+            return 'outline';
+        default:
+            return 'secondary';
+        }
+    };
+
+    // Helper function to determine badge color for report type (same as community)
+    const getTypeBadgeVariant = (type: 'incidente' | 'funcionario'): 'destructive' | 'default' => {
+        return type === 'incidente' ? 'destructive' : 'default';
+    };
+    const getTypeBadgeText = (type: 'incidente' | 'funcionario'): string => {
+        return type === 'incidente' ? 'Incidente' : 'Funcionario';
+    };
+
   return (
-    <main className="flex flex-col items-center p-4 sm:p-6 bg-secondary min-h-screen">
-      <div className="w-full max-w-2xl space-y-4">
-        <div className="flex justify-between items-center">
-            <h1 className="text-2xl font-semibold text-foreground">Mis Reportes</h1>
-            <Button asChild>
-              <Link href="/reports/new">Crear Nuevo Reporte</Link>
+    <main className="flex flex-col p-4 sm:p-6 md:p-8 bg-secondary min-h-screen">
+      <div className="w-full max-w-4xl mx-auto space-y-6"> {/* Adjusted max-width */}
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+            <div className="flex-1">
+                <h1 className="text-2xl font-semibold text-foreground">Mis Reportes</h1>
+                <p className="text-sm text-muted-foreground">Aquí puedes ver y gestionar los reportes que has creado.</p>
+            </div>
+            <Button asChild className="w-full sm:w-auto rounded-full shadow hover:shadow-md transition-shadow">
+              <Link href="/reports/new">
+                <Plus className="mr-2 h-4 w-4" /> Crear Nuevo Reporte
+              </Link>
             </Button>
         </div>
 
         {isLoading ? ( // Use isLoading for initial load skeleton
           [...Array(3)].map((_, i) => (
-            <Card key={i} className="shadow-sm bg-card">
+            <Card key={i} className="shadow-sm bg-card rounded-lg">
               <CardContent className="p-4">
-                <Skeleton className="h-4 w-[60%]" />
-                <Skeleton className="h-3 w-[90%] mt-2" />
-                <Skeleton className="h-3 w-[50%] mt-1" />
+                <Skeleton className="h-4 w-[60%] mb-2" />
+                <Skeleton className="h-3 w-[90%] mb-1" />
+                <Skeleton className="h-3 w-[80%] mb-3" />
+                <Skeleton className="h-3 w-[50%] mb-3" />
+                 <Skeleton className="h-3 w-[40%]" />
               </CardContent>
+               <CardFooter className="p-3 bg-muted/50 flex justify-between items-center">
+                    <div className="flex gap-3">
+                      <Skeleton className="h-4 w-6" />
+                      <Skeleton className="h-4 w-6" />
+                      <Skeleton className="h-4 w-6" />
+                    </div>
+                    <Skeleton className="h-5 w-5" />
+              </CardFooter>
             </Card>
           ))
         ) : reports.length > 0 ? (
           reports.map((report) => (
-             <Card key={report.id} className="shadow-sm bg-card">
-                <CardContent className="p-4 space-y-3"> {/* Added space-y-3 */}
-                    {/* Top Section: Title and Voting */}
-                    <div className="flex justify-between items-center w-full border-b border-border/50 pb-3">
-                        {/* Title and Type */}
-                        <Link href={`/reports/${report.id}`} className="flex items-center gap-2 flex-1 min-w-0 mr-3"> {/* Added flex-1, min-w-0, mr-3 */}
-                             {report.reportType === 'funcionario' ? (
-                               <UserCog className="h-4 w-4 text-primary flex-shrink-0" />
-                             ) : (
-                               <TriangleAlert className="h-4 w-4 text-destructive flex-shrink-0" />
-                             )}
-                            <h3 className="font-medium text-foreground leading-tight truncate">{report.title}</h3> {/* Added truncate */}
-                        </Link>
-                         {/* Voting Buttons */}
-                         <div className="flex items-center space-x-1 bg-muted p-1 rounded-full flex-shrink-0"> {/* Container for votes */}
-                             <Button
-                                 variant="ghost"
-                                 size="icon"
-                                 className={cn(
-                                    "h-6 w-6 rounded-full text-muted-foreground hover:bg-destructive/10 hover:text-destructive",
-                                    report.userVote === 'down' && "bg-destructive/20 text-destructive",
-                                    votingState[report.id] && "opacity-50 cursor-not-allowed"
-                                 )}
-                                onClick={() => handleVote(report.id, 'down')}
-                                disabled={votingState[report.id] || user?.uid === report.userId} // Disable if voting or user owns report
-                                aria-pressed={report.userVote === 'down'}
-                                title="Votar negativamente"
-                             >
-                                {votingState[report.id] && report.userVote !== 'down' ? <Loader2 className="h-3.5 w-3.5 animate-spin"/> : <ArrowDown className="h-4 w-4"/>}
-                             </Button>
-                             <span className="text-sm font-medium text-foreground tabular-nums w-6 text-center">
-                                 {report.upvotes - report.downvotes}
-                              </span>
-                             <Button
-                                variant="ghost"
-                                size="icon"
-                                className={cn(
-                                    "h-6 w-6 rounded-full text-muted-foreground hover:bg-blue-600/10 hover:text-blue-600",
-                                    report.userVote === 'up' && "bg-blue-600/20 text-blue-600",
-                                    votingState[report.id] && "opacity-50 cursor-not-allowed"
-                                )}
-                                onClick={() => handleVote(report.id, 'up')}
-                                disabled={votingState[report.id] || user?.uid === report.userId} // Disable if voting or user owns report
-                                aria-pressed={report.userVote === 'up'}
-                                title="Votar positivamente"
-                             >
-                                {votingState[report.id] && report.userVote !== 'up' ? <Loader2 className="h-3.5 w-3.5 animate-spin"/> : <ArrowUp className="h-4 w-4"/>}
-                             </Button>
-                         </div>
-                  </div>
-                 {/* Report Details (Link) */}
-                 <Link href={`/reports/${report.id}`} className="block">
-                     {/* Description */}
-                     <p className="text-sm text-muted-foreground line-clamp-2 mb-2">{report.description}</p> {/* Removed my-2, added mb-2 */}
-                     {/* Location and Date */}
-                      <div className="flex justify-between items-center text-xs text-muted-foreground/80">
-                        <div className="flex items-center min-w-0 mr-2"> {/* Added min-w-0, mr-2 */}
-                            <MapPin size={12} className="mr-1 flex-shrink-0" />
-                            <span className="truncate">{formatLocation(report.location)}</span> {/* Apply formatting here */}
+             <Card key={report.id} className="shadow-sm bg-card rounded-lg overflow-hidden">
+                <CardContent className="p-4 space-y-3">
+                    {/* Top Section: Type, Title, Status */}
+                    <div className="flex justify-between items-start w-full gap-2">
+                        <div className="flex items-center gap-2 flex-1 min-w-0">
+                           <Badge variant={getTypeBadgeVariant(report.reportType)} className="text-xs capitalize flex-shrink-0">
+                             {getTypeBadgeText(report.reportType)}
+                           </Badge>
+                           <Link href={`/reports/${report.id}`} className="flex-1 min-w-0">
+                             <h3 className="font-medium text-foreground leading-tight truncate hover:text-primary transition-colors">{report.title}</h3>
+                           </Link>
                         </div>
-                        <div className="flex items-center flex-shrink-0"> {/* Added flex-shrink-0 */}
-                            <CalendarDays size={12} className="mr-1 flex-shrink-0" />
-                            <span>{format(report.createdAt, "PPP", { locale: es })}</span> {/* Changed format */}
+                         <Badge variant={getStatusBadgeVariant(report.status)} className="text-xs flex-shrink-0">
+                            {report.status || 'Desconocido'}
+                         </Badge>
+                    </div>
+                     {/* Report Details */}
+                     <p className="text-sm text-muted-foreground line-clamp-2">{report.description}</p>
+                     <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center text-xs text-muted-foreground/80 gap-1 sm:gap-3">
+                        <div className="flex items-center min-w-0 gap-1.5">
+                            <MapPin size={12} className="flex-shrink-0" />
+                            <span className="truncate">{formatLocation(report.location)}</span>
+                        </div>
+                        <div className="flex items-center flex-shrink-0 gap-1.5">
+                            <CalendarDays size={12} className="flex-shrink-0" />
+                            <span>{formatDistanceToNow(report.createdAt, { addSuffix: true, locale: es })}</span>
                         </div>
                      </div>
-                 </Link>
-              </CardContent>
+                 </CardContent>
+                 {/* Footer with Votes and Options */}
+                 <CardFooter className="p-3 bg-muted/50 flex justify-between items-center border-t">
+                    <div className="flex items-center gap-3 text-xs text-muted-foreground">
+                       <div className="flex items-center gap-1">
+                         <ThumbsUp size={14} className="text-blue-600"/>
+                         <span>{report.upvotes}</span>
+                       </div>
+                       <div className="flex items-center gap-1">
+                          <ThumbsDown size={14} className="text-destructive"/>
+                         <span>{report.downvotes}</span>
+                       </div>
+                       <div className="flex items-center gap-1">
+                         <MessageSquare size={14} />
+                         <span>{report.commentCount ?? 0}</span>
+                       </div>
+                    </div>
+                    {/* Options Dropdown */}
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button variant="ghost" size="icon" className="h-7 w-7 text-muted-foreground">
+                          <Ellipsis size={16} />
+                          <span className="sr-only">Opciones</span>
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="end">
+                        <DropdownMenuItem onSelect={() => router.push(`/reports/${report.id}`)}>
+                          Ver Detalles
+                        </DropdownMenuItem>
+                         <DropdownMenuItem>Editar</DropdownMenuItem>
+                         <DropdownMenuItem className="text-destructive focus:bg-destructive/10 focus:text-destructive">Eliminar</DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+                 </CardFooter>
             </Card>
           ))
         ) : (
@@ -410,30 +433,36 @@ const WelcomePage: FC = () => {
                 ¡Empieza a contribuir creando tu primer reporte!
               </CardDescription>
               <Button asChild>
-                <Link href="/reports/new">Crear Nuevo Reporte</Link>
+                <Link href="/reports/new"> <Plus className="mr-2 h-4 w-4" /> Crear Nuevo Reporte</Link>
               </Button>
             </CardContent>
           </Card>
         )}
 
-        {/* Load More Button */}
-        {hasMore && !isLoading && reports.length >= ITEMS_PER_PAGE && ( // Show only if there are enough items to potentially load more
+        {/* Pagination Placeholder (use loadMore logic or implement full pagination) */}
+        {hasMore && !isLoading && reports.length >= ITEMS_PER_PAGE && (
           <div className="text-center mt-4">
             <Button
               variant="outline"
               onClick={loadMoreReports}
               disabled={isFetchingMore}
+              className="rounded-full"
             >
               {isFetchingMore ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
               Cargar más reportes
             </Button>
           </div>
         )}
+        {/* Optional: Add full pagination if needed */}
+        {/* {reports.length > 0 && (
+            <div className="mt-8 flex justify-center">
+                <Pagination> ... </Pagination>
+            </div>
+        )} */}
+
       </div>
     </main>
   );
 };
 
 export default WelcomePage;
-
-    
