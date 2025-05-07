@@ -8,7 +8,7 @@ import Link from 'next/link';
 import { useAuth } from '@/context/AuthContext';
 import { auth, db } from '@/lib/firebase/client';
 import { collection, query, where, getDocs, orderBy, Timestamp, limit, startAfter, doc, getDoc, runTransaction } from 'firebase/firestore';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card'; // Added CardFooter
+import { Card, CardContent, CardDescription, CardHeader, CardTitle  } from '@/components/ui/card'; 
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { FileText, MapPin, CalendarDays, ThumbsUp, ThumbsDown, Loader2, UserCog, TriangleAlert, Plus, Ellipsis } from 'lucide-react'; // Updated icons
@@ -34,7 +34,6 @@ import {
   PaginationPrevious,
 } from "@/components/ui/pagination" // Import Pagination
 
-// Define report type including optional status
 export type Report = {
     id: string;
     userId: string;
@@ -50,7 +49,6 @@ export type Report = {
     upvotes: number;
     downvotes: number;
     userVote?: 'up' | 'down' | null;
-    status?: string; // Optional status
 };
 
 const WelcomePage: FC = () => {
@@ -127,7 +125,6 @@ const WelcomePage: FC = () => {
           : new Date();
 
         // Placeholder status - replace with actual logic if status is added
-        const status = ['Nuevo', 'En Revisión', 'Verificado', 'Resuelto'][Math.floor(Math.random() * 4)];
 
         fetchedReports.push({
             id: reportDoc.id,
@@ -144,7 +141,6 @@ const WelcomePage: FC = () => {
             upvotes: data.upvotes || 0,
             downvotes: data.downvotes || 0,
             userVote: userVote,
-            status: status, // Add placeholder status
 
         });
       }
@@ -300,20 +296,7 @@ const WelcomePage: FC = () => {
         }
     };
 
-     // Helper function to determine badge color based on status (same as community)
-    const getStatusBadgeVariant = (status?: string): 'default' | 'secondary' | 'destructive' | 'outline' => {
-        switch (status) {
-        case 'Verificado':
-        case 'Resuelto':
-            return 'default';
-        case 'En Revisión':
-            return 'secondary';
-        case 'Nuevo':
-            return 'outline';
-        default:
-            return 'secondary';
-        }
-    };
+     
 
     // Helper function to determine badge color for report type (same as community)
     const getTypeBadgeVariant = (type: 'incidente' | 'funcionario'): 'destructive' | 'default' => {
@@ -348,77 +331,82 @@ const WelcomePage: FC = () => {
                 <Skeleton className="h-3 w-[50%] mb-3" />
                  <Skeleton className="h-3 w-[40%]" />
               </CardContent>
-               <CardFooter className="p-3 bg-muted/50 flex justify-between items-center">
-                    <div className="flex gap-3">
-                      <Skeleton className="h-4 w-6" />
-                      <Skeleton className="h-4 w-6" />
-                      <Skeleton className="h-4 w-6" />
-                    </div>
-                    <Skeleton className="h-5 w-5" />
-              </CardFooter>
+            
             </Card>
           ))
         ) : reports.length > 0 ? (
           reports.map((report) => (
              <Card key={report.id} className="shadow-sm bg-card rounded-lg overflow-hidden">
-                <CardContent className="p-4 space-y-3">
-                    {/* Top Section: Type, Title, Status */}
-                    <div className="flex justify-between items-start w-full gap-2">
-                        <div className="flex items-center gap-2 flex-1 min-w-0">
-                           <Badge variant={getTypeBadgeVariant(report.reportType)} className="text-xs capitalize flex-shrink-0">
-                             {getTypeBadgeText(report.reportType)}
-                           </Badge>
-                           <Link href={`/reports/${report.id}`} className="flex-1 min-w-0">
-                             <h3 className="font-medium text-foreground leading-tight truncate hover:text-primary transition-colors">{report.title}</h3>
-                           </Link>
-                        </div>
-                         <Badge variant={getStatusBadgeVariant(report.status)} className="text-xs flex-shrink-0">
-                            {report.status || 'Desconocido'}
-                         </Badge>
-                    </div>
-                     {/* Report Details */}
-                     <p className="text-sm text-muted-foreground line-clamp-2">{report.description}</p>
-                     <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center text-xs text-muted-foreground/80 gap-1 sm:gap-3">
-                        <div className="flex items-center min-w-0 gap-1.5">
-                            <MapPin size={12} className="flex-shrink-0" />
-                            <span className="truncate">{formatLocation(report.location)}</span>
-                        </div>
-                        <div className="flex items-center flex-shrink-0 gap-1.5">
-                            <CalendarDays size={12} className="flex-shrink-0" />
-                            <span>{formatDistanceToNow(report.createdAt, { addSuffix: true, locale: es })}</span>
-                        </div>
+                <CardContent className="p-4 flex-1 space-y-2">
+                   <CardTitle className="text-base font-semibold leading-snug line-clamp-2">
+                     <Link href={`/reports/${report.id}`} className="hover:text-primary transition-colors">
+                       {report.title}
+                     </Link>
+                   </CardTitle>
+                   <CardDescription className="text-xs text-muted-foreground line-clamp-3">
+                     {report.description}
+                   </CardDescription>
+                   <div className="flex items-center text-xs text-muted-foreground gap-1.5 pt-1">
+                     <MapPin size={12} className="flex-shrink-0" />
+                     <span className="truncate">{formatLocation(report.location)}</span>
+                   </div>
+                   <div className="flex items-center text-xs text-muted-foreground gap-1.5">
+                     <CalendarDays size={12} className="flex-shrink-0" />
+                     <span>{formatDistanceToNow(report.createdAt, { addSuffix: true, locale: es })}</span>
+                   </div>
+                   <div className="flex items-center justify-between pt-2">
+                     <div className="flex items-center gap-2">
+                       <Button
+                         variant="ghost"
+                         size="icon"
+                         className={cn(
+                           "h-8 w-8",
+                           report.userVote === 'up' && "text-green-500"
+                         )}
+                         onClick={() => handleVote(report.id, 'up')}
+                         disabled={votingState[report.id]}
+                       >
+                         <ThumbsUp size={16} />
+                         <span className="sr-only">Me gusta</span>
+                       </Button>
+                       <span className="text-sm">{report.upvotes}</span>
+                       <Button
+                         variant="ghost"
+                         size="icon"
+                         className={cn(
+                           "h-8 w-8",
+                           report.userVote === 'down' && "text-red-500"
+                         )}
+                         onClick={() => handleVote(report.id, 'down')}
+                         disabled={votingState[report.id]}
+                       >
+                         <ThumbsDown size={16} />
+                         <span className="sr-only">No me gusta</span>
+                       </Button>
+                       <span className="text-sm">{report.downvotes}</span>
                      </div>
+                     <DropdownMenu>
+                       <DropdownMenuTrigger asChild>
+                         <Button variant="ghost" size="icon" className="h-8 w-8">
+                           <Ellipsis className="h-4 w-4" />
+                           <span className="sr-only">Abrir menú</span>
+                         </Button>
+                       </DropdownMenuTrigger>
+                       <DropdownMenuContent align="end">
+                         <DropdownMenuItem asChild>
+                           <Link href={`/reports/${report.id}`}>
+                             Ver detalles
+                           </Link>
+                         </DropdownMenuItem>
+                         <DropdownMenuItem>
+                           Compartir
+                         </DropdownMenuItem>
+                       </DropdownMenuContent>
+                     </DropdownMenu>
+                   </div>
                  </CardContent>
                  {/* Reverted Footer with Counts */}
-                 <CardFooter className="p-3 bg-muted/50 flex justify-between items-center border-t">
-                    <div className="flex items-center gap-3 text-xs text-muted-foreground">
-                       <div className="flex items-center gap-1">
-                         <ThumbsUp size={14} className="text-blue-600"/>
-                         <span>{report.upvotes}</span>
-                       </div>
-                       <div className="flex items-center gap-1">
-                          <ThumbsDown size={14} className="text-destructive"/>
-                         <span>{report.downvotes}</span>
-                       </div>
-
-                    </div>
-                    {/* Options Dropdown */}
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                        <Button variant="ghost" size="icon" className="h-7 w-7 text-muted-foreground">
-                          <Ellipsis size={16} />
-                          <span className="sr-only">Opciones</span>
-                        </Button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end">
-                        <DropdownMenuItem onSelect={() => router.push(`/reports/${report.id}`)}>
-                          Ver Detalles
-                        </DropdownMenuItem>
-                         <DropdownMenuItem>Editar</DropdownMenuItem>
-                         <DropdownMenuItem className="text-destructive focus:bg-destructive/10 focus:text-destructive">Eliminar</DropdownMenuItem>
-                      </DropdownMenuContent>
-                    </DropdownMenu>
-                 </CardFooter>
+             
             </Card>
           ))
         ) : (

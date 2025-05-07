@@ -8,7 +8,7 @@ import Link from 'next/link';
 import { useAuth } from '@/context/AuthContext'; // Import useAuth
 import { auth, db } from '@/lib/firebase/client';
 import { collection, query, where, getDocs, orderBy, Timestamp, limit, startAfter, doc, getDoc, runTransaction } from 'firebase/firestore';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Input } from "@/components/ui/input"; // Import Input
@@ -109,8 +109,7 @@ const CommunityReportsPage: FC = () => {
             ? data.createdAt.toDate()
             : new Date();
 
-          // Placeholder status - replace with actual logic if status is added
-          const status = ['Nuevo', 'En Revisión', 'Verificado', 'Resuelto'][Math.floor(Math.random() * 4)];
+          
 
           fetchedReports.push({
               id: reportDoc.id,
@@ -127,7 +126,7 @@ const CommunityReportsPage: FC = () => {
               upvotes: data.upvotes || 0,
               downvotes: data.downvotes || 0,
               userVote: userVote,
-              status: status, // Add placeholder status
+         
 
           });
        }
@@ -280,20 +279,7 @@ const CommunityReportsPage: FC = () => {
     }
 };
 
-  // Helper function to determine badge color based on status
-  const getStatusBadgeVariant = (status?: string): 'default' | 'secondary' | 'destructive' | 'outline' => {
-    switch (status) {
-      case 'Verificado':
-      case 'Resuelto':
-        return 'default'; // Use primary color for positive statuses
-      case 'En Revisión':
-        return 'secondary'; // Use secondary for neutral/in-progress
-      case 'Nuevo':
-        return 'outline'; // Use outline for new
-      default:
-        return 'secondary';
-    }
-  };
+
   // Helper function to determine badge color for report type
   const getTypeBadgeVariant = (type: 'incidente' | 'funcionario'): 'destructive' | 'default' => {
      return type === 'incidente' ? 'destructive' : 'default'; // Destructive for incident, primary for funcionario
@@ -365,14 +351,7 @@ const CommunityReportsPage: FC = () => {
                     <Skeleton className="h-3 w-1/2 mb-3" />
                     <Skeleton className="h-3 w-1/3" />
                   </CardContent>
-                  <CardFooter className="p-3 bg-muted/50 flex justify-between items-center">
-                    <div className="flex gap-3">
-                      <Skeleton className="h-4 w-6" />
-                      <Skeleton className="h-4 w-6" />
-                      <Skeleton className="h-4 w-6" />
-                    </div>
-                    <Skeleton className="h-5 w-5" />
-                  </CardFooter>
+            
               </Card>
             ))}
            </div>
@@ -407,9 +386,7 @@ const CommunityReportsPage: FC = () => {
                       </Badge>
                    </div>
                    <div className="absolute top-2 right-2">
-                      <Badge variant={getStatusBadgeVariant(report.status)} className="text-xs shadow">
-                         {report.status || 'Desconocido'}
-                      </Badge>
+
                    </div>
 
                    {/* Media Type Icon */}
@@ -438,41 +415,62 @@ const CommunityReportsPage: FC = () => {
                      <span className="truncate">{formatLocation(report.location)}</span>
                    </div>
                    <div className="flex items-center text-xs text-muted-foreground gap-1.5">
-                      <CalendarDays size={12} className="flex-shrink-0" />
-                      <span>{formatDistanceToNow(report.createdAt, { addSuffix: true, locale: es })}</span>
+                     <CalendarDays size={12} className="flex-shrink-0" />
+                     <span>{formatDistanceToNow(report.createdAt, { addSuffix: true, locale: es })}</span>
+                   </div>
+                   <div className="flex items-center justify-between pt-2">
+                     <div className="flex items-center gap-2">
+                       <Button
+                         variant="ghost"
+                         size="icon"
+                         className={cn(
+                           "h-8 w-8",
+                           report.userVote === 'up' && "text-green-500"
+                         )}
+                         onClick={() => handleVote(report.id, 'up')}
+                         disabled={votingState[report.id] || user?.uid === report.userId}
+                       >
+                         <ThumbsUp size={16} />
+                         <span className="sr-only">Me gusta</span>
+                       </Button>
+                       <span className="text-sm">{report.upvotes}</span>
+                       <Button
+                         variant="ghost"
+                         size="icon"
+                         className={cn(
+                           "h-8 w-8",
+                           report.userVote === 'down' && "text-red-500"
+                         )}
+                         onClick={() => handleVote(report.id, 'down')}
+                         disabled={votingState[report.id] || user?.uid === report.userId}
+                       >
+                         <ThumbsDown size={16} />
+                         <span className="sr-only">No me gusta</span>
+                       </Button>
+                       <span className="text-sm">{report.downvotes}</span>
+                     </div>
+                     <DropdownMenu>
+                       <DropdownMenuTrigger asChild>
+                         <Button variant="ghost" size="icon" className="h-8 w-8">
+                           <Ellipsis className="h-4 w-4" />
+                           <span className="sr-only">Abrir menú</span>
+                         </Button>
+                       </DropdownMenuTrigger>
+                       <DropdownMenuContent align="end">
+                         <DropdownMenuItem asChild>
+                           <Link href={`/reports/${report.id}`}>
+                             Ver detalles
+                           </Link>
+                         </DropdownMenuItem>
+                         <DropdownMenuItem>
+                           Compartir
+                         </DropdownMenuItem>
+                       </DropdownMenuContent>
+                     </DropdownMenu>
                    </div>
                  </CardContent>
 
-                 {/* Reverted Footer with Counts */}
-                 <CardFooter className="p-3 bg-muted/50 flex justify-between items-center border-t">
-                    <div className="flex items-center gap-3 text-xs text-muted-foreground">
-                       <div className="flex items-center gap-1">
-                         <ThumbsUp size={14} className="text-blue-600"/>
-                         <span>{report.upvotes}</span>
-                       </div>
-                       <div className="flex items-center gap-1">
-                          <ThumbsDown size={14} className="text-destructive"/>
-                         <span>{report.downvotes}</span>
-                       </div>
-
-                    </div>
-                    {/* Options Dropdown */}
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                        <Button variant="ghost" size="icon" className="h-7 w-7 text-muted-foreground">
-                          <Ellipsis size={16} />
-                          <span className="sr-only">Opciones</span>
-                        </Button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end">
-                        <DropdownMenuItem onSelect={() => router.push(`/reports/${report.id}`)}>
-                          Ver Detalles
-                        </DropdownMenuItem>
-                        <DropdownMenuItem>Compartir</DropdownMenuItem>
-                         {/* Add more options if needed */}
-                      </DropdownMenuContent>
-                    </DropdownMenu>
-                 </CardFooter>
+                
                </Card>
              ))}
            </div>
