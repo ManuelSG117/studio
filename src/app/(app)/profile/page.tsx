@@ -176,11 +176,11 @@ const ProfilePage: FC = () => {
   // Display Profile
   return (
     <main className="flex flex-col items-center p-4 sm:p-8 bg-secondary min-h-screen">
-      <Card className="w-full max-w-lg shadow-lg border-none rounded-xl bg-card">
+      <Card className="w-full max-w-6xl shadow-lg border-none rounded-xl bg-card">
         <CardHeader className="relative pb-4 pt-8 items-center text-center">
            {/* Header section removed */}
 
-          <Avatar className="w-20 h-20 mb-4 border-2 border-primary">
+          <Avatar className="w-24 h-24 mb-4 border-2 border-primary">
              {/* Use combined photoURL */}
             <AvatarImage src={displayPhotoURL} alt="Foto de perfil" data-ai-hint="user profile avatar"/>
             <AvatarFallback className="text-xl bg-muted text-muted-foreground">
@@ -196,85 +196,90 @@ const ProfilePage: FC = () => {
         </CardHeader>
 
         <CardContent className="px-6 sm:px-8 pt-4 pb-6 space-y-4">
-          <h3 className="text-base font-semibold text-primary border-b pb-2 mb-4">Información Personal</h3>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div>
+              <h3 className="text-base font-semibold text-primary border-b pb-2 mb-4">Información Personal</h3>
 
-           {/* Display Full Name from profile only if it exists */}
-           {userProfile?.fullName && (
-             <div className="flex items-start space-x-3 text-sm">
-               <UserIcon className="h-5 w-5 text-muted-foreground flex-shrink-0 mt-0.5" />
-               <div className="flex-1">
-                 <span className="font-medium text-foreground/80">Nombre Completo:</span>
-                 <p className="text-foreground">{userProfile.fullName}</p>
-               </div>
-             </div>
-           )}
+              <div className="space-y-3">
+                {/* Display Full Name from profile only if it exists */}
+                {userProfile?.fullName && (
+                  <div className="flex items-start space-x-3 text-sm">
+                    <UserIcon className="h-5 w-5 text-muted-foreground flex-shrink-0 mt-0.5" />
+                    <div className="flex-1">
+                      <span className="font-medium text-foreground/80">Nombre Completo:</span>
+                      <p className="text-foreground">{userProfile.fullName}</p>
+                    </div>
+                  </div>
+                )}
 
-           {/* Address */}
-           {userProfile?.address && (
-              <div className="flex items-start space-x-3 text-sm">
-                 <Home className="h-5 w-5 text-muted-foreground flex-shrink-0 mt-0.5" />
-                <div className="flex-1">
-                    <span className="font-medium text-foreground/80">Dirección:</span>
-                    <p className="text-foreground">{userProfile.address}</p>
-                </div>
-              </div>
-           )}
+                {/* Address */}
+                {userProfile?.address && (
+                  <div className="flex items-start space-x-3 text-sm">
+                    <Home className="h-5 w-5 text-muted-foreground flex-shrink-0 mt-0.5" />
+                    <div className="flex-1">
+                      <span className="font-medium text-foreground/80">Dirección:</span>
+                      <p className="text-foreground">{userProfile.address}</p>
+                    </div>
+                  </div>
+                )}
 
-            {/* Phone Number */}
-           {userProfile?.phoneNumber && (
-              <div className="flex items-start space-x-3 text-sm">
-                 <Phone className="h-5 w-5 text-muted-foreground flex-shrink-0 mt-0.5" />
-                <div className="flex-1">
-                    <span className="font-medium text-foreground/80">Teléfono:</span>
-                    <p className="text-foreground">{userProfile.phoneNumber}</p>
-                 </div>
-              </div>
-           )}
+                {/* Phone Number */}
+                {userProfile?.phoneNumber && (
+                  <div className="flex items-start space-x-3 text-sm">
+                    <Phone className="h-5 w-5 text-muted-foreground flex-shrink-0 mt-0.5" />
+                    <div className="flex-1">
+                      <span className="font-medium text-foreground/80">Teléfono:</span>
+                      <p className="text-foreground">{userProfile.phoneNumber}</p>
+                    </div>
+                  </div>
+                )}
 
-           {/* Gender */}
-           {userProfile?.gender && (
-              <div className="flex items-start space-x-3 text-sm">
-                 <VenetianMask className="h-5 w-5 text-muted-foreground flex-shrink-0 mt-0.5" />
-                 <div className="flex-1">
-                   <span className="font-medium text-foreground/80">Género:</span>
-                   <p className="text-foreground capitalize">{userProfile.gender}</p>
-                 </div>
-              </div>
-           )}
+                {/* Gender */}
+                {userProfile?.gender && (
+                  <div className="flex items-start space-x-3 text-sm">
+                    <VenetianMask className="h-5 w-5 text-muted-foreground flex-shrink-0 mt-0.5" />
+                    <div className="flex-1">
+                      <span className="font-medium text-foreground/80">Género:</span>
+                      <p className="text-foreground capitalize">{userProfile.gender}</p>
+                    </div>
+                  </div>
+                )}
 
-            {/* Date of Birth */}
-           {userProfile?.dob && (
-              <div className="flex items-start space-x-3 text-sm">
-                 <Cake className="h-5 w-5 text-muted-foreground flex-shrink-0 mt-0.5" />
-                <div className="flex-1">
-                    <span className="font-medium text-foreground/80">Fecha de Nacimiento:</span>
-                    <p className="text-foreground">
+                {/* Date of Birth */}
+                {userProfile?.dob && (
+                  <div className="flex items-start space-x-3 text-sm">
+                    <Cake className="h-5 w-5 text-muted-foreground flex-shrink-0 mt-0.5" />
+                    <div className="flex-1">
+                      <span className="font-medium text-foreground/80">Fecha de Nacimiento:</span>
+                      <p className="text-foreground">
                         {format(userProfile.dob, "PPP", { locale: es })} {/* Format date */}
-                    </p>
-                </div>
+                      </p>
+                    </div>
+                  </div>
+                )}
+
+                {/* Fallback if no extra profile data found in Firestore */}
+                {userProfile === null && !isLoading && (
+                  <p className="text-sm text-muted-foreground italic text-center pt-2">
+                    No se encontró información adicional del perfil. Completa tu perfil para una mejor experiencia.
+                  </p>
+                )}
+
+                {/* Message if some data is missing */}
+                {userProfile && (!userProfile.fullName || !userProfile.address || !userProfile.phoneNumber || !userProfile.gender || !userProfile.dob || !userProfile.photoURL) && (
+                  <p className="text-sm text-muted-foreground italic text-center pt-2">
+                    Falta información en tu perfil. Complétala haciendo clic en Editar Perfil.
+                  </p>
+                )}
               </div>
-           )}
+            </div>
 
-             {/* Fallback if no extra profile data found in Firestore */}
-             {userProfile === null && !isLoading && ( // Only show if loading is done and profile is explicitly null
-                 <p className="text-sm text-muted-foreground italic text-center pt-2">
-                     No se encontró información adicional del perfil. Completa tu perfil para una mejor experiencia.
-                 </p>
-             )}
-
-             {/* Message if some data is missing */}
-              {userProfile && (!userProfile.fullName || !userProfile.address || !userProfile.phoneNumber || !userProfile.gender || !userProfile.dob || !userProfile.photoURL) && (
-                 <p className="text-sm text-muted-foreground italic text-center pt-2">
-                     Falta información en tu perfil. Complétala haciendo clic en Editar Perfil.
-                 </p>
-             )}
-
-             {/* Add Voting Stats Section */}
-             <div className="pt-4 mt-4 border-t border-border">
-                 <h3 className="text-base font-semibold text-primary mb-4">Mis Estadísticas de Voto</h3>
-                  <VotingStats userId={user.uid} />
-             </div>
-
+            {/* Add Voting Stats Section */}
+            <div>
+              <h3 className="text-base font-semibold text-primary border-b pb-2 mb-4">Mis Estadísticas de Voto</h3>
+              <VotingStats userId={user.uid} />
+            </div>
+          </div>
         </CardContent>
 
         <CardFooter className="flex flex-col sm:flex-row justify-between items-center pt-4 pb-8 px-6 sm:px-8 gap-3 border-t border-border">

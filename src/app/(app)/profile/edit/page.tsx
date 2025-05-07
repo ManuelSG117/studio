@@ -306,7 +306,7 @@ const EditProfilePage: FC = () => {
 
   return (
     <main className="flex min-h-screen flex-col items-center justify-center py-8 px-4 sm:px-8 bg-secondary">
-      <Card className="w-full max-w-md shadow-lg border-none rounded-xl">
+      <Card className="w-full max-w-6xl shadow-lg border-none rounded-xl">
         <CardHeader className="text-center relative pb-4 pt-8 items-center">
            <Button
              variant="ghost"
@@ -324,7 +324,7 @@ const EditProfilePage: FC = () => {
            <div className="relative group mb-4">
                 <Avatar
                   className={cn(
-                    "w-24 h-24 border-2 border-primary",
+                    "w-28 h-28 border-2 border-primary",
                     (isLoading || isUploading || isCompressing) ? "cursor-not-allowed opacity-70" : "cursor-pointer"
                   )}
                   onClick={handleAvatarClick}
@@ -383,6 +383,7 @@ const EditProfilePage: FC = () => {
         <CardContent className="px-6 sm:px-8 pt-2 pb-6">
           <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-5">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
 
               {/* Email (Read-only) */}
                <FormField
@@ -543,6 +544,7 @@ const EditProfilePage: FC = () => {
                  )}
                />
 
+              </div>
               {/* Submit Button */}
               <Button
                 type="submit"

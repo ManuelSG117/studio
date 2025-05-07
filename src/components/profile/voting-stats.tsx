@@ -230,7 +230,7 @@ export const VotingStats: FC<VotingStatsProps> = ({ userId }) => {
           <p className="text-xs text-muted-foreground">Tu actividad en la comunidad *SEGURO</p>
         </div>
         
-        <div className="grid grid-cols-4 gap-3 text-center w-full">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-3 text-center w-full">
           <Card className="p-3 flex flex-col items-center">
             <p className="text-xs text-muted-foreground">Reportes Totales</p>
             <div className="flex items-center gap-1">
@@ -283,7 +283,7 @@ export const VotingStats: FC<VotingStatsProps> = ({ userId }) => {
           {weeklyActivity.map((day, index) => (
             <div key={index} className="flex flex-col items-center">
               <p className="text-xs text-muted-foreground">{day.shortDay}</p>
-              <div className={`h-20 w-full ${day.hasActivity ? 'bg-blue-500' : 'bg-gray-100'} rounded-md my-1`}></div>
+              <div className={`h-16 w-full ${day.hasActivity ? 'bg-blue-500' : 'bg-gray-100'} rounded-md my-1`}></div>
               <p className="text-xs">{day.date}</p>
             </div>
           ))}
@@ -303,11 +303,11 @@ export const VotingStats: FC<VotingStatsProps> = ({ userId }) => {
           <h3 className="text-sm font-semibold">Logros Desbloqueados</h3>
         </div>
         
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-3 w-full">
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3 w-full">
           {achievements.map((achievement) => (
             <div 
               key={achievement.id} 
-              className={`p-4 rounded-lg border ${achievement.unlocked ? 'bg-amber-50 border-amber-200' : 'bg-gray-50 border-gray-200'} flex items-center gap-3`}
+              className={`p-3 rounded-lg border ${achievement.unlocked ? 'bg-amber-50 border-amber-200' : 'bg-gray-50 border-gray-200'} flex items-center gap-3`}
             >
               <div className={`p-2 rounded-full ${achievement.unlocked ? 'bg-amber-100' : 'bg-gray-100'}`}>
                 {achievement.icon}
