@@ -301,26 +301,26 @@ const CommunityReportsPage: FC = () => {
           ))
         ) : reports.length > 0 ? (
            reports.map((report) => (
-             <Card key={report.id} className="shadow-sm bg-card">
-               <CardContent className="p-4 space-y-3"> {/* Added space-y-3 */}
+             <Card key={report.id} className="shadow-md bg-card hover:shadow-lg transition-shadow">
+               <CardContent className="p-6 space-y-4"> {/* Aumentado padding y espaciado vertical */}
                     {/* Top Section: Title and Voting */}
-                    <div className="flex justify-between items-center w-full border-b border-border/50 pb-3">
+                    <div className="flex justify-between items-center w-full border-b border-border/50 pb-4 mb-1"> {/* Aumentado padding bottom */}
                         {/* Title and Type */}
-                        <Link href={`/reports/${report.id}`} className="flex items-center gap-2 flex-1 min-w-0 mr-3"> {/* Added flex-1, min-w-0, mr-3 */}
+                        <Link href={`/reports/${report.id}`} className="flex items-center gap-3 flex-1 min-w-0 mr-4"> {/* Aumentado gap y margen */}
                             {report.reportType === 'funcionario' ? (
-                               <UserCog className="h-4 w-4 text-primary flex-shrink-0" />
+                               <UserCog className="h-5 w-5 text-primary flex-shrink-0" /> /* Aumentado tamaño de icono */
                              ) : (
-                               <TriangleAlert className="h-4 w-4 text-destructive flex-shrink-0" />
+                               <TriangleAlert className="h-5 w-5 text-destructive flex-shrink-0" /> /* Aumentado tamaño de icono */
                              )}
-                            <h3 className="font-medium text-foreground leading-tight truncate">{report.title}</h3> {/* Added truncate */}
+                            <h3 className="font-medium text-foreground text-lg leading-tight truncate">{report.title}</h3> {/* Aumentado tamaño de texto */}
                         </Link>
                          {/* Voting Buttons */}
-                        <div className="flex items-center space-x-1 bg-muted p-1 rounded-full flex-shrink-0"> {/* Container for votes */}
+                        <div className="flex items-center space-x-2 bg-muted p-1.5 rounded-full flex-shrink-0"> {/* Aumentado padding y espaciado */}
                              <Button
                                  variant="ghost"
                                  size="icon"
                                  className={cn(
-                                    "h-6 w-6 rounded-full text-muted-foreground hover:bg-destructive/10 hover:text-destructive",
+                                    "h-7 w-7 rounded-full text-muted-foreground hover:bg-destructive/10 hover:text-destructive", /* Aumentado tamaño de botón */
                                     report.userVote === 'down' && "bg-destructive/20 text-destructive",
                                     votingState[report.id] && "opacity-50 cursor-not-allowed"
                                  )}
@@ -329,16 +329,16 @@ const CommunityReportsPage: FC = () => {
                                 aria-pressed={report.userVote === 'down'}
                                 title="Votar negativamente"
                              >
-                                {votingState[report.id] && report.userVote !== 'down' ? <Loader2 className="h-3.5 w-3.5 animate-spin"/> : <ArrowDown className="h-4 w-4"/>}
+                                {votingState[report.id] && report.userVote !== 'down' ? <Loader2 className="h-4 w-4 animate-spin"/> : <ArrowDown className="h-4 w-4"/>}
                              </Button>
-                             <span className="text-sm font-medium text-foreground tabular-nums w-6 text-center">
+                             <span className="text-sm font-medium text-foreground tabular-nums w-7 text-center"> {/* Aumentado ancho */}
                                  {report.upvotes - report.downvotes}
                               </span>
                              <Button
                                 variant="ghost"
                                 size="icon"
                                 className={cn(
-                                    "h-6 w-6 rounded-full text-muted-foreground hover:bg-blue-600/10 hover:text-blue-600",
+                                    "h-7 w-7 rounded-full text-muted-foreground hover:bg-blue-600/10 hover:text-blue-600", /* Aumentado tamaño de botón */
                                     report.userVote === 'up' && "bg-blue-600/20 text-blue-600",
                                     votingState[report.id] && "opacity-50 cursor-not-allowed"
                                 )}
@@ -347,24 +347,24 @@ const CommunityReportsPage: FC = () => {
                                 aria-pressed={report.userVote === 'up'}
                                 title="Votar positivamente"
                              >
-                                {votingState[report.id] && report.userVote !== 'up' ? <Loader2 className="h-3.5 w-3.5 animate-spin"/> : <ArrowUp className="h-4 w-4"/>}
+                                {votingState[report.id] && report.userVote !== 'up' ? <Loader2 className="h-4 w-4 animate-spin"/> : <ArrowUp className="h-4 w-4"/>}
                              </Button>
                         </div>
                   </div>
 
                   {/* Report Details (Link) */}
-                 <Link href={`/reports/${report.id}`} className="block">
+                 <Link href={`/reports/${report.id}`} className="block py-1"> {/* Añadido padding vertical */}
                      {/* Description */}
-                     <p className="text-sm text-muted-foreground line-clamp-2 mb-2">{report.description}</p> {/* Removed my-2, added mb-2 */}
+                     <p className="text-sm text-muted-foreground line-clamp-3 mb-3">{report.description}</p> {/* Aumentado líneas visibles y margen */}
                       {/* Location and Date */}
-                     <div className="flex justify-between items-center text-xs text-muted-foreground/80">
-                        <div className="flex items-center min-w-0 mr-2"> {/* Added min-w-0, mr-2 */}
-                            <MapPin size={12} className="mr-1 flex-shrink-0" />
-                            <span className="truncate">{formatLocation(report.location)}</span> {/* Apply formatting here */}
+                     <div className="flex justify-between items-center text-xs text-muted-foreground/80 mt-2"> {/* Añadido margen superior */}
+                        <div className="flex items-center min-w-0 mr-3"> {/* Aumentado margen */}
+                            <MapPin size={14} className="mr-2 flex-shrink-0" /> {/* Aumentado tamaño de icono y margen */}
+                            <span className="truncate">{formatLocation(report.location)}</span>
                         </div>
-                        <div className="flex items-center flex-shrink-0"> {/* Added flex-shrink-0 */}
-                            <CalendarDays size={12} className="mr-1 flex-shrink-0" />
-                            <span>{format(report.createdAt, "PPP", { locale: es })}</span> {/* Format date */}
+                        <div className="flex items-center flex-shrink-0">
+                            <CalendarDays size={14} className="mr-2 flex-shrink-0" /> {/* Aumentado tamaño de icono y margen */}
+                            <span>{format(report.createdAt, "PPP", { locale: es })}</span>
                         </div>
                      </div>
                   </Link>
