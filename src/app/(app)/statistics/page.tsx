@@ -5,10 +5,10 @@ import { useState, useEffect, useMemo, useCallback, useRef } from 'react'; // Ad
 import { useRouter } from 'next/navigation';
 import { onAuthStateChanged, type User } from 'firebase/auth';
 import { auth, db } from '@/lib/firebase/client';
-import { collection, getDocs, query, orderBy, Timestamp } from "firebase/firestore";
+import { collection, getDocs, query, orderBy, Timestamp, where } from "firebase/firestore"; // Added where
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
-import { LineChart as LineChartIcon, Loader2, CalendarRange, Hash, TrendingUp, AlertTriangle, UserCog, Filter, MapPin, TrendingDown, CalendarCheck } from 'lucide-react'; // Added more icons
+import { LineChart as LineChartIcon, Loader2, CalendarRange, Hash, TrendingUp, AlertTriangle, UserCog, Filter, MapPin, TrendingDown, CalendarCheck, List, ThumbsDown, AtSign, CheckCircle } from 'lucide-react'; // Added List, ThumbsDown, AtSign, CheckCircle
 import { Button } from "@/components/ui/button";
 import type { Report } from '@/app/(app)/welcome/page'; // Reuse Report type
 import {
@@ -49,6 +49,8 @@ type ReportTypeFilter = 'Todos' | 'Funcionario' | 'Incidente'; // Added report t
 interface ChartDataPoint {
     period: string; // Format depends on filter: 'YYYY-MM-DD', 'YYYY-Www', 'YYYY-MM'
     count: number;
+    incidentCount: number; // Count for 'incidente'
+    officerCount: number; // Count for 'funcionario'
 }
 
 
@@ -63,6 +65,7 @@ const StatisticsPage: FC = () => {
   const [totalReports, setTotalReports] = useState<number>(0);
   const [averageReports, setAverageReports] = useState<number>(0);
   const [mostActiveDay, setMostActiveDay] = useState<string | null>(null); // Placeholder for now
+  const [officerReportsCount, setOfficerReportsCount] = useState<number>(0); // State for officer reports count
 
   useEffect(() => {
     setIsLoading(true); // Start loading
@@ -96,6 +99,9 @@ const StatisticsPage: FC = () => {
               latitude: data.latitude || null,
               longitude: data.longitude || null,
               createdAt: createdAtDate,
+              // Add votes if available, needed for card metrics logic later maybe
+              upvotes: data.upvotes || 0,
+              downvotes: data.downvotes || 0,
             } as Report;
           });
           console.log("Fetched reports for statistics:", fetchedReports.length);
@@ -114,7 +120,7 @@ const StatisticsPage: FC = () => {
 
   // Function to process reports based on BOTH selected filter periods
   const processReportsForChart = useCallback((period: FilterPeriod, typeFilter: ReportTypeFilter) => {
-    // Filter reports by type first
+    // Filter reports by type first for overall counts
     const filteredReportsByType = reports.filter(report =>
         typeFilter === 'Todos' ||
         (typeFilter === 'Funcionario' && report.reportType === 'funcionario') ||
@@ -122,18 +128,19 @@ const StatisticsPage: FC = () => {
     );
 
     setTotalReports(filteredReportsByType.length); // Update total based on type filter
+    setOfficerReportsCount(reports.filter(r => r.reportType === 'funcionario').length); // Calculate total officer reports regardless of date filter
 
-    if (filteredReportsByType.length === 0) {
+    if (reports.length === 0) { // Check the original reports array for date range calculation
       setChartData([]);
       setAverageReports(0); // Reset average if no reports match filters
       setMostActiveDay(null);
       return;
     }
 
-    const reportsByPeriod: Record<string, number> = {};
-    // Use the filtered list for date range calculation
-    const firstReportDate = filteredReportsByType[0].createdAt; // Reports are already sorted ascending
-    const lastReportDate = filteredReportsByType[filteredReportsByType.length - 1].createdAt;
+    const reportsByPeriod: Record<string, { total: number, incident: number, officer: number }> = {};
+    // Use the unfiltered list for date range calculation to ensure all periods are shown
+    const firstReportDate = reports[0].createdAt; // Reports are already sorted ascending
+    const lastReportDate = reports[reports.length - 1].createdAt;
 
     let interval: Interval;
     let allPeriodsInInterval: Date[];
@@ -170,16 +177,21 @@ const StatisticsPage: FC = () => {
     // Initialize counts for all periods in the interval to 0
     allPeriodsInInterval.forEach(periodDate => {
         const periodKey = formatKey(periodDate);
-        reportsByPeriod[periodKey] = 0;
+        reportsByPeriod[periodKey] = { total: 0, incident: 0, officer: 0 };
     });
 
-    // Count reports for each period using the type-filtered list and track day of week
-    filteredReportsByType.forEach(report => {
+    // Count reports for each period using the unfiltered list and track day of week
+    reports.forEach(report => {
        const periodKey = formatKey(report.createdAt);
-       if (reportsByPeriod[periodKey] !== undefined) {
-          reportsByPeriod[periodKey]++;
+       if (reportsByPeriod[periodKey]) { // Ensure the key exists (it should due to initialization)
+          reportsByPeriod[periodKey].total++; // Increment total count
+            if (report.reportType === 'incidente') {
+              reportsByPeriod[periodKey].incident++;
+            } else if (report.reportType === 'funcionario') {
+              reportsByPeriod[periodKey].officer++;
+            }
        }
-       // Count reports per day of the week
+       // Count reports per day of the week (using the unfiltered list)
        const dayName = format(report.createdAt, 'EEEE', { locale: es });
        dayOfWeekCounter[dayName] = (dayOfWeekCounter[dayName] || 0) + 1;
     });
@@ -197,8 +209,13 @@ const StatisticsPage: FC = () => {
 
 
     // Format data for the chart, ensuring chronological order
-    const formattedChartData = Object.entries(reportsByPeriod)
-       .map(([period, count]) => ({ period, count }))
+    const formattedChartData: ChartDataPoint[] = Object.entries(reportsByPeriod)
+       .map(([period, counts]) => ({
+            period,
+            count: counts.total,
+            incidentCount: counts.incident,
+            officerCount: counts.officer
+        }))
        .sort((a, b) => a.period.localeCompare(b.period)); // Sort by period key string
 
     setChartData(formattedChartData);
@@ -231,9 +248,13 @@ const StatisticsPage: FC = () => {
 
   // Chart Configuration
   const chartConfig = {
-    reportCount: {
-      label: "Reportes",
-      color: "hsl(var(--primary))", // Use primary color from theme
+    incident: { // Key matches dataKey in Area component
+      label: "Incidentes",
+      color: "hsl(var(--destructive))", // Use destructive color for incidents
+    },
+    officer: { // Key matches dataKey in Area component
+      label: "Funcionarios",
+      color: "hsl(var(--warning))", // Use warning color for officers
     },
   } satisfies ChartConfig;
 
@@ -304,12 +325,14 @@ const StatisticsPage: FC = () => {
              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-4">
                  {[...Array(4)].map((_, i) => (
                      <Card key={i} className="bg-card">
-                         <CardHeader className="pb-2">
+                         <CardHeader className="pb-2 flex flex-row items-center justify-between space-y-0">
                               <Skeleton className="h-4 w-24" />
+                              <Skeleton className="h-5 w-5" /> {/* Icon skeleton */}
                          </CardHeader>
                          <CardContent>
-                             <Skeleton className="h-8 w-16" />
-                             <Skeleton className="h-3 w-20 mt-1" />
+                             <Skeleton className="h-8 w-16 mb-1" /> {/* Number skeleton */}
+                             <Skeleton className="h-3 w-20 mt-1" /> {/* Percentage skeleton */}
+                             <Skeleton className="h-3 w-24 mt-1" /> {/* Text skeleton */}
                          </CardContent>
                      </Card>
                  ))}
@@ -338,8 +361,11 @@ const StatisticsPage: FC = () => {
               <div className="flex flex-col md:flex-row justify-between items-center mb-6 gap-4"> {/* Keep mb-6 */}
                  <h1 className="text-2xl md:text-3xl font-semibold text-foreground flex items-center"> {/* Larger title */}
                      <LineChartIcon className="mr-3 h-7 w-7 text-primary" /> {/* Larger icon */}
-                     Estadísticas de Reportes
+                     Dashboard de Estadísticas +SEGURO
                  </h1>
+                 <p className="text-muted-foreground text-sm md:text-base text-center md:text-left">
+                    Visualización de datos de reportes ciudadanos para promover la seguridad pública
+                 </p>
                   {/* Combined Filters */}
                  <div className="flex flex-wrap items-center justify-center md:justify-end gap-3 bg-card border border-border p-2 rounded-lg shadow-sm"> {/* Card background for filters */}
                       {/* Period Filters */}
@@ -379,60 +405,66 @@ const StatisticsPage: FC = () => {
                   </div>
              </div>
 
-             {/* Key Metrics Section - Enhanced Cards */}
+             {/* Key Metrics Section - Matching Image */}
              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6"> {/* Increased gap */}
                  {/* Total Reports Card */}
                  <Card className="bg-card shadow-md border-border hover:shadow-lg transition-shadow group border-l-4 border-l-primary">
                      <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 pt-4 px-4">
-                         <CardTitle className="text-sm font-medium text-muted-foreground">Total ({reportTypeFilter})</CardTitle>
-                         <Hash className="h-5 w-5 text-primary opacity-70 group-hover:opacity-100 transition-opacity" />
+                         <CardTitle className="text-sm font-medium text-muted-foreground">Total Reportes</CardTitle>
+                         <List className="h-5 w-5 text-primary opacity-70 group-hover:opacity-100 transition-opacity" />
                      </CardHeader>
                      <CardContent className="pt-1 pb-4 px-4">
                          <div className="text-3xl font-bold text-primary">
                            <AnimatedNumber value={totalReports} formatOptions={{ maximumFractionDigits: 0 }} className="block"/>
                          </div>
-                          <p className="text-xs text-muted-foreground mt-1">Reportes registrados</p>
+                          <p className="text-xs text-muted-foreground mt-1 flex items-center gap-1 text-green-600">
+                                <TrendingUp className="h-3.5 w-3.5"/> 12.5% más votos positivos este mes {/* Placeholder */}
+                          </p>
                      </CardContent>
                  </Card>
-                  {/* Average Reports Card */}
-                 <Card className="bg-card shadow-md border-border hover:shadow-lg transition-shadow group border-l-4 border-l-blue-500">
+                  {/* Reports Not Verified Card */}
+                 <Card className="bg-card shadow-md border-border hover:shadow-lg transition-shadow group border-l-4 border-l-destructive">
                      <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 pt-4 px-4">
-                         <CardTitle className="text-sm font-medium text-muted-foreground">{averageLabel}</CardTitle>
-                         <TrendingUp className="h-5 w-5 text-blue-500 opacity-70 group-hover:opacity-100 transition-opacity" />
+                         <CardTitle className="text-sm font-medium text-muted-foreground">Reportes No Verídicos</CardTitle>
+                         <ThumbsDown className="h-5 w-5 text-destructive opacity-70 group-hover:opacity-100 transition-opacity" />
                      </CardHeader>
                      <CardContent className="pt-1 pb-4 px-4">
-                          <div className="text-3xl font-bold text-blue-600">
-                             <AnimatedNumber value={averageReports} formatOptions={{ maximumFractionDigits: 1 }} className="block"/>
+                          <div className="text-3xl font-bold text-destructive">
+                             <AnimatedNumber value={1356} formatOptions={{ maximumFractionDigits: 0 }} className="block"/> {/* Placeholder */}
                           </div>
-                          <p className="text-xs text-muted-foreground mt-1">
-                             Reportes ({reportTypeFilter}) en promedio
+                           <p className="text-xs text-muted-foreground mt-1 flex items-center gap-1 text-red-600">
+                             <TrendingDown className="h-3.5 w-3.5"/> 8.3% más votos negativos este mes {/* Placeholder */}
                          </p>
                      </CardContent>
                  </Card>
-                  {/* Most Reported Type Card (Placeholder logic) */}
-                 <Card className="bg-card shadow-md border-border hover:shadow-lg transition-shadow group border-l-4 border-l-destructive">
+                  {/* Officer Incidents Card */}
+                 <Card className="bg-card shadow-md border-border hover:shadow-lg transition-shadow group border-l-4 border-l-warning">
                      <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 pt-4 px-4">
-                         <CardTitle className="text-sm font-medium text-muted-foreground">Tipo Más Reportado</CardTitle>
-                         <AlertTriangle className="h-5 w-5 text-destructive opacity-70 group-hover:opacity-100 transition-opacity" />
+                         <CardTitle className="text-sm font-medium text-muted-foreground">Incidentes Funcionarios</CardTitle>
+                         <AtSign className="h-5 w-5 text-warning opacity-70 group-hover:opacity-100 transition-opacity" />
                      </CardHeader>
                      <CardContent className="pt-1 pb-4 px-4">
-                         <div className="text-3xl font-bold text-destructive">
-                             {totalReports > 0 ? (reportTypeFilter === 'Funcionario' ? 'Funcionario' : reportTypeFilter === 'Incidente' ? 'Incidente' : (Math.random() > 0.4 ? 'Incidente' : 'Funcionario')) : 'N/A'} {/* Placeholder */}
+                         <div className="text-3xl font-bold text-warning">
+                            <AnimatedNumber value={officerReportsCount} formatOptions={{ maximumFractionDigits: 0 }} className="block"/>
                          </div>
-                          <p className="text-xs text-muted-foreground mt-1">Basado en el periodo actual</p>
+                          <p className="text-xs text-muted-foreground mt-1 flex items-center gap-1 text-red-600">
+                             <TrendingDown className="h-3.5 w-3.5"/> 3.2% menos votos negativos este mes {/* Placeholder */}
+                          </p>
                      </CardContent>
                  </Card>
-                  {/* Most Active Day Card */}
-                  <Card className="bg-card shadow-md border-border hover:shadow-lg transition-shadow group border-l-4 border-l-amber-500">
+                  {/* Verified Reports Card */}
+                  <Card className="bg-card shadow-md border-border hover:shadow-lg transition-shadow group border-l-4 border-l-green-500">
                      <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 pt-4 px-4">
-                         <CardTitle className="text-sm font-medium text-muted-foreground">Día Más Activo</CardTitle>
-                          <CalendarCheck className="h-5 w-5 text-amber-600 opacity-70 group-hover:opacity-100 transition-opacity" />
+                         <CardTitle className="text-sm font-medium text-muted-foreground">Reportes Verificados</CardTitle>
+                          <CheckCircle className="h-5 w-5 text-green-600 opacity-70 group-hover:opacity-100 transition-opacity" />
                      </CardHeader>
                      <CardContent className="pt-1 pb-4 px-4">
-                          <div className="text-3xl font-bold text-amber-700">
-                            {mostActiveDay ?? 'N/A'} {/* Use calculated most active day */}
+                          <div className="text-3xl font-bold text-green-600">
+                            <AnimatedNumber value={962} formatOptions={{ maximumFractionDigits: 0 }} className="block"/> {/* Placeholder */}
                           </div>
-                         <p className="text-xs text-muted-foreground mt-1">Día con más reportes</p>
+                           <p className="text-xs text-muted-foreground mt-1 flex items-center gap-1 text-green-600">
+                             <TrendingUp className="h-3.5 w-3.5"/> 15.8% más votos positivos este mes {/* Placeholder */}
+                          </p>
                      </CardContent>
                  </Card>
              </div>
@@ -446,9 +478,26 @@ const StatisticsPage: FC = () => {
                          </CardTitle>
                          <CardDescription className="text-sm mt-1 text-muted-foreground">Número de reportes registrados en el periodo seleccionado.</CardDescription>
                      </div>
-                     {/* Optional: Add export button or other actions here */}
+                     {/* Adjusted Period Filters - moved from top */}
+                      <div className="flex flex-wrap items-center justify-end gap-2 bg-background/70 border border-border p-1 rounded-lg shadow-sm">
+                          {(['month', 'year', 'Todos'] as const).map((p) => ( // Example periods
+                              <Button
+                                  key={p}
+                                  variant={'ghost'} // Keep it simple
+                                  size="sm"
+                                  onClick={() => { /* TODO: Implement filter logic if needed here */ }}
+                                  className={cn(
+                                      "capitalize px-3 h-8 text-xs transition-all duration-200 text-muted-foreground hover:bg-muted/80",
+                                      p === 'month' && "bg-primary/10 text-primary" // Example active style
+                                  )}
+                                  aria-pressed={p === 'month'}
+                              >
+                                  {p === 'month' ? '6 Meses' : p === 'year' ? '1 Año' : p}
+                              </Button>
+                          ))}
+                      </div>
                  </CardHeader>
-                 <CardContent className="p-2 sm:p-4 md:p-6"> {/* Adjusted padding */}
+                  <CardContent className="p-2 sm:p-4 md:p-6"> {/* Adjusted padding */}
                      {chartData.length > 1 ? ( // Ensure at least 2 data points for a meaningful chart
                          <ChartContainer config={chartConfig} className="h-[350px] sm:h-[450px] w-full"> {/* Increased height */}
                             <AreaChart
@@ -461,17 +510,13 @@ const StatisticsPage: FC = () => {
                                 }}
                             >
                                 <defs>
-                                     <linearGradient id="fillReportCount" x1="0" y1="0" x2="0" y2="1">
-                                        <stop
-                                           offset="5%"
-                                           stopColor="hsl(var(--primary))" // Direct color usage
-                                           stopOpacity={0.8}
-                                         />
-                                         <stop
-                                           offset="95%"
-                                           stopColor="hsl(var(--primary))" // Direct color usage
-                                           stopOpacity={0.1}
-                                         />
+                                     <linearGradient id="fillIncident" x1="0" y1="0" x2="0" y2="1">
+                                         <stop offset="5%" stopColor="hsl(var(--destructive))" stopOpacity={0.8}/>
+                                         <stop offset="95%" stopColor="hsl(var(--destructive))" stopOpacity={0.1}/>
+                                     </linearGradient>
+                                     <linearGradient id="fillOfficer" x1="0" y1="0" x2="0" y2="1">
+                                         <stop offset="5%" stopColor="hsl(var(--warning))" stopOpacity={0.7}/>
+                                         <stop offset="95%" stopColor="hsl(var(--warning))" stopOpacity={0.1}/>
                                      </linearGradient>
                                 </defs>
                                 <CartesianGrid vertical={false} strokeDasharray="3 3" stroke="hsl(var(--border) / 0.6)"/> {/* Lighter grid */}
@@ -499,15 +544,27 @@ const StatisticsPage: FC = () => {
                                     cursor={{ fill: "hsl(var(--accent) / 0.1)" }} // Use theme accent with opacity
                                     content={<ChartTooltipContent indicator="dot" labelFormatter={formatTooltipLabel} />}
                                 />
+                                {/* Area for Incidents */}
                                 <Area
-                                   dataKey="count"
+                                   dataKey="incidentCount" // Use specific count
                                    type="monotone"
-                                   fill="url(#fillReportCount)"
-                                   stroke="hsl(var(--primary))" // Direct color usage
+                                   fill="url(#fillIncident)"
+                                   stroke="hsl(var(--destructive))"
                                    stackId="a"
-                                   name="Reportes"
-                                   strokeWidth={2.5} // Slightly thicker line
-                                   dot={chartData.length < 30} // Show dots for fewer points
+                                   name={chartConfig.incident.label} // Use label from config
+                                   strokeWidth={2}
+                                   dot={chartData.length < 30}
+                                 />
+                                 {/* Area for Officer Reports */}
+                                 <Area
+                                   dataKey="officerCount" // Use specific count
+                                   type="monotone"
+                                   fill="url(#fillOfficer)"
+                                   stroke="hsl(var(--warning))"
+                                   stackId="b" // Different stackId or no stackId if you want them separate
+                                   name={chartConfig.officer.label} // Use label from config
+                                   strokeWidth={2}
+                                   dot={chartData.length < 30}
                                  />
                             </AreaChart>
                         </ChartContainer>
@@ -528,5 +585,4 @@ const StatisticsPage: FC = () => {
 };
 
 export default StatisticsPage;
-
     
