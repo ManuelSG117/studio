@@ -1,4 +1,3 @@
-
 "use client";
 
 import type { FC } from 'react';
@@ -40,7 +39,7 @@ import {
   ChartTooltipContent,
 } from "@/components/ui/chart"; // Import Chart components
 import { cn } from '@/lib/utils';
-import { motion, animate } from 'framer-motion'; // Import motion and animate
+import { AnimatedNumber } from '@/components/ui/animated-number'; // Import AnimatedNumber
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"; // Import Select components
 
 type FilterPeriod = 'day' | 'week' | 'month';
@@ -50,33 +49,6 @@ interface ChartDataPoint {
     period: string; // Format depends on filter: 'YYYY-MM-DD', 'YYYY-Www', 'YYYY-MM'
     count: number;
 }
-
-// Animated number component
-const AnimatedNumber: FC<{ value: number; formatOptions?: Intl.NumberFormatOptions }> = ({ value, formatOptions }) => {
-  const [displayValue, setDisplayValue] = useState(0);
-  const nodeRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    const node = nodeRef.current;
-    if (!node) return;
-
-    const controls = animate(displayValue, value, {
-      duration: 1, // Animation duration in seconds
-      ease: "easeOut",
-      onUpdate(latest) {
-        setDisplayValue(latest);
-      }
-    });
-
-    return () => controls.stop();
-  }, [value]); // Rerun animation when the target value changes
-
-  const formattedValue = useMemo(() => {
-    return new Intl.NumberFormat('es-ES', formatOptions).format(displayValue);
-  }, [displayValue, formatOptions]);
-
-  return <motion.div ref={nodeRef}>{formattedValue}</motion.div>;
-};
 
 
 const StatisticsPage: FC = () => {
@@ -298,7 +270,8 @@ const StatisticsPage: FC = () => {
   if (isLoading) {
     return (
       <main className="flex flex-col items-center p-4 sm:p-6 bg-secondary min-h-screen">
-         <div className="w-full max-w-4xl space-y-6">
+         {/* Increased max-width for skeleton */}
+         <div className="w-full max-w-6xl space-y-6">
             {/* Header Skeleton */}
             <div className="flex flex-col sm:flex-row justify-between items-center mb-2 gap-2"> {/* Reduced mb */}
                 <Skeleton className="h-8 w-48" />
@@ -351,156 +324,183 @@ const StatisticsPage: FC = () => {
 
   return (
     <main className="flex flex-col items-center p-4 sm:p-6 bg-secondary min-h-screen">
-        <div className="w-full max-w-4xl space-y-6">
+         {/* Increased max-width */}
+         <div className="w-full max-w-6xl space-y-6">
              {/* Header and Filters */}
-             <div className="flex flex-col sm:flex-row justify-between items-center mb-6 gap-4"> {/* Increased mb */}
-                <h1 className="text-2xl font-semibold text-foreground flex items-center">
-                    <LineChartIcon className="mr-3 h-6 w-6 text-primary" />
-                    Estadísticas de Reportes
-                </h1>
-                {/* Combined Filters */}
-                 <div className="flex flex-wrap justify-center sm:justify-end gap-2">
-                     {/* Period Filters */}
-                    {(['day', 'week', 'month'] as const).map((period) => (
-                        <Button
-                            key={period}
-                            variant={filterPeriod === period ? 'default' : 'outline'}
-                            size="sm"
-                            onClick={() => setFilterPeriod(period)}
-                            className={cn("capitalize", filterPeriod === period && "shadow")}
-                            aria-pressed={filterPeriod === period}
-                        >
-                            {period === 'day' ? 'Día' : period === 'week' ? 'Semana' : 'Mes'}
-                        </Button>
-                    ))}
-                    {/* Report Type Select Filter */}
-                    <div className="flex items-center gap-1.5">
-                        <Filter className="h-4 w-4 text-muted-foreground" />
-                        <Select
-                            value={reportTypeFilter}
-                            onValueChange={(value: ReportTypeFilter) => setReportTypeFilter(value)}
-                        >
-                            <SelectTrigger className="h-9 w-[150px] text-sm">
-                                <SelectValue placeholder="Filtrar por tipo" />
-                            </SelectTrigger>
-                            <SelectContent>
-                                <SelectItem value="Todos">Todos</SelectItem>
-                                <SelectItem value="Funcionario">Funcionarios</SelectItem>
-                                <SelectItem value="Incidente">Incidentes</SelectItem>
-                            </SelectContent>
-                        </Select>
-                    </div>
-                 </div>
-            </div>
+              <div className="flex flex-col sm:flex-row justify-between items-center mb-6 gap-4"> {/* Increased mb */}
+                 <h1 className="text-2xl font-semibold text-foreground flex items-center">
+                     <LineChartIcon className="mr-3 h-6 w-6 text-primary" />
+                     Estadísticas de Reportes
+                 </h1>
+                  {/* Combined Filters */}
+                 <div className="flex flex-wrap items-center justify-center sm:justify-end gap-2 bg-muted p-2 rounded-lg">
+                      {/* Period Filters */}
+                     {(['day', 'week', 'month'] as const).map((period) => (
+                         <Button
+                             key={period}
+                             variant={filterPeriod === period ? 'default' : 'ghost'} // Use ghost for inactive
+                             size="sm"
+                             onClick={() => setFilterPeriod(period)}
+                             className={cn("capitalize px-3 h-8", filterPeriod === period && "shadow-sm")} // Adjusted padding/height
+                             aria-pressed={filterPeriod === period}
+                         >
+                             {period === 'day' ? 'Día' : period === 'week' ? 'Semana' : 'Mes'}
+                         </Button>
+                     ))}
+                      <div className="h-6 w-px bg-border mx-2"></div> {/* Divider */}
+                     {/* Report Type Select Filter */}
+                     <div className="flex items-center gap-1.5">
+                         <Filter className="h-4 w-4 text-muted-foreground" />
+                         <Select
+                             value={reportTypeFilter}
+                             onValueChange={(value: ReportTypeFilter) => setReportTypeFilter(value)}
+                         >
+                             <SelectTrigger className="h-8 w-[150px] text-sm bg-card border-input"> {/* Match button height, use card background */}
+                                 <SelectValue placeholder="Filtrar por tipo" />
+                             </SelectTrigger>
+                             <SelectContent>
+                                 <SelectItem value="Todos">Todos</SelectItem>
+                                 <SelectItem value="Funcionario">Funcionarios</SelectItem>
+                                 <SelectItem value="Incidente">Incidentes</SelectItem>
+                             </SelectContent>
+                         </Select>
+                     </div>
+                  </div>
+             </div>
 
              {/* Key Metrics Section */}
-             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4"> {/* Reduced mb */}
+             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-4"> {/* Adjusted grid cols */}
                  {/* Total Reports Card */}
-                <Card className="bg-card shadow-sm border-border">
+                 <Card className="bg-card shadow-sm border-border hover:shadow-md transition-shadow">
                      <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                          <CardTitle className="text-sm font-medium text-muted-foreground">Total ({reportTypeFilter})</CardTitle> {/* Show current filter */}
                          <Hash className="h-4 w-4 text-muted-foreground" />
                      </CardHeader>
-                     <CardContent>
-                         <div className="text-2xl font-bold text-foreground">
+                     <CardContent className="pt-1"> {/* Reduced pt */}
+                         <div className="text-3xl font-bold text-foreground"> {/* Increased text size */}
                            {/* Animated Total Reports */}
-                           <AnimatedNumber value={totalReports} formatOptions={{ maximumFractionDigits: 0 }}/>
+                           <AnimatedNumber value={totalReports} formatOptions={{ maximumFractionDigits: 0 }} className="block"/> {/* Added block */}
                          </div>
                      </CardContent>
                  </Card>
                   {/* Average Reports Card */}
-                 <Card className="bg-card shadow-sm border-border">
+                 <Card className="bg-card shadow-sm border-border hover:shadow-md transition-shadow">
                      <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                          <CardTitle className="text-sm font-medium text-muted-foreground">{averageLabel}</CardTitle>
                          <TrendingUp className="h-4 w-4 text-muted-foreground" />
                      </CardHeader>
-                     <CardContent>
-                          <div className="text-2xl font-bold text-foreground">
+                     <CardContent className="pt-1"> {/* Reduced pt */}
+                          <div className="text-3xl font-bold text-foreground"> {/* Increased text size */}
                             {/* Animated Average Reports */}
-                             <AnimatedNumber value={averageReports} formatOptions={{ maximumFractionDigits: 1 }} />
+                             <AnimatedNumber value={averageReports} formatOptions={{ maximumFractionDigits: 1 }} className="block"/> {/* Added block */}
                           </div>
-                          <p className="text-xs text-muted-foreground">
+                          <p className="text-xs text-muted-foreground mt-1"> {/* Added mt */}
                              Reportes ({reportTypeFilter})
                          </p>
+                     </CardContent>
+                 </Card>
+                  {/* Placeholder Card 1 */}
+                 <Card className="bg-card shadow-sm border-border hover:shadow-md transition-shadow">
+                     <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                         <CardTitle className="text-sm font-medium text-muted-foreground">Tipo Más Reportado</CardTitle>
+                         <AlertTriangle className="h-4 w-4 text-muted-foreground" />
+                     </CardHeader>
+                     <CardContent className="pt-1">
+                         <div className="text-3xl font-bold text-foreground">Incidente</div> {/* Placeholder */}
+                          <p className="text-xs text-muted-foreground mt-1">Basado en el periodo actual</p> {/* Placeholder */}
+                     </CardContent>
+                 </Card>
+                  {/* Placeholder Card 2 */}
+                  <Card className="bg-card shadow-sm border-border hover:shadow-md transition-shadow">
+                     <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                         <CardTitle className="text-sm font-medium text-muted-foreground">Zona Más Activa</CardTitle>
+                          <MapPin className="h-4 w-4 text-muted-foreground" />
+                     </CardHeader>
+                     <CardContent className="pt-1">
+                         <div className="text-3xl font-bold text-foreground truncate">Col. Centro</div> {/* Placeholder */}
+                         <p className="text-xs text-muted-foreground mt-1">Con X reportes este mes</p> {/* Placeholder */}
                      </CardContent>
                  </Card>
              </div>
 
              {/* Report Trend Chart */}
-             <Card className="w-full shadow-sm rounded-lg border border-border bg-card">
-                <CardHeader>
-                     <CardTitle className="text-lg font-semibold flex items-center">
-                        <CalendarRange className="h-5 w-5 mr-2 text-muted-foreground" /> Tendencia de Reportes {reportTypeFilter !== 'Todos' ? `(${reportTypeFilter}s)` : ''} por {filterPeriod === 'day' ? 'Día' : filterPeriod === 'week' ? 'Semana' : 'Mes'}
+             <Card className="w-full shadow-lg rounded-xl border border-border bg-card overflow-hidden"> {/* Increased shadow, rounded-xl */}
+                <CardHeader className="bg-muted/50 p-4 border-b"> {/* Added background and padding */}
+                     <CardTitle className="text-lg font-semibold flex items-center gap-2"> {/* Adjusted gap */}
+                        <CalendarRange className="h-5 w-5 text-muted-foreground" /> Tendencia de Reportes {reportTypeFilter !== 'Todos' ? `(${reportTypeFilter}s)` : ''} por {filterPeriod === 'day' ? 'Día' : filterPeriod === 'week' ? 'Semana' : 'Mes'}
                      </CardTitle>
-                     <CardDescription>Número de reportes registrados en el periodo seleccionado.</CardDescription>
+                     <CardDescription className="text-sm mt-1">Número de reportes registrados en el periodo seleccionado.</CardDescription> {/* Adjusted spacing */}
                  </CardHeader>
-                 <CardContent>
+                 <CardContent className="p-4 sm:p-6"> {/* Added padding */}
                      {chartData.length > 0 ? (
-                        <ChartContainer config={chartConfig} className="h-[300px] sm:h-[400px] w-full"> {/* Adjusted height */}
+                         <ChartContainer config={chartConfig} className="h-[350px] sm:h-[450px] w-full"> {/* Increased height */}
                             <AreaChart
                                 data={chartData}
                                 margin={{
-                                  top: 10, // Increased top margin
-                                  right: 15, // Increased right margin
-                                  left: 5, // Increased left margin
-                                  bottom: 10, // Increased bottom margin for labels
+                                  top: 10,
+                                  right: 20, // Increased right margin
+                                  left: 10, // Increased left margin
+                                  bottom: 20, // Increased bottom margin for labels
                                 }}
                             >
                                 <defs>
                                      <linearGradient id="fillReportCount" x1="0" y1="0" x2="0" y2="1">
                                         <stop
                                            offset="5%"
-                                           stopColor="var(--color-reportCount)"
+                                           stopColor="hsl(var(--primary))" // Direct color usage
                                            stopOpacity={0.8}
                                          />
                                          <stop
                                            offset="95%"
-                                           stopColor="var(--color-reportCount)"
+                                           stopColor="hsl(var(--primary))" // Direct color usage
                                            stopOpacity={0.1}
                                          />
                                      </linearGradient>
                                 </defs>
-                                <CartesianGrid vertical={false} strokeDasharray="3 3" />
+                                <CartesianGrid vertical={false} strokeDasharray="3 3" stroke="hsl(var(--border))"/> {/* Use theme border */}
                                 <XAxis
                                    dataKey="period"
                                    tickLine={false}
                                    axisLine={false}
-                                   tickMargin={10} // Increase space below ticks
-                                   tickFormatter={formatXAxisTick} // Use dynamic formatter
-                                   interval={"preserveStartEnd"} // Ensure start/end labels show
-                                   minTickGap={30} // Adjust gap between ticks
-                                   angle={filterPeriod === 'day' ? -45 : 0} // Angle ticks if needed for day view
-                                   textAnchor={filterPeriod === 'day' ? 'end' : 'middle'} // Adjust anchor for angled ticks
-                                   height={filterPeriod === 'day' ? 50 : 30} // Increase height for angled labels
+                                   tickMargin={10}
+                                   tickFormatter={formatXAxisTick}
+                                   interval={"preserveStartEnd"}
+                                   minTickGap={30}
+                                   angle={filterPeriod === 'day' ? -45 : 0}
+                                   textAnchor={filterPeriod === 'day' ? 'end' : 'middle'}
+                                   height={filterPeriod === 'day' ? 50 : 30}
+                                   className="text-xs fill-muted-foreground" // Use theme color
                                 />
                                 <YAxis
                                     tickLine={false}
                                     axisLine={false}
                                     tickMargin={8}
-                                    allowDecimals={false} // Ensure whole numbers for count
+                                    allowDecimals={false}
+                                    className="text-xs fill-muted-foreground" // Use theme color
                                 />
                                 <ChartTooltip
-                                    cursor={false}
-                                    content={<ChartTooltipContent indicator="dot" labelFormatter={formatTooltipLabel}/>}
+                                    cursor={{ fill: "hsl(var(--accent) / 0.1)" }} // Use theme accent with opacity
+                                    content={<ChartTooltipContent indicator="dot" labelFormatter={formatTooltipLabel} />}
                                 />
                                 <Area
                                    dataKey="count"
-                                   type="monotone" // Smooth curve
+                                   type="monotone"
                                    fill="url(#fillReportCount)"
-                                   stroke="var(--color-reportCount)"
+                                   stroke="hsl(var(--primary))" // Direct color usage
                                    stackId="a"
-                                   name="Reportes" // Name for tooltip
-                                   strokeWidth={2} // Slightly thicker line
-                                   dot={chartData.length < 50} // Show dots only for smaller datasets
+                                   name="Reportes"
+                                   strokeWidth={2}
+                                   dot={chartData.length < 50}
                                  />
                             </AreaChart>
                         </ChartContainer>
                      ) : (
-                         <div className="h-[300px] sm:h-[400px] flex flex-col items-center justify-center text-center p-4">
-                             <LineChartIcon className="h-10 w-10 text-muted-foreground opacity-50 mb-3" />
-                             <p className="text-sm text-muted-foreground">
+                          <div className="h-[350px] sm:h-[450px] flex flex-col items-center justify-center text-center p-4 bg-muted/30 rounded-lg"> {/* Added background */}
+                             <LineChartIcon className="h-12 w-12 text-muted-foreground opacity-50 mb-4" /> {/* Increased size */}
+                             <p className="text-base font-medium text-muted-foreground"> {/* Increased text size */}
                                  {isLoading ? "Calculando datos..." : `No hay reportes ${reportTypeFilter !== 'Todos' ? `de tipo "${reportTypeFilter}"` : ''} para mostrar la tendencia en este periodo.`}
                              </p>
+                               <p className="text-sm text-muted-foreground mt-1">Intenta ajustar los filtros o revisa más tarde.</p> {/* Added suggestion */}
                          </div>
                      )}
                  </CardContent>
@@ -511,4 +511,3 @@ const StatisticsPage: FC = () => {
 };
 
 export default StatisticsPage;
-

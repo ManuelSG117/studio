@@ -1,4 +1,3 @@
-
 "use client";
 
 import type { FC } from 'react';
@@ -8,7 +7,7 @@ import { motion, animate } from 'framer-motion';
 interface AnimatedNumberProps {
   value: number;
   formatOptions?: Intl.NumberFormatOptions;
-  className?: string;
+  className?: string; // Added className prop
 }
 
 export const AnimatedNumber: FC<AnimatedNumberProps> = ({ value, formatOptions, className }) => {
@@ -38,5 +37,5 @@ export const AnimatedNumber: FC<AnimatedNumberProps> = ({ value, formatOptions, 
   }, [displayValue, formatOptions]);
 
   // Use motion.span for inline display or motion.div for block display
-  return <motion.span ref={nodeRef} className={className}>{formattedValue}</motion.span>;
+  return <motion.span ref={nodeRef} className={className}>{formattedValue}</motion.span>; // Pass className
 };
