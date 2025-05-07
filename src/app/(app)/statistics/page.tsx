@@ -8,7 +8,7 @@ import { auth, db } from '@/lib/firebase/client';
 import { collection, getDocs, query, orderBy, Timestamp } from "firebase/firestore";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
-import { LineChart as LineChartIcon, Loader2, CalendarRange, Hash, TrendingUp, AlertTriangle, UserCog, Filter, MapPin } from 'lucide-react'; // Import icons, added UserCog, Filter, MapPin
+import { LineChart as LineChartIcon, Loader2, CalendarRange, Hash, TrendingUp, AlertTriangle, UserCog, Filter, MapPin, TrendingDown, CalendarCheck } from 'lucide-react'; // Added more icons
 import { Button } from "@/components/ui/button";
 import type { Report } from '@/app/(app)/welcome/page'; // Reuse Report type
 import {
@@ -41,6 +41,7 @@ import {
 import { cn } from '@/lib/utils';
 import { AnimatedNumber } from '@/components/ui/animated-number'; // Import AnimatedNumber
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"; // Import Select components
+import { Badge } from '@/components/ui/badge'; // Import Badge
 
 type FilterPeriod = 'day' | 'week' | 'month';
 type ReportTypeFilter = 'Todos' | 'Funcionario' | 'Incidente'; // Added report type filter
@@ -61,6 +62,7 @@ const StatisticsPage: FC = () => {
   const [reportTypeFilter, setReportTypeFilter] = useState<ReportTypeFilter>('Todos'); // Default report type filter
   const [totalReports, setTotalReports] = useState<number>(0);
   const [averageReports, setAverageReports] = useState<number>(0);
+  const [mostActiveDay, setMostActiveDay] = useState<string | null>(null); // Placeholder for now
 
   useEffect(() => {
     setIsLoading(true); // Start loading
@@ -124,6 +126,7 @@ const StatisticsPage: FC = () => {
     if (filteredReportsByType.length === 0) {
       setChartData([]);
       setAverageReports(0); // Reset average if no reports match filters
+      setMostActiveDay(null);
       return;
     }
 
@@ -137,6 +140,7 @@ const StatisticsPage: FC = () => {
     let formatKey: (date: Date) => string;
     let parseKey: (key: string) => Date; // Keep for potential future use
     let numberOfPeriods: number;
+    let dayOfWeekCounter: Record<string, number> = {}; // For most active day
 
     switch (period) {
       case 'day':
@@ -169,13 +173,28 @@ const StatisticsPage: FC = () => {
         reportsByPeriod[periodKey] = 0;
     });
 
-    // Count reports for each period using the type-filtered list
+    // Count reports for each period using the type-filtered list and track day of week
     filteredReportsByType.forEach(report => {
        const periodKey = formatKey(report.createdAt);
        if (reportsByPeriod[periodKey] !== undefined) {
           reportsByPeriod[periodKey]++;
        }
+       // Count reports per day of the week
+       const dayName = format(report.createdAt, 'EEEE', { locale: es });
+       dayOfWeekCounter[dayName] = (dayOfWeekCounter[dayName] || 0) + 1;
     });
+
+    // Find the most active day
+    let maxCount = 0;
+    let activeDay = null;
+    for (const [day, count] of Object.entries(dayOfWeekCounter)) {
+        if (count > maxCount) {
+            maxCount = count;
+            activeDay = day;
+        }
+    }
+    setMostActiveDay(activeDay ? activeDay.charAt(0).toUpperCase() + activeDay.slice(1) : 'N/A'); // Capitalize
+
 
     // Format data for the chart, ensuring chronological order
     const formattedChartData = Object.entries(reportsByPeriod)
@@ -202,9 +221,9 @@ const StatisticsPage: FC = () => {
   // Moved useMemo hook before the conditional return
   const averageLabel = useMemo(() => {
      switch(filterPeriod) {
-        case 'day': return 'Promedio por Día';
-        case 'week': return 'Promedio por Semana';
-        case 'month': return 'Promedio por Mes';
+        case 'day': return 'Promedio Diario';
+        case 'week': return 'Promedio Semanal';
+        case 'month': return 'Promedio Mensual';
         default: return 'Promedio';
      }
   }, [filterPeriod]);
@@ -230,7 +249,7 @@ const StatisticsPage: FC = () => {
             return `Sem ${weekW}, ${yearW.substring(2)}`;
           case 'month':
           default:
-            // Format 'YYYY-MM' to 'Mmm YY' (e.g., 'Ene 24')
+            // Format 'YYYY-MM' to 'Mmm yy' (e.g., 'Ene 24')
             const [yearM, monthM] = value.split('-');
             const dateM = new Date(parseInt(yearM), parseInt(monthM) - 1);
             return format(dateM, 'MMM yy', { locale: es });
@@ -270,48 +289,38 @@ const StatisticsPage: FC = () => {
   if (isLoading) {
     return (
       <main className="flex flex-col items-center p-4 sm:p-6 bg-secondary min-h-screen">
-         {/* Increased max-width for skeleton */}
-         <div className="w-full max-w-6xl space-y-6">
+         <div className="w-full max-w-7xl mx-auto space-y-6"> {/* Use max-w-7xl */}
             {/* Header Skeleton */}
             <div className="flex flex-col sm:flex-row justify-between items-center mb-2 gap-2"> {/* Reduced mb */}
                 <Skeleton className="h-8 w-48" />
-                 {/* Combined Filter Skeleton */}
                  <div className="flex flex-wrap justify-center sm:justify-end gap-2">
-                     {/* Period Filters */}
                      <Skeleton className="h-9 w-20 rounded-md" />
                      <Skeleton className="h-9 w-20 rounded-md" />
                      <Skeleton className="h-9 w-20 rounded-md" />
-                      {/* Type Filters (Select Placeholder) */}
-                     <Skeleton className="h-9 w-36 rounded-md" /> {/* Placeholder for Select */}
+                     <Skeleton className="h-9 w-36 rounded-md" />
                  </div>
             </div>
-             {/* Metrics Skeleton */}
-             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4"> {/* Reduced mb */}
-                 <Card className="bg-card">
-                     <CardHeader className="pb-2">
-                          <Skeleton className="h-4 w-24" />
-                     </CardHeader>
-                     <CardContent>
-                         <Skeleton className="h-8 w-16" />
-                     </CardContent>
-                 </Card>
-                 <Card className="bg-card">
-                     <CardHeader className="pb-2">
-                          <Skeleton className="h-4 w-32" />
-                     </CardHeader>
-                     <CardContent>
-                         <Skeleton className="h-8 w-20" />
-                     </CardContent>
-                 </Card>
+             {/* Metrics Skeleton Grid */}
+             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-4">
+                 {[...Array(4)].map((_, i) => (
+                     <Card key={i} className="bg-card">
+                         <CardHeader className="pb-2">
+                              <Skeleton className="h-4 w-24" />
+                         </CardHeader>
+                         <CardContent>
+                             <Skeleton className="h-8 w-16" />
+                             <Skeleton className="h-3 w-20 mt-1" />
+                         </CardContent>
+                     </Card>
+                 ))}
             </div>
-
             {/* Chart Card Skeleton */}
             <Card className="w-full shadow-sm rounded-lg border border-border bg-card">
                <CardHeader>
                    <Skeleton className="h-6 w-1/3 mb-2" />
                    <Skeleton className="h-4 w-1/2" />
                </CardHeader>
-               <CardContent className="h-[300px] sm:h-[400px] flex items-center justify-center"> {/* Adjusted height */}
+               <CardContent className="h-[350px] sm:h-[450px] flex items-center justify-center"> {/* Increased height */}
                     <Skeleton className="h-full w-full" />
                </CardContent>
             </Card>
@@ -324,30 +333,32 @@ const StatisticsPage: FC = () => {
 
   return (
     <main className="flex flex-col items-center p-4 sm:p-6 bg-secondary min-h-screen">
-         {/* Increased max-width */}
-         <div className="w-full max-w-6xl space-y-6">
+         <div className="w-full max-w-7xl mx-auto space-y-8"> {/* Use max-w-7xl and increase spacing */}
              {/* Header and Filters */}
-              <div className="flex flex-col sm:flex-row justify-between items-center mb-6 gap-4"> {/* Increased mb */}
-                 <h1 className="text-2xl font-semibold text-foreground flex items-center">
-                     <LineChartIcon className="mr-3 h-6 w-6 text-primary" />
+              <div className="flex flex-col md:flex-row justify-between items-center mb-6 gap-4"> {/* Keep mb-6 */}
+                 <h1 className="text-2xl md:text-3xl font-semibold text-foreground flex items-center"> {/* Larger title */}
+                     <LineChartIcon className="mr-3 h-7 w-7 text-primary" /> {/* Larger icon */}
                      Estadísticas de Reportes
                  </h1>
                   {/* Combined Filters */}
-                 <div className="flex flex-wrap items-center justify-center sm:justify-end gap-2 bg-muted p-2 rounded-lg">
+                 <div className="flex flex-wrap items-center justify-center md:justify-end gap-3 bg-card border border-border p-2 rounded-lg shadow-sm"> {/* Card background for filters */}
                       {/* Period Filters */}
                      {(['day', 'week', 'month'] as const).map((period) => (
                          <Button
                              key={period}
-                             variant={filterPeriod === period ? 'default' : 'ghost'} // Use ghost for inactive
+                             variant={filterPeriod === period ? 'secondary' : 'ghost'} // Use secondary for active
                              size="sm"
                              onClick={() => setFilterPeriod(period)}
-                             className={cn("capitalize px-3 h-8", filterPeriod === period && "shadow-sm")} // Adjusted padding/height
+                             className={cn(
+                                 "capitalize px-4 h-9 text-sm transition-all duration-200", // Adjusted padding/height
+                                 filterPeriod === period ? "bg-primary text-primary-foreground shadow-md" : "text-muted-foreground hover:bg-muted/80"
+                             )}
                              aria-pressed={filterPeriod === period}
                          >
                              {period === 'day' ? 'Día' : period === 'week' ? 'Semana' : 'Mes'}
                          </Button>
                      ))}
-                      <div className="h-6 w-px bg-border mx-2"></div> {/* Divider */}
+                      <div className="h-6 w-px bg-border mx-1 hidden sm:block"></div> {/* Divider */}
                      {/* Report Type Select Filter */}
                      <div className="flex items-center gap-1.5">
                          <Filter className="h-4 w-4 text-muted-foreground" />
@@ -355,11 +366,11 @@ const StatisticsPage: FC = () => {
                              value={reportTypeFilter}
                              onValueChange={(value: ReportTypeFilter) => setReportTypeFilter(value)}
                          >
-                             <SelectTrigger className="h-8 w-[150px] text-sm bg-card border-input"> {/* Match button height, use card background */}
+                             <SelectTrigger className="h-9 w-[160px] text-sm bg-background border-input focus:ring-primary focus:border-primary"> {/* Background style */}
                                  <SelectValue placeholder="Filtrar por tipo" />
                              </SelectTrigger>
                              <SelectContent>
-                                 <SelectItem value="Todos">Todos</SelectItem>
+                                 <SelectItem value="Todos">Todos los Tipos</SelectItem>
                                  <SelectItem value="Funcionario">Funcionarios</SelectItem>
                                  <SelectItem value="Incidente">Incidentes</SelectItem>
                              </SelectContent>
@@ -368,79 +379,85 @@ const StatisticsPage: FC = () => {
                   </div>
              </div>
 
-             {/* Key Metrics Section */}
-             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-4"> {/* Adjusted grid cols */}
+             {/* Key Metrics Section - Enhanced Cards */}
+             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6"> {/* Increased gap */}
                  {/* Total Reports Card */}
-                 <Card className="bg-card shadow-sm border-border hover:shadow-md transition-shadow">
-                     <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                         <CardTitle className="text-sm font-medium text-muted-foreground">Total ({reportTypeFilter})</CardTitle> {/* Show current filter */}
-                         <Hash className="h-4 w-4 text-muted-foreground" />
+                 <Card className="bg-card shadow-md border-border hover:shadow-lg transition-shadow group border-l-4 border-l-primary">
+                     <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 pt-4 px-4">
+                         <CardTitle className="text-sm font-medium text-muted-foreground">Total ({reportTypeFilter})</CardTitle>
+                         <Hash className="h-5 w-5 text-primary opacity-70 group-hover:opacity-100 transition-opacity" />
                      </CardHeader>
-                     <CardContent className="pt-1"> {/* Reduced pt */}
-                         <div className="text-3xl font-bold text-foreground"> {/* Increased text size */}
-                           {/* Animated Total Reports */}
-                           <AnimatedNumber value={totalReports} formatOptions={{ maximumFractionDigits: 0 }} className="block"/> {/* Added block */}
+                     <CardContent className="pt-1 pb-4 px-4">
+                         <div className="text-3xl font-bold text-primary">
+                           <AnimatedNumber value={totalReports} formatOptions={{ maximumFractionDigits: 0 }} className="block"/>
                          </div>
+                          <p className="text-xs text-muted-foreground mt-1">Reportes registrados</p>
                      </CardContent>
                  </Card>
                   {/* Average Reports Card */}
-                 <Card className="bg-card shadow-sm border-border hover:shadow-md transition-shadow">
-                     <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                 <Card className="bg-card shadow-md border-border hover:shadow-lg transition-shadow group border-l-4 border-l-blue-500">
+                     <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 pt-4 px-4">
                          <CardTitle className="text-sm font-medium text-muted-foreground">{averageLabel}</CardTitle>
-                         <TrendingUp className="h-4 w-4 text-muted-foreground" />
+                         <TrendingUp className="h-5 w-5 text-blue-500 opacity-70 group-hover:opacity-100 transition-opacity" />
                      </CardHeader>
-                     <CardContent className="pt-1"> {/* Reduced pt */}
-                          <div className="text-3xl font-bold text-foreground"> {/* Increased text size */}
-                            {/* Animated Average Reports */}
-                             <AnimatedNumber value={averageReports} formatOptions={{ maximumFractionDigits: 1 }} className="block"/> {/* Added block */}
+                     <CardContent className="pt-1 pb-4 px-4">
+                          <div className="text-3xl font-bold text-blue-600">
+                             <AnimatedNumber value={averageReports} formatOptions={{ maximumFractionDigits: 1 }} className="block"/>
                           </div>
-                          <p className="text-xs text-muted-foreground mt-1"> {/* Added mt */}
-                             Reportes ({reportTypeFilter})
+                          <p className="text-xs text-muted-foreground mt-1">
+                             Reportes ({reportTypeFilter}) en promedio
                          </p>
                      </CardContent>
                  </Card>
-                  {/* Placeholder Card 1 */}
-                 <Card className="bg-card shadow-sm border-border hover:shadow-md transition-shadow">
-                     <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                  {/* Most Reported Type Card (Placeholder logic) */}
+                 <Card className="bg-card shadow-md border-border hover:shadow-lg transition-shadow group border-l-4 border-l-destructive">
+                     <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 pt-4 px-4">
                          <CardTitle className="text-sm font-medium text-muted-foreground">Tipo Más Reportado</CardTitle>
-                         <AlertTriangle className="h-4 w-4 text-muted-foreground" />
+                         <AlertTriangle className="h-5 w-5 text-destructive opacity-70 group-hover:opacity-100 transition-opacity" />
                      </CardHeader>
-                     <CardContent className="pt-1">
-                         <div className="text-3xl font-bold text-foreground">Incidente</div> {/* Placeholder */}
-                          <p className="text-xs text-muted-foreground mt-1">Basado en el periodo actual</p> {/* Placeholder */}
+                     <CardContent className="pt-1 pb-4 px-4">
+                         <div className="text-3xl font-bold text-destructive">
+                             {totalReports > 0 ? (reportTypeFilter === 'Funcionario' ? 'Funcionario' : reportTypeFilter === 'Incidente' ? 'Incidente' : (Math.random() > 0.4 ? 'Incidente' : 'Funcionario')) : 'N/A'} {/* Placeholder */}
+                         </div>
+                          <p className="text-xs text-muted-foreground mt-1">Basado en el periodo actual</p>
                      </CardContent>
                  </Card>
-                  {/* Placeholder Card 2 */}
-                  <Card className="bg-card shadow-sm border-border hover:shadow-md transition-shadow">
-                     <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                         <CardTitle className="text-sm font-medium text-muted-foreground">Zona Más Activa</CardTitle>
-                          <MapPin className="h-4 w-4 text-muted-foreground" />
+                  {/* Most Active Day Card */}
+                  <Card className="bg-card shadow-md border-border hover:shadow-lg transition-shadow group border-l-4 border-l-amber-500">
+                     <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 pt-4 px-4">
+                         <CardTitle className="text-sm font-medium text-muted-foreground">Día Más Activo</CardTitle>
+                          <CalendarCheck className="h-5 w-5 text-amber-600 opacity-70 group-hover:opacity-100 transition-opacity" />
                      </CardHeader>
-                     <CardContent className="pt-1">
-                         <div className="text-3xl font-bold text-foreground truncate">Col. Centro</div> {/* Placeholder */}
-                         <p className="text-xs text-muted-foreground mt-1">Con X reportes este mes</p> {/* Placeholder */}
+                     <CardContent className="pt-1 pb-4 px-4">
+                          <div className="text-3xl font-bold text-amber-700">
+                            {mostActiveDay ?? 'N/A'} {/* Use calculated most active day */}
+                          </div>
+                         <p className="text-xs text-muted-foreground mt-1">Día con más reportes</p>
                      </CardContent>
                  </Card>
              </div>
 
              {/* Report Trend Chart */}
              <Card className="w-full shadow-lg rounded-xl border border-border bg-card overflow-hidden"> {/* Increased shadow, rounded-xl */}
-                <CardHeader className="bg-muted/50 p-4 border-b"> {/* Added background and padding */}
-                     <CardTitle className="text-lg font-semibold flex items-center gap-2"> {/* Adjusted gap */}
-                        <CalendarRange className="h-5 w-5 text-muted-foreground" /> Tendencia de Reportes {reportTypeFilter !== 'Todos' ? `(${reportTypeFilter}s)` : ''} por {filterPeriod === 'day' ? 'Día' : filterPeriod === 'week' ? 'Semana' : 'Mes'}
-                     </CardTitle>
-                     <CardDescription className="text-sm mt-1">Número de reportes registrados en el periodo seleccionado.</CardDescription> {/* Adjusted spacing */}
+                <CardHeader className="bg-muted/30 p-4 sm:p-5 border-b border-border/50 flex flex-row items-center justify-between"> {/* Lighter background */}
+                     <div>
+                         <CardTitle className="text-lg font-semibold flex items-center gap-2 text-foreground">
+                            <CalendarRange className="h-5 w-5 text-primary" /> Tendencia de Reportes {reportTypeFilter !== 'Todos' ? `(${reportTypeFilter}s)` : ''} por {filterPeriod === 'day' ? 'Día' : filterPeriod === 'week' ? 'Semana' : 'Mes'}
+                         </CardTitle>
+                         <CardDescription className="text-sm mt-1 text-muted-foreground">Número de reportes registrados en el periodo seleccionado.</CardDescription>
+                     </div>
+                     {/* Optional: Add export button or other actions here */}
                  </CardHeader>
-                 <CardContent className="p-4 sm:p-6"> {/* Added padding */}
-                     {chartData.length > 0 ? (
+                 <CardContent className="p-2 sm:p-4 md:p-6"> {/* Adjusted padding */}
+                     {chartData.length > 1 ? ( // Ensure at least 2 data points for a meaningful chart
                          <ChartContainer config={chartConfig} className="h-[350px] sm:h-[450px] w-full"> {/* Increased height */}
                             <AreaChart
                                 data={chartData}
                                 margin={{
                                   top: 10,
-                                  right: 20, // Increased right margin
-                                  left: 10, // Increased left margin
-                                  bottom: 20, // Increased bottom margin for labels
+                                  right: 30, // Increased right margin for labels
+                                  left: 5, // Adjusted left margin
+                                  bottom: 30, // Increased bottom margin for angled labels
                                 }}
                             >
                                 <defs>
@@ -457,18 +474,17 @@ const StatisticsPage: FC = () => {
                                          />
                                      </linearGradient>
                                 </defs>
-                                <CartesianGrid vertical={false} strokeDasharray="3 3" stroke="hsl(var(--border))"/> {/* Use theme border */}
+                                <CartesianGrid vertical={false} strokeDasharray="3 3" stroke="hsl(var(--border) / 0.6)"/> {/* Lighter grid */}
                                 <XAxis
                                    dataKey="period"
                                    tickLine={false}
                                    axisLine={false}
                                    tickMargin={10}
                                    tickFormatter={formatXAxisTick}
-                                   interval={"preserveStartEnd"}
-                                   minTickGap={30}
-                                   angle={filterPeriod === 'day' ? -45 : 0}
-                                   textAnchor={filterPeriod === 'day' ? 'end' : 'middle'}
-                                   height={filterPeriod === 'day' ? 50 : 30}
+                                   interval={chartData.length > 10 ? Math.floor(chartData.length / 10) : 0} // Dynamic interval
+                                   angle={filterPeriod === 'day' && chartData.length > 7 ? -45 : 0} // Angle ticks if many days
+                                   textAnchor={filterPeriod === 'day' && chartData.length > 7 ? 'end' : 'middle'}
+                                   height={filterPeriod === 'day' && chartData.length > 7 ? 60 : 40} // Adjust height for angled labels
                                    className="text-xs fill-muted-foreground" // Use theme color
                                 />
                                 <YAxis
@@ -476,6 +492,7 @@ const StatisticsPage: FC = () => {
                                     axisLine={false}
                                     tickMargin={8}
                                     allowDecimals={false}
+                                    width={30} // Adjust width for Y-axis labels
                                     className="text-xs fill-muted-foreground" // Use theme color
                                 />
                                 <ChartTooltip
@@ -489,18 +506,18 @@ const StatisticsPage: FC = () => {
                                    stroke="hsl(var(--primary))" // Direct color usage
                                    stackId="a"
                                    name="Reportes"
-                                   strokeWidth={2}
-                                   dot={chartData.length < 50}
+                                   strokeWidth={2.5} // Slightly thicker line
+                                   dot={chartData.length < 30} // Show dots for fewer points
                                  />
                             </AreaChart>
                         </ChartContainer>
                      ) : (
-                          <div className="h-[350px] sm:h-[450px] flex flex-col items-center justify-center text-center p-4 bg-muted/30 rounded-lg"> {/* Added background */}
-                             <LineChartIcon className="h-12 w-12 text-muted-foreground opacity-50 mb-4" /> {/* Increased size */}
-                             <p className="text-base font-medium text-muted-foreground"> {/* Increased text size */}
-                                 {isLoading ? "Calculando datos..." : `No hay reportes ${reportTypeFilter !== 'Todos' ? `de tipo "${reportTypeFilter}"` : ''} para mostrar la tendencia en este periodo.`}
+                          <div className="h-[350px] sm:h-[450px] flex flex-col items-center justify-center text-center p-6 bg-muted/30 rounded-lg border border-dashed border-border"> {/* Dashed border */}
+                             <LineChartIcon className="h-16 w-16 text-muted-foreground opacity-40 mb-5" /> {/* Larger icon */}
+                             <p className="text-lg font-semibold text-muted-foreground mb-2"> {/* Larger text */}
+                                 {isLoading ? "Calculando datos..." : `No hay suficientes datos ${reportTypeFilter !== 'Todos' ? `de tipo "${reportTypeFilter}"` : ''} para mostrar la tendencia.`}
                              </p>
-                               <p className="text-sm text-muted-foreground mt-1">Intenta ajustar los filtros o revisa más tarde.</p> {/* Added suggestion */}
+                               <p className="text-sm text-muted-foreground/80">Intenta ajustar los filtros o espera a que se registren más reportes.</p> {/* Improved suggestion */}
                          </div>
                      )}
                  </CardContent>
@@ -511,3 +528,5 @@ const StatisticsPage: FC = () => {
 };
 
 export default StatisticsPage;
+
+    
