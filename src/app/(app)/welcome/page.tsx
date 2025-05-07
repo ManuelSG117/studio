@@ -1,3 +1,4 @@
+
 "use client";
 
 import type { FC } from 'react';
@@ -389,7 +390,7 @@ const WelcomePage: FC = () => {
                         </div>
                      </div>
                  </CardContent>
-                 {/* Footer with Votes and Options */}
+                 {/* Reverted Footer with Counts */}
                  <CardFooter className="p-3 bg-muted/50 flex justify-between items-center border-t">
                     <div className="flex items-center gap-3 text-xs text-muted-foreground">
                        <div className="flex items-center gap-1">
@@ -400,7 +401,7 @@ const WelcomePage: FC = () => {
                           <ThumbsDown size={14} className="text-destructive"/>
                          <span>{report.downvotes}</span>
                        </div>
-                       <div className="flex items-center gap-1">
+                       <div className="flex items-center gap-1 cursor-pointer" title="Ver comentarios (próximamente)">
                          <MessageSquare size={14} />
                          <span>{report.commentCount ?? 0}</span>
                        </div>
