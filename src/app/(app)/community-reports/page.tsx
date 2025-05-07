@@ -13,7 +13,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Input } from "@/components/ui/input"; // Import Input
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"; // Import Select
 import { Badge } from "@/components/ui/badge"; // Import Badge
-import { FileText, MapPin, CalendarDays, ThumbsUp, ThumbsDown, Loader2, UserCog, TriangleAlert, Video, Image as ImageIcon, Search, Ellipsis, ChevronLeft, ChevronRight, Plus } from 'lucide-react'; // Added necessary icons
+import { FileText, MapPin, CalendarDays, Loader2, UserCog, TriangleAlert, Video, Image as ImageIcon, Search, Ellipsis, ChevronLeft, ChevronRight, Plus, ArrowUp, ArrowDown } from 'lucide-react'; // Added necessary icons, ArrowUp, ArrowDown
 import { format, formatDistanceToNow } from 'date-fns'; // Import formatDistanceToNow
 import { es } from 'date-fns/locale';
 import { useToast } from "@/hooks/use-toast";
@@ -379,13 +379,50 @@ const CommunityReportsPage: FC = () => {
                     )}
 
                    {/* Badges Overlay */}
-                   <div className="absolute top-2 left-2">
+                   <div className="absolute top-2 left-2 z-10">
                       <Badge variant={getTypeBadgeVariant(report.reportType)} className="text-xs capitalize shadow">
                         {getTypeBadgeText(report.reportType)}
                       </Badge>
                    </div>
-                    {/* Dropdown Menu Overlay */}
-                    <div className="absolute top-2 right-2">
+                    {/* Dropdown Menu & Voting Overlay */}
+                    <div className="absolute top-2 right-2 flex items-center gap-2 z-10">
+                        {/* Voting Buttons */}
+                         <div className="flex items-center space-x-1 bg-black/50 p-1 rounded-full backdrop-blur-sm">
+                             <Button
+                                 variant="ghost"
+                                 size="icon"
+                                 className={cn(
+                                     "h-6 w-6 rounded-full text-white hover:bg-blue-500/80",
+                                     report.userVote === 'down' && "bg-blue-600 text-white",
+                                     votingState[report.id] && "opacity-50 cursor-not-allowed"
+                                 )}
+                                onClick={() => handleVote(report.id, 'down')}
+                                disabled={votingState[report.id] || user?.uid === report.userId}
+                                aria-pressed={report.userVote === 'down'}
+                                title="Votar negativamente"
+                             >
+                                {votingState[report.id] && report.userVote !== 'down' ? <Loader2 className="h-3.5 w-3.5 animate-spin"/> : <ArrowDown className="h-4 w-4"/>}
+                             </Button>
+                             <span className="text-sm font-medium text-white tabular-nums w-6 text-center">
+                                 {report.upvotes - report.downvotes}
+                              </span>
+                             <Button
+                                variant="ghost"
+                                size="icon"
+                                className={cn(
+                                    "h-6 w-6 rounded-full text-white hover:bg-red-500/80",
+                                    report.userVote === 'up' && "bg-red-600 text-white",
+                                    votingState[report.id] && "opacity-50 cursor-not-allowed"
+                                )}
+                                onClick={() => handleVote(report.id, 'up')}
+                                disabled={votingState[report.id] || user?.uid === report.userId}
+                                aria-pressed={report.userVote === 'up'}
+                                title="Votar positivamente"
+                             >
+                                {votingState[report.id] && report.userVote !== 'up' ? <Loader2 className="h-3.5 w-3.5 animate-spin"/> : <ArrowUp className="h-4 w-4"/>}
+                             </Button>
+                         </div>
+                         {/* Dropdown Menu */}
                         <DropdownMenu>
                             <DropdownMenuTrigger asChild>
                                 <Button variant="ghost" size="icon" className="h-8 w-8 bg-black/40 text-white hover:bg-black/60 rounded-full backdrop-blur-sm">
@@ -409,7 +446,7 @@ const CommunityReportsPage: FC = () => {
 
                    {/* Media Type Icon */}
                    {report.mediaUrl && (
-                    <div className="absolute bottom-2 right-2 bg-black/60 text-white p-1.5 rounded-full backdrop-blur-sm">
+                    <div className="absolute bottom-2 right-2 bg-black/60 text-white p-1.5 rounded-full backdrop-blur-sm z-10">
                         {report.mediaUrl.includes('.mp4') || report.mediaUrl.includes('.webm') ? (
                             <Video size={14} />
                          ) : (
@@ -437,37 +474,7 @@ const CommunityReportsPage: FC = () => {
                          <CalendarDays size={12} className="flex-shrink-0" />
                          <span>{formatDistanceToNow(report.createdAt, { addSuffix: true, locale: es })}</span>
                       </div>
-                     <div className="flex items-center gap-2">
-                       <Button
-                         variant="ghost"
-                         size="icon"
-                         className={cn(
-                           "h-8 w-8",
-                           report.userVote === 'up' && "text-green-500"
-                         )}
-                         onClick={() => handleVote(report.id, 'up')}
-                         disabled={votingState[report.id] || user?.uid === report.userId}
-                       >
-                         <ThumbsUp size={16} />
-                         <span className="sr-only">Me gusta</span>
-                       </Button>
-                       <span className="text-sm">{report.upvotes}</span>
-                       <Button
-                         variant="ghost"
-                         size="icon"
-                         className={cn(
-                           "h-8 w-8",
-                           report.userVote === 'down' && "text-red-500"
-                         )}
-                         onClick={() => handleVote(report.id, 'down')}
-                         disabled={votingState[report.id] || user?.uid === report.userId}
-                       >
-                         <ThumbsDown size={16} />
-                         <span className="sr-only">No me gusta</span>
-                       </Button>
-                       <span className="text-sm">{report.downvotes}</span>
-                     </div>
-                     {/* Voting moved to bottom right */}
+                      {/* Voting Section Moved to Top Right Overlay */}
                    </div>
                  </CardContent>
 

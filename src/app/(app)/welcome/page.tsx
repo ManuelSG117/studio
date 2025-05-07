@@ -11,7 +11,7 @@ import { collection, query, where, getDocs, orderBy, Timestamp, limit, startAfte
 import { Card, CardContent, CardDescription, CardHeader, CardTitle  } from '@/components/ui/card';
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
-import { FileText, MapPin, CalendarDays, ThumbsUp, ThumbsDown, Loader2, UserCog, TriangleAlert, Plus, Ellipsis, Image as ImageIcon, Video } from 'lucide-react'; // Updated icons
+import { FileText, MapPin, CalendarDays, Loader2, UserCog, TriangleAlert, Plus, Ellipsis, Image as ImageIcon, Video, ArrowUp, ArrowDown } from 'lucide-react'; // Updated icons, ArrowUp, ArrowDown
 import { format, formatDistanceToNow } from 'date-fns'; // Added formatDistanceToNow
 import { es } from 'date-fns/locale';
 import { useToast } from "@/hooks/use-toast";
@@ -206,9 +206,9 @@ const WelcomePage: FC = () => {
         return;
     }
 
-    // Prevent voting on own reports (already handled in the community page logic, but good to keep)
+    // Prevent voting on own reports
      if (user.uid === currentReport.userId) {
-         toast({ variant: "destructive", title: "Error", description: "No puedes votar en tus propios reportes." });
+         // Do nothing, or show a disabled state / tooltip
          return;
      }
 
@@ -344,33 +344,47 @@ const WelcomePage: FC = () => {
           reports.map((report) => (
              <Card key={report.id} className="shadow-sm bg-card rounded-lg overflow-hidden hover:shadow-md transition-shadow">
                  <CardHeader className="p-4 flex flex-row items-center justify-between">
-                      <Badge variant={getTypeBadgeVariant(report.reportType)} className="text-xs capitalize">
+                     <Badge variant={getTypeBadgeVariant(report.reportType)} className="text-xs capitalize">
                         {getTypeBadgeText(report.reportType)}
-                      </Badge>
-                      <DropdownMenu>
-                           <DropdownMenuTrigger asChild>
-                             <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground">
-                               <Ellipsis className="h-4 w-4" />
-                               <span className="sr-only">Abrir menú</span>
-                             </Button>
-                           </DropdownMenuTrigger>
-                           <DropdownMenuContent align="end">
-                             <DropdownMenuItem asChild>
-                               <Link href={`/reports/${report.id}`}>
-                                 Ver detalles
-                               </Link>
-                             </DropdownMenuItem>
-                              <DropdownMenuItem disabled>
-                                 Editar (Próximamente)
-                              </DropdownMenuItem>
-                              <DropdownMenuItem disabled className="text-destructive focus:bg-destructive/10 focus:text-destructive">
-                                 Eliminar (Próximamente)
-                              </DropdownMenuItem>
-                              <DropdownMenuItem>
-                                Compartir
-                              </DropdownMenuItem>
-                           </DropdownMenuContent>
-                      </DropdownMenu>
+                     </Badge>
+                      {/* Voting Buttons - Top Right */}
+                     <div className="flex items-center space-x-1 bg-muted p-1 rounded-full">
+                         <Button
+                             variant="ghost"
+                             size="icon"
+                             className={cn(
+                                 "h-6 w-6 rounded-full text-muted-foreground hover:bg-blue-500/10 hover:text-blue-500", // Blue for downvote
+                                 report.userVote === 'down' && "bg-blue-600/20 text-blue-600",
+                                 votingState[report.id] && "opacity-50 cursor-not-allowed",
+                                 user?.uid === report.userId && "cursor-not-allowed opacity-60" // Disable for own report
+                             )}
+                             onClick={() => handleVote(report.id, 'down')}
+                             disabled={votingState[report.id] || user?.uid === report.userId}
+                             aria-pressed={report.userVote === 'down'}
+                             title={user?.uid === report.userId ? "No puedes votar en tus propios reportes" : "Votar negativamente"}
+                         >
+                             {votingState[report.id] && report.userVote !== 'down' ? <Loader2 className="h-3.5 w-3.5 animate-spin"/> : <ArrowDown className="h-4 w-4"/>}
+                         </Button>
+                         <span className="text-sm font-medium text-foreground tabular-nums w-6 text-center">
+                             {report.upvotes - report.downvotes}
+                          </span>
+                         <Button
+                             variant="ghost"
+                             size="icon"
+                             className={cn(
+                                 "h-6 w-6 rounded-full text-muted-foreground hover:bg-red-500/10 hover:text-red-500", // Red for upvote
+                                 report.userVote === 'up' && "bg-red-600/20 text-red-600",
+                                 votingState[report.id] && "opacity-50 cursor-not-allowed",
+                                 user?.uid === report.userId && "cursor-not-allowed opacity-60" // Disable for own report
+                             )}
+                             onClick={() => handleVote(report.id, 'up')}
+                             disabled={votingState[report.id] || user?.uid === report.userId}
+                             aria-pressed={report.userVote === 'up'}
+                             title={user?.uid === report.userId ? "No puedes votar en tus propios reportes" : "Votar positivamente"}
+                         >
+                             {votingState[report.id] && report.userVote !== 'up' ? <Loader2 className="h-3.5 w-3.5 animate-spin"/> : <ArrowUp className="h-4 w-4"/>}
+                         </Button>
+                     </div>
                  </CardHeader>
                   {/* Media Preview Area */}
                   {report.mediaUrl && (
@@ -420,39 +434,31 @@ const WelcomePage: FC = () => {
                          <CalendarDays size={12} className="flex-shrink-0" />
                          <span>{formatDistanceToNow(report.createdAt, { addSuffix: true, locale: es })}</span>
                      </div>
-                     {/* Voting Section moved to bottom right */}
-                      <div className="flex items-center gap-2">
-                       <Button
-                         variant="ghost"
-                         size="icon"
-                         className={cn(
-                           "h-8 w-8",
-                           report.userVote === 'up' && "text-green-500"
-                         )}
-                         onClick={() => handleVote(report.id, 'up')}
-                         disabled={true} // Disable voting on own reports
-                         title="No puedes votar en tus propios reportes"
-                       >
-                         <ThumbsUp size={16} />
-                         <span className="sr-only">Me gusta</span>
-                       </Button>
-                       <span className="text-sm">{report.upvotes}</span>
-                       <Button
-                         variant="ghost"
-                         size="icon"
-                         className={cn(
-                           "h-8 w-8",
-                           report.userVote === 'down' && "text-red-500"
-                         )}
-                         onClick={() => handleVote(report.id, 'down')}
-                         disabled={true} // Disable voting on own reports
-                         title="No puedes votar en tus propios reportes"
-                       >
-                         <ThumbsDown size={16} />
-                         <span className="sr-only">No me gusta</span>
-                       </Button>
-                       <span className="text-sm">{report.downvotes}</span>
-                     </div>
+                     {/* Voting Section moved to Card Header */}
+                     <DropdownMenu>
+                         <DropdownMenuTrigger asChild>
+                             <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground">
+                                 <Ellipsis className="h-4 w-4" />
+                                 <span className="sr-only">Abrir menú</span>
+                             </Button>
+                         </DropdownMenuTrigger>
+                         <DropdownMenuContent align="end">
+                             <DropdownMenuItem asChild>
+                                 <Link href={`/reports/${report.id}`}>
+                                     Ver detalles
+                                 </Link>
+                             </DropdownMenuItem>
+                             <DropdownMenuItem disabled>
+                                 Editar (Próximamente)
+                             </DropdownMenuItem>
+                             <DropdownMenuItem disabled className="text-destructive focus:bg-destructive/10 focus:text-destructive">
+                                 Eliminar (Próximamente)
+                             </DropdownMenuItem>
+                             <DropdownMenuItem>
+                                 Compartir
+                             </DropdownMenuItem>
+                         </DropdownMenuContent>
+                     </DropdownMenu>
                    </div>
                  </CardContent>
 
@@ -504,5 +510,6 @@ const WelcomePage: FC = () => {
 };
 
 export default WelcomePage;
+
 
 
