@@ -82,7 +82,7 @@ const ProfilePage: FC = () => {
         // No user is signed in.
         setUser(null);
         setUserProfile(null);
-        router.replace("/login"); // Redirect if not logged in
+        router.replace("/auth"); // Redirect if not logged in
       }
       setIsLoading(false); // Finish loading after auth check and data fetch
     });
