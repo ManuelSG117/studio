@@ -1,4 +1,3 @@
-
 "use client";
 
 import type { FC } from 'react';
@@ -158,6 +157,8 @@ const ReportDetailPage: FC = () => {
         try {
             const reportRef = doc(db, "reports", reportId);
             const voteRef = doc(db, `reports/${reportId}/votes/${user.uid}`); // Real implementation
+            // Referencia a la colección de votos del usuario
+            const userVoteRef = doc(db, 'userVotes', `${user.uid}_${reportId}`);
 
             await runTransaction(db, async (transaction) => {
                 const reportSnap = await transaction.get(reportRef);
@@ -175,15 +176,35 @@ const ReportDetailPage: FC = () => {
                     if (voteType === 'up') newUpvotes = Math.max(0, newUpvotes - 1);
                     else newDownvotes = Math.max(0, newDownvotes - 1);
                      transaction.delete(voteRef);
+                     transaction.delete(userVoteRef); // Remove from userVotes as well
                 } else {
+                    // Obtener título del reporte para guardar en userVotes
+                    const reportTitle = reportData.title || 'Reporte sin título';
+
                     if (voteType === 'up') {
                        newUpvotes++;
                        if (existingVote === 'down') newDownvotes = Math.max(0, newDownvotes - 1);
-                        transaction.set(voteRef, { type: 'up' }); // Removed timestamp
+                        transaction.set(voteRef, { type: 'up' });
+                         // Guardar en userVotes con timestamp
+                        transaction.set(userVoteRef, {
+                            userId: user.uid,
+                            reportId: reportId,
+                            reportTitle: reportTitle,
+                            type: 'up',
+                            timestamp: Timestamp.now()
+                        });
                     } else {
                        newDownvotes++;
                        if (existingVote === 'up') newUpvotes = Math.max(0, newUpvotes - 1);
-                        transaction.set(voteRef, { type: 'down' }); // Removed timestamp
+                        transaction.set(voteRef, { type: 'down' });
+                         // Guardar en userVotes con timestamp
+                        transaction.set(userVoteRef, {
+                            userId: user.uid,
+                            reportId: reportId,
+                            reportTitle: reportTitle,
+                            type: 'down',
+                            timestamp: Timestamp.now()
+                        });
                     }
                 }
                 transaction.update(reportRef, { upvotes: newUpvotes, downvotes: newDownvotes });
@@ -209,13 +230,19 @@ const ReportDetailPage: FC = () => {
         return (
             <main className="flex flex-col items-center p-4 sm:p-8 bg-secondary min-h-screen">
                 <Card className="w-full max-w-2xl shadow-lg border-none rounded-xl bg-card">
-                    <CardHeader className="relative pb-4 pt-8">
-                         {/* Add Back Button Skeleton */}
+                    <CardHeader className="relative pb-4 pt-8 flex flex-row justify-between items-center"> {/* Adjusted header */}
+                         {/* Back Button Skeleton */}
                          <Skeleton className="absolute left-4 top-6 h-9 w-9 rounded-full" />
                          {/* Title Skeleton */}
-                         <div className="flex items-center justify-center gap-3 pt-2">
+                         <div className="flex items-center gap-3 pt-2 pl-12"> {/* Adjusted padding */}
                             <Skeleton className="h-6 w-6 rounded-full"/>
                             <Skeleton className="h-7 w-3/5" />
+                         </div>
+                         {/* Voting Skeleton */}
+                         <div className="flex items-center space-x-1 bg-muted p-1 rounded-full flex-shrink-0">
+                            <Skeleton className="h-6 w-6 rounded-full" />
+                            <Skeleton className="h-4 w-6" />
+                            <Skeleton className="h-6 w-6 rounded-full" />
                          </div>
                     </CardHeader>
                      {/* Date Skeleton */}
@@ -245,13 +272,7 @@ const ReportDetailPage: FC = () => {
                              <Skeleton className="h-48 w-full rounded-lg" />
                          </div>
                     </CardContent>
-                     {/* Footer Skeleton for Votes */}
-                    <CardFooter className="px-6 sm:px-8 pt-4 pb-6 border-t">
-                        <div className="flex justify-end items-center space-x-3 w-full">
-                          <Skeleton className="h-6 w-12 rounded-md" />
-                          <Skeleton className="h-6 w-12 rounded-md" />
-                        </div>
-                    </CardFooter>
+                     {/* Footer Skeleton Removed */}
                 </Card>
             </main>
         );
@@ -285,7 +306,7 @@ const ReportDetailPage: FC = () => {
     return (
         <main className="flex flex-col items-center p-4 sm:p-8 bg-secondary min-h-screen">
             <Card className="w-full max-w-2xl shadow-lg border-none rounded-xl bg-card">
-                <CardHeader className="relative pb-4 pt-8">
+                <CardHeader className="relative pb-4 pt-8 flex flex-row justify-between items-center"> {/* Adjusted header */}
                      {/* Back Button */}
                     <Button
                         variant="ghost"
@@ -297,14 +318,50 @@ const ReportDetailPage: FC = () => {
                         <ArrowLeft className="h-5 w-5" />
                     </Button>
                     {/* Combined Title and Type Icon */}
-                    <div className="flex items-center justify-center gap-3 pt-2">
+                    <div className="flex items-center gap-3 pt-2 pl-12 flex-1 min-w-0 mr-3"> {/* Added pl-12, flex-1, min-w-0, mr-3 */}
                        {report.reportType === 'funcionario' ? (
                           <UserCog className="h-6 w-6 text-primary flex-shrink-0" />
                        ) : (
                           <TriangleAlert className="h-6 w-6 text-destructive flex-shrink-0" />
                        )}
-                       <CardTitle className="text-2xl font-bold text-foreground">{report.title}</CardTitle>
+                       <CardTitle className="text-2xl font-bold text-foreground truncate">{report.title}</CardTitle> {/* Added truncate */}
                     </div>
+                     {/* Voting Buttons - Moved from Footer */}
+                     <div className="flex items-center space-x-1 bg-muted p-1 rounded-full flex-shrink-0">
+                             <Button
+                                 variant="ghost"
+                                 size="icon"
+                                 className={cn(
+                                    "h-6 w-6 rounded-full text-muted-foreground hover:bg-destructive/10 hover:text-destructive",
+                                    report.userVote === 'down' && "bg-destructive/20 text-destructive",
+                                    votingState && "opacity-50 cursor-not-allowed"
+                                 )}
+                                onClick={() => handleVote('down')}
+                                disabled={votingState}
+                                aria-pressed={report.userVote === 'down'}
+                                title="Votar negativamente"
+                             >
+                                {votingState && report.userVote !== 'down' ? <Loader2 className="h-3.5 w-3.5 animate-spin"/> : <ArrowDown className="h-4 w-4"/>}
+                             </Button>
+                             <span className="text-sm font-medium text-foreground tabular-nums w-6 text-center">
+                                 {report.upvotes - report.downvotes}
+                              </span>
+                             <Button
+                                variant="ghost"
+                                size="icon"
+                                className={cn(
+                                    "h-6 w-6 rounded-full text-muted-foreground hover:bg-green-600/10 hover:text-green-600",
+                                    report.userVote === 'up' && "bg-green-600/20 text-green-600",
+                                    votingState && "opacity-50 cursor-not-allowed"
+                                )}
+                                onClick={() => handleVote('up')}
+                                disabled={votingState}
+                                aria-pressed={report.userVote === 'up'}
+                                title="Votar positivamente"
+                             >
+                                {votingState && report.userVote !== 'up' ? <Loader2 className="h-3.5 w-3.5 animate-spin"/> : <ArrowUp className="h-4 w-4"/>}
+                             </Button>
+                     </div>
                 </CardHeader>
 
                  {/* Date Section */}
@@ -397,50 +454,13 @@ const ReportDetailPage: FC = () => {
 
                 </CardContent>
 
-                 {/* Voting Section in Footer */}
-                <CardFooter className="px-6 sm:px-8 pt-4 pb-6 border-t border-border/50">
-                     <div className="flex justify-end items-center space-x-1 bg-muted p-1 rounded-full w-full"> {/* Container for votes */}
-                             <Button
-                                 variant="ghost"
-                                 size="icon"
-                                 className={cn(
-                                    "h-6 w-6 rounded-full text-muted-foreground hover:bg-destructive/10 hover:text-destructive",
-                                    report.userVote === 'down' && "bg-destructive/20 text-destructive",
-                                    votingState && "opacity-50 cursor-not-allowed"
-                                 )}
-                                onClick={() => handleVote('down')}
-                                disabled={votingState}
-                                aria-pressed={report.userVote === 'down'}
-                                title="Votar negativamente"
-                             >
-                                {votingState && report.userVote !== 'down' ? <Loader2 className="h-3.5 w-3.5 animate-spin"/> : <ArrowDown className="h-4 w-4"/>}
-                             </Button>
-                             <span className="text-sm font-medium text-foreground tabular-nums w-6 text-center">
-                                 {report.upvotes - report.downvotes}
-                              </span>
-                             <Button
-                                variant="ghost"
-                                size="icon"
-                                className={cn(
-                                    "h-6 w-6 rounded-full text-muted-foreground hover:bg-green-600/10 hover:text-green-600",
-                                    report.userVote === 'up' && "bg-green-600/20 text-green-600",
-                                    votingState && "opacity-50 cursor-not-allowed"
-                                )}
-                                onClick={() => handleVote('up')}
-                                disabled={votingState}
-                                aria-pressed={report.userVote === 'up'}
-                                title="Votar positivamente"
-                             >
-                                {votingState && report.userVote !== 'up' ? <Loader2 className="h-3.5 w-3.5 animate-spin"/> : <ArrowUp className="h-4 w-4"/>}
-                             </Button>
-                     </div>
-                </CardFooter>
+                 {/* Voting Section in Footer - Removed */}
+                 <CardFooter className="px-6 sm:px-8 pt-4 pb-6 border-t border-border/50">
+                    {/* Footer is empty, voting is now in the header */}
+                 </CardFooter>
             </Card>
         </main>
     );
 };
 
 export default ReportDetailPage;
-
-
-    
