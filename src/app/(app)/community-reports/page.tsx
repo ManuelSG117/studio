@@ -1,4 +1,3 @@
-
 "use client";
 
 import type { FC } from 'react';
@@ -109,7 +108,7 @@ const CommunityReportsPage: FC = () => {
             ? data.createdAt.toDate()
             : new Date();
 
-          
+
 
           fetchedReports.push({
               id: reportDoc.id,
@@ -126,7 +125,7 @@ const CommunityReportsPage: FC = () => {
               upvotes: data.upvotes || 0,
               downvotes: data.downvotes || 0,
               userVote: userVote,
-         
+
 
           });
        }
@@ -351,7 +350,7 @@ const CommunityReportsPage: FC = () => {
                     <Skeleton className="h-3 w-1/2 mb-3" />
                     <Skeleton className="h-3 w-1/3" />
                   </CardContent>
-            
+
               </Card>
             ))}
            </div>
@@ -385,9 +384,28 @@ const CommunityReportsPage: FC = () => {
                         {getTypeBadgeText(report.reportType)}
                       </Badge>
                    </div>
-                   <div className="absolute top-2 right-2">
+                    {/* Dropdown Menu Overlay */}
+                    <div className="absolute top-2 right-2">
+                        <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                                <Button variant="ghost" size="icon" className="h-8 w-8 bg-black/40 text-white hover:bg-black/60 rounded-full backdrop-blur-sm">
+                                    <Ellipsis className="h-4 w-4" />
+                                    <span className="sr-only">Abrir menú</span>
+                                </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="end">
+                                <DropdownMenuItem asChild>
+                                    <Link href={`/reports/${report.id}`}>
+                                        Ver detalles
+                                    </Link>
+                                </DropdownMenuItem>
+                                <DropdownMenuItem>
+                                    Compartir
+                                </DropdownMenuItem>
+                            </DropdownMenuContent>
+                        </DropdownMenu>
+                    </div>
 
-                   </div>
 
                    {/* Media Type Icon */}
                    {report.mediaUrl && (
@@ -449,28 +467,11 @@ const CommunityReportsPage: FC = () => {
                        </Button>
                        <span className="text-sm">{report.downvotes}</span>
                      </div>
-                     <DropdownMenu>
-                       <DropdownMenuTrigger asChild>
-                         <Button variant="ghost" size="icon" className="h-8 w-8">
-                           <Ellipsis className="h-4 w-4" />
-                           <span className="sr-only">Abrir menú</span>
-                         </Button>
-                       </DropdownMenuTrigger>
-                       <DropdownMenuContent align="end">
-                         <DropdownMenuItem asChild>
-                           <Link href={`/reports/${report.id}`}>
-                             Ver detalles
-                           </Link>
-                         </DropdownMenuItem>
-                         <DropdownMenuItem>
-                           Compartir
-                         </DropdownMenuItem>
-                       </DropdownMenuContent>
-                     </DropdownMenu>
+                     {/* Dropdown moved to top right */}
                    </div>
                  </CardContent>
 
-                
+
                </Card>
              ))}
            </div>
@@ -541,4 +542,3 @@ const CommunityReportsPage: FC = () => {
 };
 
 export default CommunityReportsPage;
-    
