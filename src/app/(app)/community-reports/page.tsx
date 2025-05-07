@@ -14,7 +14,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Input } from "@/components/ui/input"; // Import Input
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"; // Import Select
 import { Badge } from "@/components/ui/badge"; // Import Badge
-import { FileText, MapPin, CalendarDays, ThumbsUp, ThumbsDown, MessageSquare, Loader2, UserCog, TriangleAlert, Video, Image as ImageIcon, Search, Ellipsis, ChevronLeft, ChevronRight, Plus } from 'lucide-react'; // Added necessary icons
+import { FileText, MapPin, CalendarDays, ThumbsUp, ThumbsDown, Loader2, UserCog, TriangleAlert, Video, Image as ImageIcon, Search, Ellipsis, ChevronLeft, ChevronRight, Plus } from 'lucide-react'; // Added necessary icons
 import { format, formatDistanceToNow } from 'date-fns'; // Import formatDistanceToNow
 import { es } from 'date-fns/locale';
 import { useToast } from "@/hooks/use-toast";
@@ -128,8 +128,7 @@ const CommunityReportsPage: FC = () => {
               downvotes: data.downvotes || 0,
               userVote: userVote,
               status: status, // Add placeholder status
-              // Placeholder for comment count
-              commentCount: Math.floor(Math.random() * 30),
+
           });
        }
 
@@ -455,10 +454,7 @@ const CommunityReportsPage: FC = () => {
                           <ThumbsDown size={14} className="text-destructive"/>
                          <span>{report.downvotes}</span>
                        </div>
-                       <div className="flex items-center gap-1 cursor-pointer" title="Ver comentarios (próximamente)">
-                         <MessageSquare size={14} />
-                         <span>{report.commentCount ?? 0}</span>
-                       </div>
+
                     </div>
                     {/* Options Dropdown */}
                     <DropdownMenu>

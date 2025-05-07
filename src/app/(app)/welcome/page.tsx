@@ -11,7 +11,7 @@ import { collection, query, where, getDocs, orderBy, Timestamp, limit, startAfte
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card'; // Added CardFooter
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
-import { FileText, MapPin, CalendarDays, ThumbsUp, ThumbsDown, MessageSquare, Loader2, UserCog, TriangleAlert, Plus, Ellipsis } from 'lucide-react'; // Updated icons
+import { FileText, MapPin, CalendarDays, ThumbsUp, ThumbsDown, Loader2, UserCog, TriangleAlert, Plus, Ellipsis } from 'lucide-react'; // Updated icons
 import { format, formatDistanceToNow } from 'date-fns'; // Added formatDistanceToNow
 import { es } from 'date-fns/locale';
 import { useToast } from "@/hooks/use-toast";
@@ -34,7 +34,7 @@ import {
   PaginationPrevious,
 } from "@/components/ui/pagination" // Import Pagination
 
-// Define report type including optional status and commentCount
+// Define report type including optional status
 export type Report = {
     id: string;
     userId: string;
@@ -51,7 +51,6 @@ export type Report = {
     downvotes: number;
     userVote?: 'up' | 'down' | null;
     status?: string; // Optional status
-    commentCount?: number; // Optional comment count
 };
 
 const WelcomePage: FC = () => {
@@ -146,7 +145,7 @@ const WelcomePage: FC = () => {
             downvotes: data.downvotes || 0,
             userVote: userVote,
             status: status, // Add placeholder status
-            commentCount: Math.floor(Math.random() * 15), // Add placeholder comment count
+
         });
       }
 
@@ -401,10 +400,7 @@ const WelcomePage: FC = () => {
                           <ThumbsDown size={14} className="text-destructive"/>
                          <span>{report.downvotes}</span>
                        </div>
-                       <div className="flex items-center gap-1 cursor-pointer" title="Ver comentarios (próximamente)">
-                         <MessageSquare size={14} />
-                         <span>{report.commentCount ?? 0}</span>
-                       </div>
+
                     </div>
                     {/* Options Dropdown */}
                     <DropdownMenu>
