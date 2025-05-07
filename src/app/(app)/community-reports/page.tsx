@@ -1,3 +1,4 @@
+
 "use client";
 
 import type { FC } from 'react';
@@ -384,45 +385,8 @@ const CommunityReportsPage: FC = () => {
                         {getTypeBadgeText(report.reportType)}
                       </Badge>
                    </div>
-                    {/* Dropdown Menu & Voting Overlay */}
-                    <div className="absolute top-2 right-2 flex items-center gap-2 z-10">
-                        {/* Voting Buttons */}
-                         <div className="flex items-center space-x-1 bg-black/50 p-1 rounded-full backdrop-blur-sm">
-                             <Button
-                                 variant="ghost"
-                                 size="icon"
-                                 className={cn(
-                                     "h-6 w-6 rounded-full text-white hover:bg-blue-500/80",
-                                     report.userVote === 'down' && "bg-blue-600 text-white",
-                                     votingState[report.id] && "opacity-50 cursor-not-allowed"
-                                 )}
-                                onClick={() => handleVote(report.id, 'down')}
-                                disabled={votingState[report.id] || user?.uid === report.userId}
-                                aria-pressed={report.userVote === 'down'}
-                                title="Votar negativamente"
-                             >
-                                {votingState[report.id] && report.userVote !== 'down' ? <Loader2 className="h-3.5 w-3.5 animate-spin"/> : <ArrowDown className="h-4 w-4"/>}
-                             </Button>
-                             <span className="text-sm font-medium text-white tabular-nums w-6 text-center">
-                                 {report.upvotes - report.downvotes}
-                              </span>
-                             <Button
-                                variant="ghost"
-                                size="icon"
-                                className={cn(
-                                    "h-6 w-6 rounded-full text-white hover:bg-red-500/80",
-                                    report.userVote === 'up' && "bg-red-600 text-white",
-                                    votingState[report.id] && "opacity-50 cursor-not-allowed"
-                                )}
-                                onClick={() => handleVote(report.id, 'up')}
-                                disabled={votingState[report.id] || user?.uid === report.userId}
-                                aria-pressed={report.userVote === 'up'}
-                                title="Votar positivamente"
-                             >
-                                {votingState[report.id] && report.userVote !== 'up' ? <Loader2 className="h-3.5 w-3.5 animate-spin"/> : <ArrowUp className="h-4 w-4"/>}
-                             </Button>
-                         </div>
-                         {/* Dropdown Menu */}
+                    {/* Dropdown Menu */}
+                    <div className="absolute top-2 right-2 z-10">
                         <DropdownMenu>
                             <DropdownMenuTrigger asChild>
                                 <Button variant="ghost" size="icon" className="h-8 w-8 bg-black/40 text-white hover:bg-black/60 rounded-full backdrop-blur-sm">
@@ -474,7 +438,44 @@ const CommunityReportsPage: FC = () => {
                          <CalendarDays size={12} className="flex-shrink-0" />
                          <span>{formatDistanceToNow(report.createdAt, { addSuffix: true, locale: es })}</span>
                       </div>
-                      {/* Voting Section Moved to Top Right Overlay */}
+                      {/* Voting Section */}
+                      <div className="flex items-center space-x-1 bg-muted p-1 rounded-full">
+                           <Button
+                               variant="ghost"
+                               size="icon"
+                               className={cn(
+                                   "h-6 w-6 rounded-full text-muted-foreground hover:bg-blue-500/10 hover:text-blue-500",
+                                   report.userVote === 'down' && "bg-blue-600/20 text-blue-600",
+                                   votingState[report.id] && "opacity-50 cursor-not-allowed",
+                                   user?.uid === report.userId && "cursor-not-allowed opacity-60"
+                               )}
+                              onClick={() => handleVote(report.id, 'down')}
+                              disabled={votingState[report.id] || user?.uid === report.userId}
+                              aria-pressed={report.userVote === 'down'}
+                              title={user?.uid === report.userId ? "No puedes votar en tus propios reportes" : "Votar negativamente"}
+                           >
+                              {votingState[report.id] && report.userVote !== 'down' ? <Loader2 className="h-3.5 w-3.5 animate-spin"/> : <ArrowDown className="h-4 w-4"/>}
+                           </Button>
+                           <span className="text-sm font-medium text-foreground tabular-nums w-6 text-center">
+                               {report.upvotes - report.downvotes}
+                            </span>
+                           <Button
+                              variant="ghost"
+                              size="icon"
+                              className={cn(
+                                  "h-6 w-6 rounded-full text-muted-foreground hover:bg-red-500/10 hover:text-red-500",
+                                  report.userVote === 'up' && "bg-red-600/20 text-red-600",
+                                  votingState[report.id] && "opacity-50 cursor-not-allowed",
+                                  user?.uid === report.userId && "cursor-not-allowed opacity-60"
+                              )}
+                              onClick={() => handleVote(report.id, 'up')}
+                              disabled={votingState[report.id] || user?.uid === report.userId}
+                              aria-pressed={report.userVote === 'up'}
+                              title={user?.uid === report.userId ? "No puedes votar en tus propios reportes" : "Votar positivamente"}
+                           >
+                              {votingState[report.id] && report.userVote !== 'up' ? <Loader2 className="h-3.5 w-3.5 animate-spin"/> : <ArrowUp className="h-4 w-4"/>}
+                           </Button>
+                       </div>
                    </div>
                  </CardContent>
 
@@ -549,3 +550,4 @@ const CommunityReportsPage: FC = () => {
 };
 
 export default CommunityReportsPage;
+
