@@ -312,8 +312,11 @@ const StatisticsPage: FC = () => {
       <main className="flex flex-col items-center p-4 sm:p-6 bg-secondary min-h-screen">
          <div className="w-full max-w-7xl mx-auto space-y-6"> {/* Use max-w-7xl */}
             {/* Header Skeleton */}
-            <div className="flex flex-col sm:flex-row justify-between items-center mb-2 gap-2"> {/* Reduced mb */}
-                <Skeleton className="h-8 w-48" />
+            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-2 gap-2"> {/* Reduced mb */}
+                <div className="space-y-1">
+                    <Skeleton className="h-8 w-64" />
+                    <Skeleton className="h-4 w-80" />
+                </div>
                  <div className="flex flex-wrap justify-center sm:justify-end gap-2">
                      <Skeleton className="h-9 w-20 rounded-md" />
                      <Skeleton className="h-9 w-20 rounded-md" />
@@ -324,15 +327,14 @@ const StatisticsPage: FC = () => {
              {/* Metrics Skeleton Grid */}
              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-4">
                  {[...Array(4)].map((_, i) => (
-                     <Card key={i} className="bg-card">
-                         <CardHeader className="pb-2 flex flex-row items-center justify-between space-y-0">
+                     <Card key={i} className="bg-card rounded-lg"> {/* Added rounded-lg */}
+                         <CardHeader className="pb-2 pt-4 px-4 flex flex-row items-center justify-between space-y-0"> {/* Added px-4 */}
                               <Skeleton className="h-4 w-24" />
                               <Skeleton className="h-5 w-5" /> {/* Icon skeleton */}
                          </CardHeader>
-                         <CardContent>
+                         <CardContent className="pt-1 pb-4 px-4"> {/* Added px-4 */}
                              <Skeleton className="h-8 w-16 mb-1" /> {/* Number skeleton */}
                              <Skeleton className="h-3 w-20 mt-1" /> {/* Percentage skeleton */}
-                             <Skeleton className="h-3 w-24 mt-1" /> {/* Text skeleton */}
                          </CardContent>
                      </Card>
                  ))}
@@ -358,14 +360,15 @@ const StatisticsPage: FC = () => {
     <main className="flex flex-col items-center p-4 sm:p-6 bg-secondary min-h-screen">
          <div className="w-full max-w-7xl mx-auto space-y-8"> {/* Use max-w-7xl and increase spacing */}
              {/* Header and Filters */}
-              <div className="flex flex-col md:flex-row justify-between items-center mb-6 gap-4"> {/* Keep mb-6 */}
-                 <h1 className="text-2xl md:text-3xl font-semibold text-foreground flex items-center"> {/* Larger title */}
-                     <LineChartIcon className="mr-3 h-7 w-7 text-primary" /> {/* Larger icon */}
-                     Dashboard de Estadísticas +SEGURO
-                 </h1>
-                 <p className="text-muted-foreground text-sm md:text-base text-center md:text-left">
-                    Visualización de datos de reportes ciudadanos para promover la seguridad pública
-                 </p>
+              <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4"> {/* Keep mb-6 */}
+                 <div className="space-y-1">
+                     <h1 className="text-2xl md:text-3xl font-semibold text-foreground flex items-center"> {/* Larger title */}
+                         Dashboard de Estadísticas <span className="text-primary font-bold ml-1.5">+SEGURO</span>
+                     </h1>
+                     <p className="text-muted-foreground text-sm md:text-base">
+                        Visualización de datos de reportes ciudadanos para promover la seguridad pública
+                     </p>
+                 </div>
                   {/* Combined Filters */}
                  <div className="flex flex-wrap items-center justify-center md:justify-end gap-3 bg-card border border-border p-2 rounded-lg shadow-sm"> {/* Card background for filters */}
                       {/* Period Filters */}
@@ -405,10 +408,10 @@ const StatisticsPage: FC = () => {
                   </div>
              </div>
 
-             {/* Key Metrics Section - Matching Image */}
+             {/* Key Metrics Section - Updated to match image */}
              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6"> {/* Increased gap */}
                  {/* Total Reports Card */}
-                 <Card className="bg-card shadow-md border-border hover:shadow-lg transition-shadow group border-l-4 border-l-primary">
+                 <Card className="bg-card shadow-md border-border hover:shadow-lg transition-shadow group rounded-lg border-l-4 border-l-primary"> {/* Added rounded-lg */}
                      <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 pt-4 px-4">
                          <CardTitle className="text-sm font-medium text-muted-foreground">Total Reportes</CardTitle>
                          <List className="h-5 w-5 text-primary opacity-70 group-hover:opacity-100 transition-opacity" />
@@ -423,7 +426,7 @@ const StatisticsPage: FC = () => {
                      </CardContent>
                  </Card>
                   {/* Reports Not Verified Card */}
-                 <Card className="bg-card shadow-md border-border hover:shadow-lg transition-shadow group border-l-4 border-l-destructive">
+                 <Card className="bg-card shadow-md border-border hover:shadow-lg transition-shadow group rounded-lg border-l-4 border-l-destructive"> {/* Added rounded-lg */}
                      <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 pt-4 px-4">
                          <CardTitle className="text-sm font-medium text-muted-foreground">Reportes No Verídicos</CardTitle>
                          <ThumbsDown className="h-5 w-5 text-destructive opacity-70 group-hover:opacity-100 transition-opacity" />
@@ -438,7 +441,7 @@ const StatisticsPage: FC = () => {
                      </CardContent>
                  </Card>
                   {/* Officer Incidents Card */}
-                 <Card className="bg-card shadow-md border-border hover:shadow-lg transition-shadow group border-l-4 border-l-warning">
+                 <Card className="bg-card shadow-md border-border hover:shadow-lg transition-shadow group rounded-lg border-l-4 border-l-warning"> {/* Added rounded-lg */}
                      <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 pt-4 px-4">
                          <CardTitle className="text-sm font-medium text-muted-foreground">Incidentes Funcionarios</CardTitle>
                          <AtSign className="h-5 w-5 text-warning opacity-70 group-hover:opacity-100 transition-opacity" />
@@ -453,7 +456,7 @@ const StatisticsPage: FC = () => {
                      </CardContent>
                  </Card>
                   {/* Verified Reports Card */}
-                  <Card className="bg-card shadow-md border-border hover:shadow-lg transition-shadow group border-l-4 border-l-green-500">
+                  <Card className="bg-card shadow-md border-border hover:shadow-lg transition-shadow group rounded-lg border-l-4 border-l-green-500"> {/* Added rounded-lg */}
                      <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 pt-4 px-4">
                          <CardTitle className="text-sm font-medium text-muted-foreground">Reportes Verificados</CardTitle>
                           <CheckCircle className="h-5 w-5 text-green-600 opacity-70 group-hover:opacity-100 transition-opacity" />
@@ -585,4 +588,3 @@ const StatisticsPage: FC = () => {
 };
 
 export default StatisticsPage;
-    
