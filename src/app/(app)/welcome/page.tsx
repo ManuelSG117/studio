@@ -8,10 +8,10 @@ import Link from 'next/link';
 import { useAuth } from '@/context/AuthContext';
 import { auth, db } from '@/lib/firebase/client';
 import { collection, query, where, getDocs, orderBy, Timestamp, limit, startAfter, doc, getDoc, runTransaction } from 'firebase/firestore';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle  } from '@/components/ui/card'; 
+import { Card, CardContent, CardDescription, CardHeader, CardTitle  } from '@/components/ui/card';
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
-import { FileText, MapPin, CalendarDays, ThumbsUp, ThumbsDown, Loader2, UserCog, TriangleAlert, Plus, Ellipsis } from 'lucide-react'; // Updated icons
+import { FileText, MapPin, CalendarDays, ThumbsUp, ThumbsDown, Loader2, UserCog, TriangleAlert, Plus, Ellipsis, Image as ImageIcon, Video } from 'lucide-react'; // Updated icons
 import { format, formatDistanceToNow } from 'date-fns'; // Added formatDistanceToNow
 import { es } from 'date-fns/locale';
 import { useToast } from "@/hooks/use-toast";
@@ -296,7 +296,7 @@ const WelcomePage: FC = () => {
         }
     };
 
-     
+
 
     // Helper function to determine badge color for report type (same as community)
     const getTypeBadgeVariant = (type: 'incidente' | 'funcionario'): 'destructive' | 'default' => {
@@ -323,20 +323,85 @@ const WelcomePage: FC = () => {
 
         {isLoading ? ( // Use isLoading for initial load skeleton
           [...Array(3)].map((_, i) => (
-            <Card key={i} className="shadow-sm bg-card rounded-lg">
-              <CardContent className="p-4">
-                <Skeleton className="h-4 w-[60%] mb-2" />
-                <Skeleton className="h-3 w-[90%] mb-1" />
-                <Skeleton className="h-3 w-[80%] mb-3" />
-                <Skeleton className="h-3 w-[50%] mb-3" />
-                 <Skeleton className="h-3 w-[40%]" />
+            <Card key={i} className="shadow-sm bg-card rounded-lg overflow-hidden">
+              <CardHeader className="p-4 flex flex-row items-center justify-between">
+                <Skeleton className="h-4 w-1/4" />
+                <Skeleton className="h-8 w-8 rounded-full" />
+              </CardHeader>
+              <Skeleton className="h-32 w-full bg-muted" />
+              <CardContent className="p-4 space-y-2">
+                <Skeleton className="h-4 w-[60%] mb-1" />
+                <Skeleton className="h-3 w-[90%]" />
+                <Skeleton className="h-3 w-[50%]" />
+                <div className="flex justify-between items-center pt-2">
+                   <Skeleton className="h-3 w-[40%]" />
+                   <Skeleton className="h-8 w-20" />
+                </div>
               </CardContent>
-            
             </Card>
           ))
         ) : reports.length > 0 ? (
           reports.map((report) => (
-             <Card key={report.id} className="shadow-sm bg-card rounded-lg overflow-hidden">
+             <Card key={report.id} className="shadow-sm bg-card rounded-lg overflow-hidden hover:shadow-md transition-shadow">
+                 <CardHeader className="p-4 flex flex-row items-center justify-between">
+                      <Badge variant={getTypeBadgeVariant(report.reportType)} className="text-xs capitalize">
+                        {getTypeBadgeText(report.reportType)}
+                      </Badge>
+                      <DropdownMenu>
+                           <DropdownMenuTrigger asChild>
+                             <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground">
+                               <Ellipsis className="h-4 w-4" />
+                               <span className="sr-only">Abrir menú</span>
+                             </Button>
+                           </DropdownMenuTrigger>
+                           <DropdownMenuContent align="end">
+                             <DropdownMenuItem asChild>
+                               <Link href={`/reports/${report.id}`}>
+                                 Ver detalles
+                               </Link>
+                             </DropdownMenuItem>
+                              <DropdownMenuItem disabled>
+                                 Editar (Próximamente)
+                              </DropdownMenuItem>
+                              <DropdownMenuItem disabled className="text-destructive focus:bg-destructive/10 focus:text-destructive">
+                                 Eliminar (Próximamente)
+                              </DropdownMenuItem>
+                              <DropdownMenuItem>
+                                Compartir
+                              </DropdownMenuItem>
+                           </DropdownMenuContent>
+                      </DropdownMenu>
+                 </CardHeader>
+                  {/* Media Preview Area */}
+                  {report.mediaUrl && (
+                    <div className="relative h-40 w-full bg-muted flex items-center justify-center text-muted-foreground overflow-hidden group">
+                       {report.mediaUrl.includes('.mp4') || report.mediaUrl.includes('.webm') ? (
+                          <video src={report.mediaUrl} className="h-full w-full object-cover" controls={false} preload="metadata" />
+                       ) : (
+                          <Image src={report.mediaUrl} alt={`Evidencia para ${report.title}`} fill style={{ objectFit: 'cover' }} className="transition-transform duration-300 group-hover:scale-105" data-ai-hint="report evidence" />
+                       )}
+                        <div className="absolute inset-0 bg-black/10 group-hover:bg-black/30 transition-colors flex items-center justify-center opacity-0 group-hover:opacity-100">
+                            <Link href={`/reports/${report.id}`} className="text-white text-xs bg-black/50 px-3 py-1 rounded-full backdrop-blur-sm">Ver Detalles</Link>
+                        </div>
+                         {/* Media Type Icon */}
+                        <div className="absolute bottom-2 right-2 bg-black/60 text-white p-1.5 rounded-full backdrop-blur-sm">
+                            {report.mediaUrl.includes('.mp4') || report.mediaUrl.includes('.webm') ? (
+                                <Video size={14} />
+                             ) : (
+                                <ImageIcon size={14} />
+                             )}
+                        </div>
+                    </div>
+                  )}
+                  {!report.mediaUrl && (
+                      <div className="h-32 w-full bg-muted flex items-center justify-center text-muted-foreground">
+                          <div className="flex flex-col items-center text-center p-4">
+                             <ImageIcon size={32} className="opacity-50 mb-2"/>
+                             <span className="text-xs">Sin imagen adjunta</span>
+                          </div>
+                      </div>
+                  )}
+
                 <CardContent className="p-4 flex-1 space-y-2">
                    <CardTitle className="text-base font-semibold leading-snug line-clamp-2">
                      <Link href={`/reports/${report.id}`} className="hover:text-primary transition-colors">
@@ -350,12 +415,13 @@ const WelcomePage: FC = () => {
                      <MapPin size={12} className="flex-shrink-0" />
                      <span className="truncate">{formatLocation(report.location)}</span>
                    </div>
-                   <div className="flex items-center text-xs text-muted-foreground gap-1.5">
-                     <CalendarDays size={12} className="flex-shrink-0" />
-                     <span>{formatDistanceToNow(report.createdAt, { addSuffix: true, locale: es })}</span>
-                   </div>
-                   <div className="flex items-center justify-between pt-2">
-                     <div className="flex items-center gap-2">
+                   <div className="flex items-center justify-between pt-1">
+                     <div className="flex items-center text-xs text-muted-foreground gap-1.5">
+                         <CalendarDays size={12} className="flex-shrink-0" />
+                         <span>{formatDistanceToNow(report.createdAt, { addSuffix: true, locale: es })}</span>
+                     </div>
+                     {/* Voting Section moved to bottom right */}
+                      <div className="flex items-center gap-2">
                        <Button
                          variant="ghost"
                          size="icon"
@@ -364,7 +430,8 @@ const WelcomePage: FC = () => {
                            report.userVote === 'up' && "text-green-500"
                          )}
                          onClick={() => handleVote(report.id, 'up')}
-                         disabled={votingState[report.id]}
+                         disabled={true} // Disable voting on own reports
+                         title="No puedes votar en tus propios reportes"
                        >
                          <ThumbsUp size={16} />
                          <span className="sr-only">Me gusta</span>
@@ -378,35 +445,17 @@ const WelcomePage: FC = () => {
                            report.userVote === 'down' && "text-red-500"
                          )}
                          onClick={() => handleVote(report.id, 'down')}
-                         disabled={votingState[report.id]}
+                         disabled={true} // Disable voting on own reports
+                         title="No puedes votar en tus propios reportes"
                        >
                          <ThumbsDown size={16} />
                          <span className="sr-only">No me gusta</span>
                        </Button>
                        <span className="text-sm">{report.downvotes}</span>
                      </div>
-                     <DropdownMenu>
-                       <DropdownMenuTrigger asChild>
-                         <Button variant="ghost" size="icon" className="h-8 w-8">
-                           <Ellipsis className="h-4 w-4" />
-                           <span className="sr-only">Abrir menú</span>
-                         </Button>
-                       </DropdownMenuTrigger>
-                       <DropdownMenuContent align="end">
-                         <DropdownMenuItem asChild>
-                           <Link href={`/reports/${report.id}`}>
-                             Ver detalles
-                           </Link>
-                         </DropdownMenuItem>
-                         <DropdownMenuItem>
-                           Compartir
-                         </DropdownMenuItem>
-                       </DropdownMenuContent>
-                     </DropdownMenu>
                    </div>
                  </CardContent>
-                 {/* Reverted Footer with Counts */}
-             
+
             </Card>
           ))
         ) : (
@@ -446,9 +495,14 @@ const WelcomePage: FC = () => {
         )} */}
 
       </div>
+       {/* Footer */}
+      <footer className="mt-12 text-center text-xs text-muted-foreground">
+        © {new Date().getFullYear()} +SEGURO - Plataforma de reportes ciudadanos para la seguridad pública
+      </footer>
     </main>
   );
 };
 
 export default WelcomePage;
-    
+
+

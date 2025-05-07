@@ -432,11 +432,11 @@ const CommunityReportsPage: FC = () => {
                      <MapPin size={12} className="flex-shrink-0" />
                      <span className="truncate">{formatLocation(report.location)}</span>
                    </div>
-                   <div className="flex items-center text-xs text-muted-foreground gap-1.5">
-                     <CalendarDays size={12} className="flex-shrink-0" />
-                     <span>{formatDistanceToNow(report.createdAt, { addSuffix: true, locale: es })}</span>
-                   </div>
-                   <div className="flex items-center justify-between pt-2">
+                   <div className="flex items-center justify-between pt-1"> {/* Adjusted padding */}
+                      <div className="flex items-center text-xs text-muted-foreground gap-1.5">
+                         <CalendarDays size={12} className="flex-shrink-0" />
+                         <span>{formatDistanceToNow(report.createdAt, { addSuffix: true, locale: es })}</span>
+                      </div>
                      <div className="flex items-center gap-2">
                        <Button
                          variant="ghost"
@@ -467,7 +467,7 @@ const CommunityReportsPage: FC = () => {
                        </Button>
                        <span className="text-sm">{report.downvotes}</span>
                      </div>
-                     {/* Dropdown moved to top right */}
+                     {/* Voting moved to bottom right */}
                    </div>
                  </CardContent>
 
