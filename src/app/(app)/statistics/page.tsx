@@ -8,7 +8,7 @@ import { auth, db } from '@/lib/firebase/client';
 import { collection, getDocs, query, orderBy, Timestamp } from "firebase/firestore";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
-import { LineChart as LineChartIcon, Loader2, CalendarRange, Hash, TrendingUp, AlertTriangle, UserCog, Filter } from 'lucide-react'; // Import icons, added UserCog, Filter
+import { LineChart as LineChartIcon, Loader2, CalendarRange, Hash, TrendingUp, AlertTriangle, UserCog, Filter, MapPin } from 'lucide-react'; // Import icons, added UserCog, Filter, MapPin
 import { Button } from "@/components/ui/button";
 import type { Report } from '@/app/(app)/welcome/page'; // Reuse Report type
 import {
