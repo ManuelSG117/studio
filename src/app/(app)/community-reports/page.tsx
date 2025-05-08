@@ -298,16 +298,17 @@ const CommunityReportsPage: FC = () => {
           <p className="text-muted-foreground">Visualización de reportes y denuncias ciudadanas para promover la seguridad en nuestra comunidad</p>
         </div>
 
-        {/* Search and Filters Bar */}
-        <div className="flex flex-col md:flex-row items-center gap-4 mb-8 p-4 bg-card rounded-lg shadow border border-border">
+        {/* Search and Filters Bar - Updated Styling */}
+        <div className="flex flex-col md:flex-row items-center gap-4 mb-8 p-4 bg-card rounded-full shadow-md border border-border"> {/* Use rounded-full and shadow-md */}
           <div className="relative w-full md:flex-1">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
-            <Input placeholder="Buscar reportes..." className="pl-10 h-11" />
+            <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" /> {/* Adjusted padding */}
+            <Input placeholder="Buscar reportes..." className="pl-11 h-11 rounded-full border-none focus-visible:ring-0 bg-transparent" /> {/* Rounded-full, border-none */}
           </div>
-          <div className="flex items-center gap-3 w-full md:w-auto">
-            <span className="text-sm font-medium text-muted-foreground hidden md:inline">Filtrar por:</span>
+          <div className="flex items-center gap-2 bg-muted p-1 rounded-full"> {/* Container for filters */}
+            <span className="text-sm font-medium text-muted-foreground hidden md:inline pl-2">Filtrar por:</span>
+            {/* Filter Selects with rounded-full */}
             <Select defaultValue="todos">
-              <SelectTrigger className="w-full md:w-[160px] h-11">
+              <SelectTrigger className="w-full md:w-auto h-9 rounded-full border-none bg-background shadow-sm px-4"> {/* Adjusted styling */}
                 <SelectValue placeholder="Todos los tipos" />
               </SelectTrigger>
               <SelectContent>
@@ -317,7 +318,7 @@ const CommunityReportsPage: FC = () => {
               </SelectContent>
             </Select>
              <Select defaultValue="cualquier">
-              <SelectTrigger className="w-full md:w-[180px] h-11">
+              <SelectTrigger className="w-full md:w-auto h-9 rounded-full border-none bg-background shadow-sm px-4"> {/* Adjusted styling */}
                 <SelectValue placeholder="Cualquier ubicación" />
               </SelectTrigger>
               <SelectContent>
@@ -326,7 +327,7 @@ const CommunityReportsPage: FC = () => {
               </SelectContent>
             </Select>
             <Select defaultValue="recientes">
-              <SelectTrigger className="w-full md:w-[150px] h-11">
+              <SelectTrigger className="w-full md:w-auto h-9 rounded-full border-none bg-background shadow-sm px-4"> {/* Adjusted styling */}
                 <SelectValue placeholder="Más recientes" />
               </SelectTrigger>
               <SelectContent>
@@ -550,4 +551,5 @@ const CommunityReportsPage: FC = () => {
 };
 
 export default CommunityReportsPage;
+
 
