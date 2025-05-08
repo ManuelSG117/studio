@@ -15,6 +15,7 @@ import { Input } from "@/components/ui/input"; // Import Input
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"; // Import Select
 import { Badge } from "@/components/ui/badge"; // Import Badge
 import { FileText, MapPin, CalendarDays, Loader2, UserCog, TriangleAlert, Video, Image as ImageIcon, Search, Ellipsis, ChevronLeft, ChevronRight, Plus, ArrowUp, ArrowDown } from 'lucide-react'; // Added necessary icons, ArrowUp, ArrowDown
+import { VotesModal } from "@/components/votes-modal"; // Import VotesModal component
 import { format, formatDistanceToNow } from 'date-fns'; // Import formatDistanceToNow
 import { es } from 'date-fns/locale';
 import { useToast } from "@/hooks/use-toast";
@@ -47,6 +48,8 @@ const CommunityReportsPage: FC = () => {
   const [lastDoc, setLastDoc] = useState<any>(null);
   const [hasMore, setHasMore] = useState(true);
   const [votingState, setVotingState] = useState<{ [reportId: string]: boolean }>({});
+  const [votesModalOpen, setVotesModalOpen] = useState(false);
+  const [selectedReport, setSelectedReport] = useState<Report | null>(null);
 
   const ITEMS_PER_PAGE = 9; // Adjust to fit 3 columns
 
@@ -291,6 +294,17 @@ const CommunityReportsPage: FC = () => {
   return (
     <main className="flex flex-col p-4 sm:p-6 md:p-8 bg-secondary min-h-screen">
       <div className="w-full max-w-7xl mx-auto space-y-6"> {/* Use wider max-width */}
+        {/* Modal de votos */}
+        {selectedReport && (
+          <VotesModal 
+            open={votesModalOpen} 
+            onOpenChange={setVotesModalOpen} 
+            reportId={selectedReport.id}
+            reportTitle={selectedReport.title}
+            upvotes={selectedReport.upvotes}
+            downvotes={selectedReport.downvotes}
+          />
+        )}
 
         {/* Header Section */}
         <div className="mb-6">
@@ -457,9 +471,17 @@ const CommunityReportsPage: FC = () => {
                            >
                               {votingState[report.id] && report.userVote !== 'down' ? <Loader2 className="h-3.5 w-3.5 animate-spin"/> : <ArrowDown className="h-4 w-4"/>}
                            </Button>
-                           <span className="text-sm font-medium text-foreground tabular-nums w-6 text-center">
+                           <Button 
+                               variant="ghost" 
+                               className="text-sm font-medium text-foreground tabular-nums w-6 text-center p-0 h-auto hover:bg-transparent hover:text-primary"
+                               onClick={() => {
+                                   setSelectedReport(report);
+                                   setVotesModalOpen(true);
+                               }}
+                               title="Ver detalles de votos"
+                           >
                                {report.upvotes - report.downvotes}
-                            </span>
+                           </Button>
                            <Button
                               variant="ghost"
                               size="icon"

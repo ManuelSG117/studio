@@ -33,6 +33,7 @@ import {
   PaginationNext,
   PaginationPrevious,
 } from "@/components/ui/pagination" // Import Pagination
+import { VotesModal } from "@/components/votes-modal"; // Import VotesModal component
 
 export type Report = {
     id: string;
@@ -61,6 +62,8 @@ const WelcomePage: FC = () => {
   const [lastDoc, setLastDoc] = useState<any>(null); // Type any as it's a Firestore DocumentSnapshot
   const [hasMore, setHasMore] = useState(true);
   const [votingState, setVotingState] = useState<{ [reportId: string]: boolean }>({});
+  const [votesModalOpen, setVotesModalOpen] = useState(false);
+  const [selectedReport, setSelectedReport] = useState<Report | null>(null);
 
   const ITEMS_PER_PAGE = 5; // Define items per page
 
@@ -310,6 +313,17 @@ const WelcomePage: FC = () => {
   return (
     <main className="flex flex-col p-4 sm:p-6 md:p-8 bg-secondary min-h-screen">
       <div className="w-full max-w-4xl mx-auto space-y-6"> {/* Adjusted max-width */}
+        {/* Modal de votos */}
+        {selectedReport && (
+          <VotesModal 
+            open={votesModalOpen} 
+            onOpenChange={setVotesModalOpen} 
+            reportId={selectedReport.id}
+            reportTitle={selectedReport.title}
+            upvotes={selectedReport.upvotes}
+            downvotes={selectedReport.downvotes}
+          />
+        )}
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
             <div className="flex-1">
                 <h1 className="text-2xl font-semibold text-foreground">Mis Reportes</h1>
@@ -439,9 +453,17 @@ const WelcomePage: FC = () => {
                          >
                              {votingState[report.id] && report.userVote !== 'down' ? <Loader2 className="h-3.5 w-3.5 animate-spin"/> : <ArrowDown className="h-4 w-4"/>}
                          </Button>
-                         <span className="text-sm font-medium text-foreground tabular-nums w-6 text-center">
+                         <Button 
+                             variant="ghost" 
+                             className="text-sm font-medium text-foreground tabular-nums w-6 text-center p-0 h-auto hover:bg-transparent hover:text-primary"
+                             onClick={() => {
+                                 setSelectedReport(report);
+                                 setVotesModalOpen(true);
+                             }}
+                             title="Ver detalles de votos"
+                         >
                              {report.upvotes - report.downvotes}
-                          </span>
+                         </Button>
                          <Button
                              variant="ghost"
                              size="icon"

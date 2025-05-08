@@ -16,6 +16,7 @@ import { CalendarDays, MapPin, Tag, UserCog, TriangleAlert, Image as ImageIcon, 
 import type { Report } from '@/app/(app)/welcome/page'; // Import Report type
 import { format } from 'date-fns'; // Import format for date display
 import { es } from 'date-fns/locale'; // Import Spanish locale for date formatting
+import { VotesModal } from '@/components/votes-modal'; // Import VotesModal component
 import { ReportsMap } from '@/components/reports-map'; // Import the ReportsMap component
 import { useToast } from '@/hooks/use-toast'; // Import useToast
 import { cn, formatLocation } from '@/lib/utils'; // Import cn and formatLocation
@@ -30,6 +31,7 @@ const ReportDetailPage: FC = () => {
     const [user, setUser] = useState<User | null>(null);
     const [isClient, setIsClient] = useState(false); // State to track client-side mounting
     const [votingState, setVotingState] = useState<boolean>(false); // Track voting status for this report
+    const [votesModalOpen, setVotesModalOpen] = useState(false); // State for votes modal
 
     // Function to fetch user's vote for this specific report
     const fetchUserVote = useCallback(async (userId: string, reportId: string) => {
@@ -305,6 +307,17 @@ const ReportDetailPage: FC = () => {
     // Display report details
     return (
         <main className="flex flex-col items-center p-4 sm:p-8 bg-secondary min-h-screen">
+            {/* Modal de votos */}
+            {report && (
+                <VotesModal 
+                    open={votesModalOpen} 
+                    onOpenChange={setVotesModalOpen} 
+                    reportId={report.id}
+                    reportTitle={report.title}
+                    upvotes={report.upvotes}
+                    downvotes={report.downvotes}
+                />
+            )}
             <Card className="w-full max-w-2xl shadow-lg border-none rounded-xl bg-card">
                 <CardHeader className="relative pb-4 pt-8 flex flex-row justify-between items-center"> {/* Adjusted header */}
                      {/* Back Button */}
@@ -343,9 +356,14 @@ const ReportDetailPage: FC = () => {
                              >
                                 {votingState && report.userVote !== 'down' ? <Loader2 className="h-3.5 w-3.5 animate-spin"/> : <ArrowDown className="h-4 w-4"/>}
                              </Button>
-                             <span className="text-sm font-medium text-foreground tabular-nums w-6 text-center">
+                             <Button 
+                                 variant="ghost" 
+                                 className="text-sm font-medium text-foreground tabular-nums w-6 text-center p-0 h-auto hover:bg-transparent hover:text-primary"
+                                 onClick={() => setVotesModalOpen(true)}
+                                 title="Ver detalles de votos"
+                             >
                                  {report.upvotes - report.downvotes}
-                              </span>
+                             </Button>
                              <Button
                                 variant="ghost"
                                 size="icon"
