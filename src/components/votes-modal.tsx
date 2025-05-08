@@ -149,6 +149,22 @@ export function VotesModal({ open, onOpenChange, reportId, reportTitle, upvotes,
               <ArrowUp className="h-3.5 w-3.5 text-green-500" />
             </div>
           </div>
+
+          {/* Información sobre el sistema de votos */}
+          <div className="mt-4 space-y-2 text-sm text-muted-foreground border-t pt-4">
+            <div className="flex items-center gap-2">
+              <ThumbsUp className="h-4 w-4" />
+              <p>Tu voto determina la confiabilidad del reporte</p>
+            </div>
+            <div className="flex items-center gap-2">
+              <ArrowUp className="h-4 w-4" />
+              <p>No hay límite para la cantidad de votos</p>
+            </div>
+            <div className="flex items-center gap-2">
+              <User className="h-4 w-4" />
+              <p>Puedes votar en cualquier reporte de la comunidad</p>
+            </div>
+          </div>
         </div>
 
         {/* Pestañas de votos */}
