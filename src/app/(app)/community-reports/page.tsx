@@ -343,7 +343,7 @@ const CommunityReportsPage: FC = () => {
         {isLoading ? (
            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
             {[...Array(ITEMS_PER_PAGE)].map((_, i) => (
-              <Card key={i} className="shadow-sm bg-card rounded-lg overflow-hidden">
+              <Card key={i} className="shadow-sm bg-card rounded-lg overflow-hidden"> {/* Applied rounded-lg */}
                   <Skeleton className="h-40 w-full bg-muted" /> {/* Image Placeholder */}
                   <CardContent className="p-4">
                     <Skeleton className="h-4 w-3/4 mb-2" />
@@ -359,7 +359,7 @@ const CommunityReportsPage: FC = () => {
         ) : reports.length > 0 ? (
            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
              {reports.map((report) => (
-               <Card key={report.id} className="shadow-md bg-card rounded-lg overflow-hidden hover:shadow-xl transition-shadow duration-300 flex flex-col">
+               <Card key={report.id} className="shadow-md bg-card rounded-lg overflow-hidden hover:shadow-xl transition-shadow duration-300 flex flex-col"> {/* Applied rounded-lg */}
                  {/* Media Preview Area */}
                  <div className="relative h-40 w-full bg-muted flex items-center justify-center text-muted-foreground overflow-hidden group">
                     {report.mediaUrl ? (
@@ -485,7 +485,7 @@ const CommunityReportsPage: FC = () => {
              ))}
            </div>
         ) : (
-           <Card className="shadow-sm bg-card col-span-full"> {/* Span full width if no reports */}
+           <Card className="shadow-sm bg-card col-span-full rounded-lg"> {/* Applied rounded-lg */}
              <CardContent className="p-6 text-center">
                <FileText className="mx-auto h-12 w-12 text-muted-foreground mb-4" />
                <CardTitle className="text-xl font-semibold mb-2">No hay reportes de la comunidad</CardTitle>
@@ -551,5 +551,6 @@ const CommunityReportsPage: FC = () => {
 };
 
 export default CommunityReportsPage;
+
 
 
