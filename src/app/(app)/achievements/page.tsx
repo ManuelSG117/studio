@@ -144,13 +144,13 @@ const AchievementsPage: FC = () => {
         <div className="mb-6">
           <Button
             variant="ghost"
-            size="sm"
-            className="text-muted-foreground hover:text-primary"
+            size="icon" // Changed from "sm" to "icon"
+            className="text-muted-foreground hover:text-primary rounded-full" // Added rounded-full
             onClick={() => router.push('/profile')} // Navigate to profile page
             aria-label="Volver al Perfil"
           >
-            <ArrowLeft className="h-5 w-5 mr-2" />
-            Volver al Perfil
+            <ArrowLeft className="h-5 w-5" /> 
+            {/* Text "Volver al Perfil" is removed due to size="icon" */}
           </Button>
         </div>
 
