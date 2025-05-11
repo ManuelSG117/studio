@@ -319,8 +319,8 @@ const ReportDetailPage: FC = () => {
                 />
             )}
             <Card className="w-full max-w-2xl shadow-lg border-none rounded-xl bg-card">
-                <CardHeader className="relative pb-4 pt-8 flex flex-row justify-between items-center"> {/* Adjusted header */}
-                     {/* Back Button */}
+                <CardHeader className="relative pb-4 pt-8 flex flex-row justify-between items-center">
+                    {/* Back Button */}
                     <Button
                         variant="ghost"
                         size="icon"
@@ -331,151 +331,134 @@ const ReportDetailPage: FC = () => {
                         <ArrowLeft className="h-5 w-5" />
                     </Button>
                     {/* Combined Title and Type Icon */}
-                    <div className="flex items-center gap-3 pt-2 pl-12 flex-1 min-w-0 mr-3"> {/* Added pl-12, flex-1, min-w-0, mr-3 */}
+                    <div className="flex items-center gap-3 pt-2 pl-12 flex-1 min-w-0 mr-3">
                        {report.reportType === 'funcionario' ? (
                           <UserCog className="h-6 w-6 text-primary flex-shrink-0" />
                        ) : (
                           <TriangleAlert className="h-6 w-6 text-destructive flex-shrink-0" />
                        )}
-                       <CardTitle className="text-2xl font-bold text-foreground truncate">{report.title}</CardTitle> {/* Added truncate */}
+                       <CardTitle className="text-2xl font-bold text-foreground truncate">{report.title}</CardTitle>
                     </div>
-                     {/* Voting Buttons - Moved from Footer */}
-                     <div className="flex items-center space-x-1 bg-muted p-1 rounded-full flex-shrink-0">
-                             <Button
-                                 variant="ghost"
-                                 size="icon"
-                                 className={cn(
-                                    "h-6 w-6 rounded-full text-muted-foreground hover:bg-destructive/10 hover:text-destructive",
-                                    report.userVote === 'down' && "bg-destructive/20 text-destructive",
-                                    votingState && "opacity-50 cursor-not-allowed"
-                                 )}
-                                onClick={() => handleVote('down')}
-                                disabled={votingState}
-                                aria-pressed={report.userVote === 'down'}
-                                title="Votar negativamente"
-                             >
-                                {votingState && report.userVote !== 'down' ? <Loader2 className="h-3.5 w-3.5 animate-spin"/> : <ArrowDown className="h-4 w-4"/>}
-                             </Button>
-                             <Button 
-                                 variant="ghost" 
-                                 className="text-sm font-medium text-foreground tabular-nums w-6 text-center p-0 h-auto hover:bg-transparent hover:text-primary"
-                                 onClick={() => setVotesModalOpen(true)}
-                                 title="Ver detalles de votos"
-                             >
-                                 {report.upvotes - report.downvotes}
-                             </Button>
-                             <Button
-                                variant="ghost"
-                                size="icon"
-                                className={cn(
-                                    "h-6 w-6 rounded-full text-muted-foreground hover:bg-green-600/10 hover:text-green-600",
-                                    report.userVote === 'up' && "bg-green-600/20 text-green-600",
-                                    votingState && "opacity-50 cursor-not-allowed"
-                                )}
-                                onClick={() => handleVote('up')}
-                                disabled={votingState}
-                                aria-pressed={report.userVote === 'up'}
-                                title="Votar positivamente"
-                             >
-                                {votingState && report.userVote !== 'up' ? <Loader2 className="h-3.5 w-3.5 animate-spin"/> : <ArrowUp className="h-4 w-4"/>}
-                             </Button>
-                     </div>
+                    {/* Voting Buttons */}
+                    <div className="flex items-center space-x-1 bg-muted p-1 rounded-full flex-shrink-0">
+                        <Button
+                            variant="ghost"
+                            size="icon"
+                            className={cn(
+                                "h-6 w-6 rounded-full text-muted-foreground hover:bg-blue-500/10 hover:text-blue-500",
+                                report.userVote === 'down' && "bg-blue-600/20 text-blue-600",
+                                votingState && "opacity-50 cursor-not-allowed",
+                                user?.uid === report.userId && "cursor-not-allowed opacity-60"
+                            )}
+                            onClick={() => handleVote('down')}
+                            disabled={votingState || user?.uid === report.userId}
+                            aria-pressed={report.userVote === 'down'}
+                            title={user?.uid === report.userId ? "No puedes votar en tus propios reportes" : "Votar negativamente"}
+                        >
+                            {votingState && report.userVote !== 'down' ? <Loader2 className="h-3.5 w-3.5 animate-spin"/> : <ArrowDown className="h-4 w-4"/>}
+                        </Button>
+                        <Button 
+                            variant="ghost" 
+                            className="text-sm font-medium text-foreground tabular-nums w-6 text-center p-0 h-auto hover:bg-transparent hover:text-primary"
+                            onClick={() => setVotesModalOpen(true)}
+                            title="Ver detalles de votos"
+                        >
+                            {report.upvotes - report.downvotes}
+                        </Button>
+                        <Button
+                            variant="ghost"
+                            size="icon"
+                            className={cn(
+                                "h-6 w-6 rounded-full text-muted-foreground hover:bg-red-500/10 hover:text-red-500",
+                                report.userVote === 'up' && "bg-red-600/20 text-red-600",
+                                votingState && "opacity-50 cursor-not-allowed",
+                                user?.uid === report.userId && "cursor-not-allowed opacity-60"
+                            )}
+                            onClick={() => handleVote('up')}
+                            disabled={votingState || user?.uid === report.userId}
+                            aria-pressed={report.userVote === 'up'}
+                            title={user?.uid === report.userId ? "No puedes votar en tus propios reportes" : "Votar positivamente"}
+                        >
+                            {votingState && report.userVote !== 'up' ? <Loader2 className="h-3.5 w-3.5 animate-spin"/> : <ArrowUp className="h-4 w-4"/>}
+                        </Button>
+                    </div>
                 </CardHeader>
 
-                 {/* Date Section */}
-                 <div className="flex flex-col sm:flex-row justify-center items-center gap-2 text-sm text-muted-foreground px-6 sm:px-8 pb-4 border-b border-border">
-                     <div className="flex items-center space-x-2">
-                         <CalendarDays className="h-4 w-4 flex-shrink-0" />
-                         <span>{format(report.createdAt, "PPP 'a las' p", { locale: es })}</span>
-                     </div>
-                 </div>
-
+                {/* Media Evidence - Moved to top for better visual hierarchy */}
+                {report.mediaUrl ? (
+                    <div className="relative aspect-video w-full overflow-hidden bg-muted">
+                        {/\.(mp4|webm|ogg|mov)$/i.test(report.mediaUrl) ? (
+                            <video
+                                controls
+                                src={report.mediaUrl}
+                                className="absolute inset-0 w-full h-full object-cover"
+                                preload="metadata"
+                            >
+                                Tu navegador no soporta videos HTML5.
+                            </video>
+                        ) : (
+                            <Image
+                                src={report.mediaUrl}
+                                alt={`Evidencia para reporte ${report.id}`}
+                                fill
+                                style={{ objectFit: 'cover' }}
+                                data-ai-hint="report evidence media"
+                                className="bg-muted"
+                                sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                            />
+                        )}
+                    </div>
+                ) : (
+                    <div className="h-48 w-full bg-muted flex items-center justify-center text-muted-foreground">
+                        <div className="flex flex-col items-center text-center p-4">
+                            <ImageIcon size={32} className="opacity-50 mb-2"/>
+                            <span className="text-xs">Sin imagen adjunta</span>
+                        </div>
+                    </div>
+                )}
 
                 <CardContent className="px-6 sm:px-8 pt-6 pb-6 space-y-6">
+                    {/* Metadata Section */}
+                    <div className="flex flex-wrap items-center gap-4 text-sm text-muted-foreground">
+                        <div className="flex items-center gap-2">
+                            <CalendarDays className="h-4 w-4" />
+                            <span>{format(report.createdAt, "PPP 'a las' p", { locale: es })}</span>
+                        </div>
+                        <div className="flex items-center gap-2">
+                            <MapPin className="h-4 w-4" />
+                            <span>{formatLocation(report.location)}</span>
+                        </div>
+                    </div>
 
-                     {/* Report Location */}
-                     <div className="pt-0">
-                         <h3 className="text-base font-semibold text-primary mb-2 flex items-center">
-                             <MapPin className="h-5 w-5 mr-2 opacity-70" /> Ubicación
-                         </h3>
-                         <p className="text-foreground/90 leading-relaxed">{formatLocation(report.location)}</p> {/* Use formatLocation */}
-                     </div>
-
-
-                    {/* Report Description */}
-                    <div className="pt-0">
+                    {/* Description */}
+                    <div className="pt-2">
                         <h3 className="text-base font-semibold text-primary mb-2">Descripción</h3>
                         <p className="text-foreground/90 leading-relaxed whitespace-pre-wrap">{report.description}</p>
                     </div>
 
-                    {/* Media Evidence */}
-                    {report.mediaUrl ? (
-                         <div className="pt-0">
-                             <h3 className="text-base font-semibold text-primary mb-2 flex items-center">
-                                 <ImageIcon className="h-5 w-5 mr-2 opacity-70" /> Evidencia Multimedia
-                             </h3>
-                             <div className="relative aspect-video w-full overflow-hidden rounded-lg border border-border bg-muted">
-                                 {/\.(mp4|webm|ogg|mov)$/i.test(report.mediaUrl) ? (
-                                      <video
-                                         controls
-                                         src={report.mediaUrl}
-                                         className="absolute inset-0 w-full h-full object-contain"
-                                         preload="metadata"
-                                       >
-                                         Tu navegador no soporta videos HTML5.
-                                      </video>
-                                  ) : (
-                                      <Image
-                                         src={report.mediaUrl}
-                                         alt={`Evidencia para reporte ${report.id}`}
-                                         fill
-                                         style={{ objectFit: 'contain' }}
-                                         data-ai-hint="report evidence media"
-                                         className="bg-muted"
-                                         sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-                                      />
-                                  )}
-                             </div>
-                         </div>
-                    ) : (
-                        <div className="pt-0">
-                             <h3 className="text-base font-semibold text-primary mb-2 flex items-center">
-                                <ImageIcon className="h-5 w-5 mr-2 opacity-70" /> Evidencia Multimedia
-                             </h3>
-                             <p className="text-sm text-muted-foreground italic">No se adjuntó evidencia multimedia.</p>
-                         </div>
-                    )}
-
-                     {/* Map Preview */}
-                    <div className="pt-0">
-                         <h3 className="text-base font-semibold text-primary mb-2 flex items-center">
-                             <MapPin className="h-5 w-5 mr-2 opacity-70" /> Ubicación en Mapa
-                         </h3>
-                         <div className="h-48 w-full bg-muted border border-border rounded-lg overflow-hidden">
-                             {/* Render the ReportsMap component if coordinates exist */}
-                             {isClient && report.latitude && report.longitude ? (
+                    {/* Map Preview */}
+                    <div className="pt-2">
+                        <h3 className="text-base font-semibold text-primary mb-2 flex items-center">
+                            <MapPin className="h-5 w-5 mr-2 opacity-70" /> Ubicación en Mapa
+                        </h3>
+                        <div className="h-48 w-full bg-muted border border-border rounded-lg overflow-hidden">
+                            {isClient && report.latitude && report.longitude ? (
                                 <ReportsMap
-                                     reports={[report]} // Pass the single report in an array
-                                     defaultZoom={16} // Zoom in closer for single report view
-                                     defaultCenter={{ lat: report.latitude, lng: report.longitude }}
+                                    reports={[report]}
+                                    defaultZoom={16}
+                                    defaultCenter={{ lat: report.latitude, lng: report.longitude }}
                                 />
-                             ) : (
-                                 <div className="h-full w-full flex flex-col items-center justify-center text-center p-4">
-                                     <MapPin className="h-8 w-8 text-muted-foreground opacity-50 mb-2" />
-                                     <p className="text-sm text-muted-foreground">
-                                         {isClient ? "Coordenadas no disponibles para mostrar el mapa." : "Cargando mapa..."}
-                                     </p>
-                                 </div>
-                             )}
-                         </div>
+                            ) : (
+                                <div className="h-full w-full flex flex-col items-center justify-center text-center p-4">
+                                    <MapPin className="h-8 w-8 text-muted-foreground opacity-50 mb-2" />
+                                    <p className="text-sm text-muted-foreground">
+                                        {isClient ? "Coordenadas no disponibles para mostrar el mapa." : "Cargando mapa..."}
+                                    </p>
+                                </div>
+                            )}
+                        </div>
                     </div>
-
                 </CardContent>
-
-                 {/* Voting Section in Footer - Removed */}
-                 <CardFooter className="px-6 sm:px-8 pt-4 pb-6 border-t border-border/50">
-                    {/* Footer is empty, voting is now in the header */}
-                 </CardFooter>
             </Card>
         </main>
     );

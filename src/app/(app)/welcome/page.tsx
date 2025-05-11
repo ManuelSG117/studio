@@ -1,4 +1,3 @@
-
 "use client";
 
 import type { FC } from 'react';
@@ -357,67 +356,72 @@ const WelcomePage: FC = () => {
           ))
         ) : reports.length > 0 ? (
           reports.map((report) => (
-             <Card key={report.id} className="shadow-sm bg-card rounded-lg overflow-hidden hover:shadow-md transition-shadow">
-                 <CardHeader className="p-4 flex flex-row items-center justify-between">
-                     <Badge variant={getTypeBadgeVariant(report.reportType)} className="text-xs capitalize">
-                        {getTypeBadgeText(report.reportType)}
-                     </Badge>
-                     <DropdownMenu>
-                         <DropdownMenuTrigger asChild>
-                             <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground">
-                                 <Ellipsis className="h-4 w-4" />
-                                 <span className="sr-only">Abrir menú</span>
-                             </Button>
-                         </DropdownMenuTrigger>
-                         <DropdownMenuContent align="end">
-                             <DropdownMenuItem asChild>
-                                 <Link href={`/reports/${report.id}`}>
-                                     Ver detalles
-                                 </Link>
-                             </DropdownMenuItem>
-                             <DropdownMenuItem disabled>
-                                 Editar (Próximamente)
-                             </DropdownMenuItem>
-                             <DropdownMenuItem disabled className="text-destructive focus:bg-destructive/10 focus:text-destructive">
-                                 Eliminar (Próximamente)
-                             </DropdownMenuItem>
-                             <DropdownMenuItem>
-                                 Compartir
-                             </DropdownMenuItem>
-                         </DropdownMenuContent>
-                     </DropdownMenu>
-                 </CardHeader>
-                  {/* Media Preview Area */}
-                  {report.mediaUrl && (
-                    <div className="relative h-40 w-full bg-muted flex items-center justify-center text-muted-foreground overflow-hidden group">
-                       {report.mediaUrl.includes('.mp4') || report.mediaUrl.includes('.webm') ? (
-                          <video src={report.mediaUrl} className="h-full w-full object-cover" controls={false} preload="metadata" />
-                       ) : (
-                          <Image src={report.mediaUrl} alt={`Evidencia para ${report.title}`} fill style={{ objectFit: 'cover' }} className="transition-transform duration-300 group-hover:scale-105" data-ai-hint="report evidence" />
-                       )}
-                        <div className="absolute inset-0 bg-black/10 group-hover:bg-black/30 transition-colors flex items-center justify-center opacity-0 group-hover:opacity-100">
-                            <Link href={`/reports/${report.id}`} className="text-white text-xs bg-black/50 px-3 py-1 rounded-full backdrop-blur-sm">Ver Detalles</Link>
+             <Card key={report.id} className="shadow-md bg-card rounded-lg overflow-hidden hover:shadow-xl transition-shadow duration-300 flex flex-col">
+                 {/* Media Preview Area */}
+                 <div className="relative h-40 w-full bg-muted flex items-center justify-center text-muted-foreground overflow-hidden group">
+                    {report.mediaUrl ? (
+                        <>
+                           {report.mediaUrl.includes('.mp4') || report.mediaUrl.includes('.webm') ? (
+                              <video src={report.mediaUrl} className="h-full w-full object-cover" controls={false} preload="metadata" />
+                           ) : (
+                              <Image src={report.mediaUrl} alt={`Evidencia para ${report.title}`} fill style={{ objectFit: 'cover' }} className="transition-transform duration-300 group-hover:scale-105" data-ai-hint="report evidence"/>
+                           )}
+                           <div className="absolute inset-0 bg-black/10 group-hover:bg-black/30 transition-colors flex items-center justify-center opacity-0 group-hover:opacity-100">
+                              <Link href={`/reports/${report.id}`} className="text-white text-xs bg-black/50 px-3 py-1 rounded-full backdrop-blur-sm">Ver Detalles</Link>
+                           </div>
+                         </>
+                    ) : (
+                        <div className="flex flex-col items-center text-center p-4">
+                           <ImageIcon size={32} className="opacity-50 mb-2"/>
+                           <span className="text-xs">Sin imagen adjunta</span>
                         </div>
-                         {/* Media Type Icon */}
-                        <div className="absolute bottom-2 right-2 bg-black/60 text-white p-1.5 rounded-full backdrop-blur-sm">
-                            {report.mediaUrl.includes('.mp4') || report.mediaUrl.includes('.webm') ? (
-                                <Video size={14} />
-                             ) : (
-                                <ImageIcon size={14} />
-                             )}
-                        </div>
-                    </div>
-                  )}
-                  {!report.mediaUrl && (
-                      <div className="h-32 w-full bg-muted flex items-center justify-center text-muted-foreground">
-                          <div className="flex flex-col items-center text-center p-4">
-                             <ImageIcon size={32} className="opacity-50 mb-2"/>
-                             <span className="text-xs">Sin imagen adjunta</span>
-                          </div>
-                      </div>
-                  )}
+                    )}
 
-                <CardContent className="p-4 flex-1 space-y-2">
+                   {/* Badges Overlay */}
+                   <div className="absolute top-2 left-2 z-10">
+                      <Badge variant={getTypeBadgeVariant(report.reportType)} className="text-xs capitalize shadow">
+                        {getTypeBadgeText(report.reportType)}
+                      </Badge>
+                   </div>
+                    {/* Dropdown Menu */}
+                    <div className="absolute top-2 right-2 z-10">
+                        <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                                <Button variant="ghost" size="icon" className="h-8 w-8 bg-black/40 text-white hover:bg-black/60 rounded-full backdrop-blur-sm">
+                                    <Ellipsis className="h-4 w-4" />
+                                    <span className="sr-only">Abrir menú</span>
+                                </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="end" className="w-48">
+                                <DropdownMenuItem asChild>
+                                    <Link href={`/reports/${report.id}`} className="flex items-center gap-2">
+                                        <FileText className="h-4 w-4" />
+                                        Ver detalles
+                                    </Link>
+                                </DropdownMenuItem>
+                                <DropdownMenuItem disabled className="text-muted-foreground flex items-center gap-2">
+                                    <svg className="h-4 w-4" fill="currentColor" viewBox="0 0 24 24">
+                                        <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/>
+                                    </svg>
+                                    Compartir en Facebook (Próximamente)
+                                </DropdownMenuItem>
+                            </DropdownMenuContent>
+                        </DropdownMenu>
+                    </div>
+
+                   {/* Media Type Icon */}
+                   {report.mediaUrl && (
+                    <div className="absolute bottom-2 right-2 bg-black/60 text-white p-1.5 rounded-full backdrop-blur-sm z-10">
+                        {report.mediaUrl.includes('.mp4') || report.mediaUrl.includes('.webm') ? (
+                            <Video size={14} />
+                         ) : (
+                            <ImageIcon size={14} />
+                         )}
+                    </div>
+                   )}
+                 </div>
+
+                 <CardContent className="p-4 flex-1 space-y-2">
                    <CardTitle className="text-base font-semibold leading-snug line-clamp-2">
                      <Link href={`/reports/${report.id}`} className="hover:text-primary transition-colors">
                        {report.title}
@@ -431,60 +435,58 @@ const WelcomePage: FC = () => {
                      <span className="truncate">{formatLocation(report.location)}</span>
                    </div>
                    <div className="flex items-center justify-between pt-1">
-                     <div className="flex items-center text-xs text-muted-foreground gap-1.5">
+                      <div className="flex items-center text-xs text-muted-foreground gap-1.5">
                          <CalendarDays size={12} className="flex-shrink-0" />
                          <span>{formatDistanceToNow(report.createdAt, { addSuffix: true, locale: es })}</span>
-                     </div>
-                     {/* Voting Section moved to bottom right */}
-                     <div className="flex items-center space-x-1 bg-muted p-1 rounded-full">
-                         <Button
-                             variant="ghost"
-                             size="icon"
-                             className={cn(
-                                 "h-6 w-6 rounded-full text-muted-foreground hover:bg-blue-500/10 hover:text-blue-500", // Blue for downvote
-                                 report.userVote === 'down' && "bg-blue-600/20 text-blue-600",
-                                 votingState[report.id] && "opacity-50 cursor-not-allowed",
-                                 user?.uid === report.userId && "cursor-not-allowed opacity-60" // Disable for own report
-                             )}
-                             onClick={() => handleVote(report.id, 'down')}
-                             disabled={votingState[report.id] || user?.uid === report.userId}
-                             aria-pressed={report.userVote === 'down'}
-                             title={user?.uid === report.userId ? "No puedes votar en tus propios reportes" : "Votar negativamente"}
-                         >
-                             {votingState[report.id] && report.userVote !== 'down' ? <Loader2 className="h-3.5 w-3.5 animate-spin"/> : <ArrowDown className="h-4 w-4"/>}
-                         </Button>
-                         <Button 
-                             variant="ghost" 
-                             className="text-sm font-medium text-foreground tabular-nums w-6 text-center p-0 h-auto hover:bg-transparent hover:text-primary"
-                             onClick={() => {
-                                 setSelectedReport(report);
-                                 setVotesModalOpen(true);
-                             }}
-                             title="Ver detalles de votos"
-                         >
-                             {report.upvotes - report.downvotes}
-                         </Button>
-                         <Button
-                             variant="ghost"
-                             size="icon"
-                             className={cn(
-                                 "h-6 w-6 rounded-full text-muted-foreground hover:bg-red-500/10 hover:text-red-500", // Red for upvote
-                                 report.userVote === 'up' && "bg-red-600/20 text-red-600",
-                                 votingState[report.id] && "opacity-50 cursor-not-allowed",
-                                 user?.uid === report.userId && "cursor-not-allowed opacity-60" // Disable for own report
-                             )}
-                             onClick={() => handleVote(report.id, 'up')}
-                             disabled={votingState[report.id] || user?.uid === report.userId}
-                             aria-pressed={report.userVote === 'up'}
-                             title={user?.uid === report.userId ? "No puedes votar en tus propios reportes" : "Votar positivamente"}
-                         >
-                             {votingState[report.id] && report.userVote !== 'up' ? <Loader2 className="h-3.5 w-3.5 animate-spin"/> : <ArrowUp className="h-4 w-4"/>}
-                         </Button>
-                     </div>
-
+                      </div>
+                      {/* Voting Section */}
+                      <div className="flex items-center space-x-1 bg-muted p-1 rounded-full">
+                           <Button
+                               variant="ghost"
+                               size="icon"
+                               className={cn(
+                                   "h-6 w-6 rounded-full text-muted-foreground hover:bg-blue-500/10 hover:text-blue-500",
+                                   report.userVote === 'down' && "bg-blue-600/20 text-blue-600",
+                                   votingState[report.id] && "opacity-50 cursor-not-allowed",
+                                   user?.uid === report.userId && "cursor-not-allowed opacity-60"
+                               )}
+                              onClick={() => handleVote(report.id, 'down')}
+                              disabled={votingState[report.id] || user?.uid === report.userId}
+                              aria-pressed={report.userVote === 'down'}
+                              title={user?.uid === report.userId ? "No puedes votar en tus propios reportes" : "Votar negativamente"}
+                           >
+                              {votingState[report.id] && report.userVote !== 'down' ? <Loader2 className="h-3.5 w-3.5 animate-spin"/> : <ArrowDown className="h-4 w-4"/>}
+                           </Button>
+                           <Button 
+                               variant="ghost" 
+                               className="text-sm font-medium text-foreground tabular-nums w-6 text-center p-0 h-auto hover:bg-transparent hover:text-primary"
+                               onClick={() => {
+                                   setSelectedReport(report);
+                                   setVotesModalOpen(true);
+                               }}
+                               title="Ver detalles de votos"
+                           >
+                               {report.upvotes - report.downvotes}
+                           </Button>
+                           <Button
+                              variant="ghost"
+                              size="icon"
+                              className={cn(
+                                  "h-6 w-6 rounded-full text-muted-foreground hover:bg-red-500/10 hover:text-red-500",
+                                  report.userVote === 'up' && "bg-red-600/20 text-red-600",
+                                  votingState[report.id] && "opacity-50 cursor-not-allowed",
+                                  user?.uid === report.userId && "cursor-not-allowed opacity-60"
+                              )}
+                              onClick={() => handleVote(report.id, 'up')}
+                              disabled={votingState[report.id] || user?.uid === report.userId}
+                              aria-pressed={report.userVote === 'up'}
+                              title={user?.uid === report.userId ? "No puedes votar en tus propios reportes" : "Votar positivamente"}
+                           >
+                              {votingState[report.id] && report.userVote !== 'up' ? <Loader2 className="h-3.5 w-3.5 animate-spin"/> : <ArrowUp className="h-4 w-4"/>}
+                           </Button>
+                       </div>
                    </div>
                  </CardContent>
-
             </Card>
           ))
         ) : (
