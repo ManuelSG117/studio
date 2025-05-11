@@ -2,7 +2,7 @@
 "use client";
 
 import type { FC, ReactNode } from 'react';
-import { Award, FilePlus, CheckSquare, TrendingUp, Star, Users, ThumbsUp, ShieldCheck, Target, CalendarClock } from 'lucide-react';
+import { Award, FilePlus, CheckSquare, TrendingUp, Star, Users, ThumbsUp, ShieldCheck, Target, CalendarClock, Sparkles, HelpCircle } from 'lucide-react'; // Added Sparkles, HelpCircle for new achievements
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress'; // Import Progress component
 import { Badge } from '@/components/ui/badge'; // Import Badge component
@@ -16,6 +16,7 @@ interface Achievement {
   criteria?: string; // e.g., "Reporta 5 incidentes"
   progress?: number; // 0-100 for progress bar
   unlocked?: boolean; // To style unlocked achievements
+  comingSoon?: boolean; // Flag for "coming soon" achievements
 }
 
 const achievementsList: Achievement[] = [
@@ -109,6 +110,26 @@ const achievementsList: Achievement[] = [
     progress: 50,
     unlocked: false,
   },
+  {
+    id: 'future_innovator',
+    title: 'Innovador Futuro',
+    description: 'Este logro está en desarrollo. ¡Prepárate para nuevas formas de contribuir!',
+    icon: <Sparkles className="h-8 w-8 text-gray-400" />,
+    criteria: 'Disponible próximamente',
+    progress: 0,
+    unlocked: false,
+    comingSoon: true,
+  },
+  {
+    id: 'community_expert',
+    title: 'Experto de la Comunidad',
+    description: 'Un nuevo desafío te espera. Conviértete en una referencia en +Seguro.',
+    icon: <HelpCircle className="h-8 w-8 text-gray-400" />,
+    criteria: 'Disponible próximamente',
+    progress: 0,
+    unlocked: false,
+    comingSoon: true,
+  },
 ];
 
 const AchievementsPage: FC = () => {
@@ -134,23 +155,30 @@ const AchievementsPage: FC = () => {
             {achievementsList.map((achievement) => (
               <Tooltip key={achievement.id} delayDuration={100}>
                 <TooltipTrigger asChild>
-                  <Card className={`shadow-md hover:shadow-xl transition-shadow duration-300 rounded-lg overflow-hidden ${achievement.unlocked ? 'border-2 border-primary bg-primary/5' : 'bg-card'}`}>
+                  <Card 
+                    className={`shadow-md hover:shadow-xl transition-shadow duration-300 rounded-lg overflow-hidden 
+                      ${achievement.unlocked ? 'border-2 border-primary bg-primary/5' : 'bg-card'}
+                      ${achievement.comingSoon ? 'opacity-60 cursor-default hover:shadow-md' : ''}`}
+                  >
                     <CardHeader className="flex flex-row items-start justify-between gap-4 p-5">
-                      <div className={`p-3 rounded-full ${achievement.unlocked ? 'bg-primary/20' : 'bg-muted'}`}>
+                      <div className={`p-3 rounded-full ${achievement.unlocked ? 'bg-primary/20' : achievement.comingSoon ? 'bg-muted/50' : 'bg-muted'}`}>
                         {achievement.icon}
                       </div>
-                      {achievement.unlocked && (
+                      {achievement.unlocked && !achievement.comingSoon && (
                         <Badge variant="default" className="bg-primary text-primary-foreground text-xs">Desbloqueado</Badge>
                       )}
-                      {!achievement.unlocked && achievement.progress !== undefined && (
+                      {!achievement.unlocked && achievement.progress !== undefined && !achievement.comingSoon && (
                          <Badge variant="outline" className="text-xs">En Progreso</Badge>
+                      )}
+                      {achievement.comingSoon && (
+                        <Badge variant="outline" className="text-xs border-dashed">Próximamente</Badge>
                       )}
                     </CardHeader>
                     <CardContent className="p-5 pt-0">
-                      <CardTitle className={`text-lg font-semibold mb-1 ${achievement.unlocked ? 'text-primary' : 'text-foreground'}`}>
+                      <CardTitle className={`text-lg font-semibold mb-1 ${achievement.unlocked ? 'text-primary' : 'text-foreground'} ${achievement.comingSoon ? 'text-muted-foreground' : ''}`}>
                         {achievement.title}
                       </CardTitle>
-                      <CardDescription className="text-sm text-muted-foreground mb-3 min-h-[40px]">
+                      <CardDescription className={`text-sm text-muted-foreground mb-3 min-h-[40px] ${achievement.comingSoon ? 'italic' : ''}`}>
                         {achievement.description}
                       </CardDescription>
                       
@@ -160,7 +188,7 @@ const AchievementsPage: FC = () => {
                         </p>
                       )}
 
-                      {achievement.progress !== undefined && !achievement.unlocked && (
+                      {achievement.progress !== undefined && !achievement.unlocked && !achievement.comingSoon && (
                         <div className="mt-2">
                           <Progress value={achievement.progress} className="h-2" />
                           <p className="text-xs text-muted-foreground text-right mt-1">{achievement.progress}% completado</p>
@@ -170,8 +198,14 @@ const AchievementsPage: FC = () => {
                   </Card>
                 </TooltipTrigger>
                 <TooltipContent side="bottom" className="bg-popover text-popover-foreground p-2 rounded-md shadow-lg text-xs">
-                  <p>{achievement.unlocked ? '¡Logro conseguido!' : `Progreso: ${achievement.progress}%`}</p>
-                  {achievement.criteria && <p>Objetivo: {achievement.criteria}</p>}
+                  {achievement.comingSoon ? (
+                    <p>Este logro estará disponible pronto.</p>
+                  ) : (
+                    <>
+                      <p>{achievement.unlocked ? '¡Logro conseguido!' : `Progreso: ${achievement.progress}%`}</p>
+                      {achievement.criteria && <p>Objetivo: {achievement.criteria}</p>}
+                    </>
+                  )}
                 </TooltipContent>
               </Tooltip>
             ))}
