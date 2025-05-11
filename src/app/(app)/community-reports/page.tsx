@@ -1,4 +1,3 @@
-
 "use client";
 
 import type { FC } from 'react';
@@ -14,7 +13,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Input } from "@/components/ui/input"; // Import Input
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"; // Import Select
 import { Badge } from "@/components/ui/badge"; // Import Badge
-import { FileText, MapPin, CalendarDays, Loader2, UserCog, TriangleAlert, Video, Image as ImageIcon, Search, Ellipsis, ChevronLeft, ChevronRight, Plus, ArrowUp, ArrowDown } from 'lucide-react'; // Added necessary icons, ArrowUp, ArrowDown
+import { FileText, MapPin, CalendarDays, Loader2, UserCog, TriangleAlert, Video, Image as ImageIcon, Search, Ellipsis, ChevronLeft, ChevronRight, Plus, ArrowUp, ArrowDown, X, SlidersHorizontal } from 'lucide-react'; // Added necessary icons, ArrowUp, ArrowDown, X, SlidersHorizontal
 import { VotesModal } from "@/components/votes-modal"; // Import VotesModal component
 import { format, formatDistanceToNow } from 'date-fns'; // Import formatDistanceToNow
 import { es } from 'date-fns/locale';
@@ -37,6 +36,7 @@ import {
   PaginationNext,
   PaginationPrevious,
 } from "@/components/ui/pagination" // Import Pagination
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 
 const CommunityReportsPage: FC = () => {
   const router = useRouter();
@@ -50,6 +50,8 @@ const CommunityReportsPage: FC = () => {
   const [votingState, setVotingState] = useState<{ [reportId: string]: boolean }>({});
   const [votesModalOpen, setVotesModalOpen] = useState(false);
   const [selectedReport, setSelectedReport] = useState<Report | null>(null);
+  const isMobile = typeof window !== 'undefined' && window.innerWidth < 768; // crude mobile check
+  const [filterModalOpen, setFilterModalOpen] = useState(false);
 
   const ITEMS_PER_PAGE = 9; // Adjust to fit 3 columns
 
@@ -312,45 +314,116 @@ const CommunityReportsPage: FC = () => {
           <p className="text-muted-foreground">Visualización de reportes y denuncias ciudadanas para promover la seguridad en nuestra comunidad</p>
         </div>
 
-        {/* Search and Filters Bar - Updated Styling */}
-        <div className="flex flex-col md:flex-row items-center gap-4 mb-8 p-4 bg-card rounded-full shadow-md border border-border"> {/* Use rounded-full and shadow-md */}
-          <div className="relative w-full md:flex-1">
-            <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" /> {/* Adjusted padding */}
-            <Input placeholder="Buscar reportes..." className="pl-11 h-11 rounded-full border-none focus-visible:ring-0 bg-transparent" /> {/* Rounded-full, border-none */}
+        {/* Search and Filters Bar - Responsive */}
+        <div className="mb-8">
+          {/* Mobile: Minimal button */}
+          <div className="md:hidden flex items-center gap-2">
+            <Button
+              variant="outline"
+              size="icon"
+              className="rounded-full p-3 shadow-sm border border-border"
+              onClick={() => setFilterModalOpen(true)}
+              aria-label="Filtrar"
+            >
+              <SlidersHorizontal className="h-5 w-5" />
+            </Button>
+            {/* Only show search input if modal is not open */}
+            {!filterModalOpen && (
+              <div className="flex-1">
+                <Input placeholder="Buscar..." className="h-10 rounded-full border-none focus-visible:ring-0 bg-card" />
+              </div>
+            )}
           </div>
-          <div className="flex items-center gap-2 bg-muted p-1 rounded-full"> {/* Container for filters */}
-            <span className="text-sm font-medium text-muted-foreground hidden md:inline pl-2">Filtrar por:</span>
-            {/* Filter Selects with rounded-full */}
-            <Select defaultValue="todos">
-              <SelectTrigger className="w-full md:w-auto h-9 rounded-full border-none bg-background shadow-sm px-4"> {/* Adjusted styling */}
-                <SelectValue placeholder="Todos los tipos" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="todos">Todos los tipos</SelectItem>
-                <SelectItem value="incidente">Incidente</SelectItem>
-                <SelectItem value="funcionario">Funcionario</SelectItem>
-              </SelectContent>
-            </Select>
-             <Select defaultValue="cualquier">
-              <SelectTrigger className="w-full md:w-auto h-9 rounded-full border-none bg-background shadow-sm px-4"> {/* Adjusted styling */}
-                <SelectValue placeholder="Cualquier ubicación" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="cualquier">Cualquier ubicación</SelectItem>
-                {/* Add location options here */}
-              </SelectContent>
-            </Select>
-            <Select defaultValue="recientes">
-              <SelectTrigger className="w-full md:w-auto h-9 rounded-full border-none bg-background shadow-sm px-4"> {/* Adjusted styling */}
-                <SelectValue placeholder="Más recientes" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="recientes">Más recientes</SelectItem>
-                <SelectItem value="antiguos">Más antiguos</SelectItem>
-                <SelectItem value="populares">Más populares</SelectItem>
-              </SelectContent>
-            </Select>
+          {/* Desktop: Inline filters */}
+          <div className="hidden md:flex flex-row items-center gap-4 p-4 bg-card rounded-full shadow-md border border-border">
+            <div className="relative w-full md:flex-1">
+              <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
+              <Input placeholder="Buscar reportes..." className="pl-11 h-11 rounded-full border-none focus-visible:ring-0 bg-transparent" />
+            </div>
+            <div className="flex items-center gap-2 bg-muted p-1 rounded-full">
+              <span className="text-sm font-medium text-muted-foreground hidden md:inline pl-2">Filtrar por:</span>
+              <Select defaultValue="todos">
+                <SelectTrigger className="w-full md:w-auto h-9 rounded-full border-none bg-background shadow-sm px-4">
+                  <SelectValue placeholder="Todos los tipos" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="todos">Todos los tipos</SelectItem>
+                  <SelectItem value="incidente">Incidente</SelectItem>
+                  <SelectItem value="funcionario">Funcionario</SelectItem>
+                </SelectContent>
+              </Select>
+              <Select defaultValue="cualquier">
+                <SelectTrigger className="w-full md:w-auto h-9 rounded-full border-none bg-background shadow-sm px-4">
+                  <SelectValue placeholder="Cualquier ubicación" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="cualquier">Cualquier ubicación</SelectItem>
+                </SelectContent>
+              </Select>
+              <Select defaultValue="recientes">
+                <SelectTrigger className="w-full md:w-auto h-9 rounded-full border-none bg-background shadow-sm px-4">
+                  <SelectValue placeholder="Más recientes" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="recientes">Más recientes</SelectItem>
+                  <SelectItem value="antiguos">Más antiguos</SelectItem>
+                  <SelectItem value="populares">Más populares</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
           </div>
+          {/* Mobile: Modal for filters */}
+          <Dialog open={filterModalOpen} onOpenChange={setFilterModalOpen}>
+            <DialogContent className="p-0 max-w-sm w-full rounded-2xl">
+              <DialogHeader className="flex flex-row items-center justify-between px-4 pt-4 pb-2">
+                <DialogTitle className="text-lg font-semibold">Filtrar</DialogTitle>
+              </DialogHeader>
+              <div className="px-4 pb-4 space-y-4">
+                <div>
+                  <label className="block text-xs font-medium mb-1">Tipo</label>
+                  <Select defaultValue="todos">
+                    <SelectTrigger className="h-10 rounded-full border-none bg-background shadow-sm px-4">
+                      <SelectValue placeholder="Todos los tipos" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="todos">Todos los tipos</SelectItem>
+                      <SelectItem value="incidente">Incidente</SelectItem>
+                      <SelectItem value="funcionario">Funcionario</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div>
+                  <label className="block text-xs font-medium mb-1">Ubicación</label>
+                  <Select defaultValue="cualquier">
+                    <SelectTrigger className="h-10 rounded-full border-none bg-background shadow-sm px-4">
+                      <SelectValue placeholder="Cualquier ubicación" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="cualquier">Cualquier ubicación</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div>
+                  <label className="block text-xs font-medium mb-1">Ordenar por</label>
+                  <Select defaultValue="recientes">
+                    <SelectTrigger className="h-10 rounded-full border-none bg-background shadow-sm px-4">
+                      <SelectValue placeholder="Más recientes" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="recientes">Más recientes</SelectItem>
+                      <SelectItem value="antiguos">Más antiguos</SelectItem>
+                      <SelectItem value="populares">Más populares</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+              <DialogFooter className="px-4 pb-4">
+                <Button className="w-full rounded-full" onClick={() => setFilterModalOpen(false)}>
+                  Aplicar filtros
+                </Button>
+              </DialogFooter>
+            </DialogContent>
+          </Dialog>
         </div>
 
         {/* Reports Grid */}
