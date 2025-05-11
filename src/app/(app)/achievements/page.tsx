@@ -2,21 +2,23 @@
 "use client";
 
 import type { FC, ReactNode } from 'react';
-import { Award, FilePlus, CheckSquare, TrendingUp, Star, Users, ThumbsUp, ShieldCheck, Target, CalendarClock, Sparkles, HelpCircle } from 'lucide-react'; // Added Sparkles, HelpCircle for new achievements
+import { useRouter } from 'next/navigation'; // Import useRouter
+import { Award, FilePlus, CheckSquare, TrendingUp, Star, Users, ThumbsUp, ShieldCheck, Target, CalendarClock, Sparkles, HelpCircle, ArrowLeft } from 'lucide-react'; // Added ArrowLeft
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
-import { Progress } from '@/components/ui/progress'; // Import Progress component
-import { Badge } from '@/components/ui/badge'; // Import Badge component
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip'; // Import Tooltip
+import { Progress } from '@/components/ui/progress'; 
+import { Badge } from '@/components/ui/badge'; 
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip'; 
+import { Button } from '@/components/ui/button'; // Import Button
 
 interface Achievement {
   id: string;
   title: string;
   description: string;
   icon: ReactNode;
-  criteria?: string; // e.g., "Reporta 5 incidentes"
-  progress?: number; // 0-100 for progress bar
-  unlocked?: boolean; // To style unlocked achievements
-  comingSoon?: boolean; // Flag for "coming soon" achievements
+  criteria?: string; 
+  progress?: number; 
+  unlocked?: boolean; 
+  comingSoon?: boolean; 
 }
 
 const achievementsList: Achievement[] = [
@@ -26,7 +28,7 @@ const achievementsList: Achievement[] = [
     description: '¡Bienvenido! Has dado el primer paso para un Uruapan más seguro.',
     icon: <FilePlus className="h-8 w-8 text-primary" />,
     criteria: 'Envía tu primer reporte',
-    progress: 100, // Example: assume unlocked
+    progress: 100, 
     unlocked: true,
   },
   {
@@ -63,7 +65,7 @@ const achievementsList: Achievement[] = [
     icon: <Award className="h-8 w-8 text-purple-500" />,
     criteria: 'Regístrate en los primeros 7 días',
     progress: 100,
-    unlocked: true, // Example
+    unlocked: true, 
   },
   {
     id: 'consistent_contributor',
@@ -133,9 +135,25 @@ const achievementsList: Achievement[] = [
 ];
 
 const AchievementsPage: FC = () => {
+  const router = useRouter(); // Initialize router
+
   return (
     <main className="flex flex-col p-4 sm:p-6 md:p-8 bg-secondary min-h-screen">
       <div className="w-full max-w-5xl mx-auto space-y-8">
+        {/* Back Button */}
+        <div className="mb-6">
+          <Button
+            variant="ghost"
+            size="sm"
+            className="text-muted-foreground hover:text-primary"
+            onClick={() => router.push('/profile')} // Navigate to profile page
+            aria-label="Volver al Perfil"
+          >
+            <ArrowLeft className="h-5 w-5 mr-2" />
+            Volver al Perfil
+          </Button>
+        </div>
+
         {/* Header Section */}
         <div className="text-center mb-10">
           <div className="inline-block p-3 bg-primary/10 rounded-full mb-4">
@@ -231,3 +249,5 @@ const AchievementsPage: FC = () => {
 };
 
 export default AchievementsPage;
+
+    
