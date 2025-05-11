@@ -1,15 +1,18 @@
 "use client";
 
-import { FC, useEffect, useState } from 'react';
-import { collection, query, where, getDocs, orderBy, Timestamp } from 'firebase/firestore';
+import { FC, useEffect, useState, useMemo } from 'react';
+import { collection, query, where, getDocs, orderBy, Timestamp,getCountFromServer } from 'firebase/firestore'; // Added getCountFromServer
 import { db } from '@/lib/firebase/client';
-import { Card, CardContent } from '@/components/ui/card';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
-import { ThumbsUp, ThumbsDown, BarChart3, Shield, Bell, Award, ChevronRight } from 'lucide-react';
-import { format, startOfWeek, endOfWeek, eachDayOfInterval } from 'date-fns';
+import { ThumbsUp, ThumbsDown, BarChart3, Shield, Bell, Award, ChevronRight, FileText, TrendingUp, TrendingDown, Users } from 'lucide-react'; // Added icons
+import { format, startOfWeek, endOfWeek, eachDayOfInterval, differenceInDays } from 'date-fns';
 import { es } from 'date-fns/locale';
+import { cn } from '@/lib/utils';
+import { AnimatedNumber } from '@/components/ui/animated-number'; // Import AnimatedNumber
+import { Button } from '../ui/button';
 
-// Definir tipos para los datos de votos
+
 interface VoteData {
   reportId: string;
   reportTitle?: string;
@@ -17,28 +20,14 @@ interface VoteData {
   timestamp: Date;
 }
 
-interface ActivityData {
-  type: 'report' | 'vote' | 'comment';
-  title: string;
-  timestamp: Date;
-  status?: string;
-  votes?: number;
-}
-
 interface DailyActivity {
   day: string;
-  shortDay: string;
+  shortDay: string; // For labels like 'L', 'M'
   date: number;
   hasActivity: boolean;
+  count: number; // Number of activities for this day
 }
 
-interface Achievement {
-  id: string;
-  title: string;
-  description: string;
-  icon: React.ReactNode;
-  unlocked: boolean;
-}
 
 interface VotingStatsProps {
   userId: string;
@@ -46,286 +35,206 @@ interface VotingStatsProps {
 
 export const VotingStats: FC<VotingStatsProps> = ({ userId }) => {
   const [votes, setVotes] = useState<VoteData[]>([]);
-  const [activities, setActivities] = useState<ActivityData[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [weeklyActivity, setWeeklyActivity] = useState<DailyActivity[]>([]);
-  const [stats, setStats] = useState({
-    upvotes: 0,
-    downvotes: 0,
-    totalVotes: 0,
-    participationRate: 3.2,
-    mostActiveDay: 'Jue'
-  });
-  const [achievements, setAchievements] = useState<Achievement[]>([]);
+  
+  const [totalUserReports, setTotalUserReports] = useState(0); // New state for total reports by user
+
+
+  const stats = useMemo(() => {
+    const upvotes = votes.filter(v => v.type === 'up').length;
+    const downvotes = votes.filter(v => v.type === 'down').length;
+    const totalVotesMade = upvotes + downvotes;
+    // Placeholder for average - needs more complex calculation based on a period
+    const averageVotesPerDay = totalVotesMade > 0 ? (totalVotesMade / 30).toFixed(1) : "0.0"; // Example: avg over 30 days
+
+    let mostActiveDayData: { day: string; count: number } = { day: 'N/A', count: 0 };
+    if (weeklyActivity.length > 0) {
+        const activeDays = weeklyActivity.filter(d => d.hasActivity);
+        if (activeDays.length > 0) {
+            mostActiveDayData = activeDays.reduce((max, day) => day.count > max.count ? day : max, activeDays[0]);
+        }
+    }
+    
+    return {
+      upvotesGiven: upvotes,
+      downvotesGiven: downvotes,
+      totalVotesGiven: totalVotesMade,
+      averageVotesPerDay: parseFloat(averageVotesPerDay), // Ensure it's a number
+      mostActiveDay: mostActiveDayData.day !== 'N/A' ? mostActiveDayData.day.charAt(0).toUpperCase() + mostActiveDayData.day.slice(1) : 'N/A',
+    };
+  }, [votes, weeklyActivity]);
 
   useEffect(() => {
-    const fetchVotingStats = async () => {
+    const fetchVotingData = async () => {
       if (!userId) return;
       
       setIsLoading(true);
       try {
-        // Consulta optimizada para obtener solo los votos del usuario actual
+        // Fetch votes made BY this user
         const userVotesQuery = query(
           collection(db, 'userVotes'),
           where("userId", "==", userId),
           orderBy('timestamp', 'desc')
         );
-
-        console.log(`Consultando votos para el usuario: ${userId}`);
         const votesSnapshot = await getDocs(userVotesQuery);
-        console.log(`Documentos encontrados: ${votesSnapshot.size}`);
-        
-        const votesData: VoteData[] = [];
-        let upCount = 0;
-        let downCount = 0;
-
+        const fetchedVotes: VoteData[] = [];
         votesSnapshot.forEach((doc) => {
           const data = doc.data();
-          console.log('Procesando documento:', doc.id, data);
-          
-          const voteData: VoteData = {
+          fetchedVotes.push({
             reportId: data.reportId,
             reportTitle: data.reportTitle || 'Reporte sin título',
-            type: data.type || 'up',
+            type: data.type as 'up' | 'down',
             timestamp: data.timestamp instanceof Timestamp ? data.timestamp.toDate() : new Date(data.timestamp)
-          };
-          
-          // Contar votos por tipo
-          if (data.type === 'up') upCount++;
-          else if (data.type === 'down') downCount++;
-          
-          votesData.push(voteData);
-        });
-        
-        console.log(`Votos encontrados para el usuario ${userId}:`, votesData.length);
-        
-        // Generar actividades recientes basadas en los votos reales
-        const recentActivities: ActivityData[] = [];
-        
-        // Agregar votos reales como actividades
-        votesData.slice(0, 3).forEach(vote => {
-          recentActivities.push({
-            type: 'vote',
-            title: vote.type === 'up' ? `Votaste positivamente: ${vote.reportTitle}` : `Votaste negativamente: ${vote.reportTitle}`,
-            timestamp: vote.timestamp,
-            votes: 1
           });
         });
-        
-        // Si no hay suficientes votos, agregar actividades de ejemplo
-        if (recentActivities.length === 0) {
-          recentActivities.push({
-            type: 'report',
-            title: 'Aún no tienes actividad reciente',
-            timestamp: new Date(),
-            status: 'info'
-          });
-        }
+        setVotes(fetchedVotes);
 
-        // Generar datos de actividad semanal
+        // Fetch total reports made BY this user
+        const userReportsQuery = query(collection(db, "reports"), where("userId", "==", userId));
+        const reportsSnapshot = await getCountFromServer(userReportsQuery); // Use getCountFromServer
+        setTotalUserReports(reportsSnapshot.data().count);
+
+
+        // Generate weekly activity based on fetchedVotes
         const today = new Date();
         const startOfCurrentWeek = startOfWeek(today, { locale: es });
         const endOfCurrentWeek = endOfWeek(today, { locale: es });
         const daysOfWeek = eachDayOfInterval({ start: startOfCurrentWeek, end: endOfCurrentWeek });
         
-        // Crear array de actividad semanal
-        const weekActivity = daysOfWeek.map(day => {
-          // Verificar si hay votos en este día
-          const hasVoteOnDay = votesData.some(vote => {
-            const voteDate = vote.timestamp;
-            return format(voteDate, 'yyyy-MM-dd') === format(day, 'yyyy-MM-dd');
-          });
-          
+        const weekActivityData = daysOfWeek.map(day => {
+          const activitiesOnDay = fetchedVotes.filter(vote => 
+            format(vote.timestamp, 'yyyy-MM-dd') === format(day, 'yyyy-MM-dd')
+          );
           return {
             day: format(day, 'EEEE', { locale: es }),
-            shortDay: format(day, 'EEE', { locale: es }).substring(0, 1).toUpperCase(),
-            date: day.getDate(),
-            hasActivity: hasVoteOnDay
+            shortDay: format(day, 'EEE', { locale: es }).substring(0,3), // For Lun, Mar, etc.
+            date: day.getDate(), // Not used in the new design but kept for now
+            hasActivity: activitiesOnDay.length > 0,
+            count: activitiesOnDay.length
           };
         });
-        
-        // Generar logros desbloqueados
-        const achievementsList: Achievement[] = [
-          {
-            id: 'vigilante',
-            title: 'Vigilante Verificado',
-            description: 'Perfil validado y verificado',
-            icon: <Shield className="h-5 w-5 text-amber-500" />,
-            unlocked: true
-          },
-          {
-            id: 'alertador',
-            title: 'Alertador Activo',
-            description: '10+ reportes enviados',
-            icon: <Bell className="h-5 w-5 text-green-500" />,
-            unlocked: upCount + downCount >= 10
-          },
-          {
-            id: 'comprometido',
-            title: 'Ciudadano Comprometido',
-            description: '30+ días de actividad',
-            icon: <Award className="h-5 w-5 text-blue-500" />,
-            unlocked: false
-          }
-        ];
+        setWeeklyActivity(weekActivityData);
 
-        setVotes(votesData);
-        setActivities(recentActivities);
-        setWeeklyActivity(weekActivity);
-        setAchievements(achievementsList);
-        setStats({
-          upvotes: upCount,
-          downvotes: downCount,
-          totalVotes: upCount + downCount,
-          participationRate: 3.2,
-          mostActiveDay: 'Jue'
-        });
       } catch (error) {
-        console.error('Error al obtener estadísticas de votos revisar consola:', error);
+        console.error('Error al obtener estadísticas de votos:', error);
       } finally {
         setIsLoading(false);
       }
     };
 
-    fetchVotingStats();
+    fetchVotingData();
   }, [userId]);
+
+  const maxActivityCount = useMemo(() => Math.max(...weeklyActivity.map(d => d.count), 0) || 1, [weeklyActivity]);
+
 
   if (isLoading) {
     return (
-      <Card className="w-full bg-card">
-        <CardContent className="p-6">
-          <Skeleton className="h-5 w-full mb-3" />
-          <div className="grid grid-cols-4 gap-3 mb-4">
-            <Skeleton className="h-16 w-full" />
-            <Skeleton className="h-16 w-full" />
-            <Skeleton className="h-16 w-full" />
-            <Skeleton className="h-16 w-full" />
-          </div>
-          <Skeleton className="h-24 w-full mb-3" />
-          <Skeleton className="h-5 w-3/4" />
-        </CardContent>
-      </Card>
+      <div className="space-y-6">
+        {/* Participation Stats Skeleton */}
+        <div>
+            <Skeleton className="h-5 w-1/2 mb-2" />
+            <Skeleton className="h-4 w-3/4 mb-4" />
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                {[...Array(4)].map((_, i) => <Skeleton key={i} className="h-20 rounded-lg" />)}
+            </div>
+        </div>
+        {/* Recent Activity Skeleton */}
+        <div>
+            <Skeleton className="h-5 w-1/3 mb-2" />
+            <Skeleton className="h-4 w-1/2 mb-4" />
+            <div className="grid grid-cols-7 gap-2 h-24 bg-muted p-2 rounded-lg">
+                 {[...Array(7)].map((_, i) => <Skeleton key={i} className="h-full w-full rounded" />)}
+            </div>
+            <Skeleton className="h-4 w-1/4 mt-2 ml-auto" />
+        </div>
+      </div>
     );
   }
 
-  // Si no hay votos, mostrar mensaje
-  if (votes.length === 0) {
-    return (
-      <Card className="w-full bg-card">
-        <CardContent className="p-6 text-center">
-          <BarChart3 className="h-10 w-10 mx-auto text-muted-foreground mb-3" />
-          <p className="text-sm text-muted-foreground">No has votado en ningún reporte todavía.</p>
-          <p className="text-xs text-muted-foreground mt-3">Si acabas de votar, actualiza la página para ver tus votos.</p>
-        </CardContent>
-      </Card>
-    );
-  }
 
   return (
-    <div className="space-y-6 w-full">
-      {/* Título y estadísticas de participación */}
-      <div className="w-full">
-        <div className="flex items-center justify-between mb-2">
-          <h3 className="text-sm font-semibold">Estadísticas de Participación</h3>
-          <p className="text-xs text-muted-foreground">Tu actividad en la comunidad *SEGURO</p>
-        </div>
-        
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-3 text-center w-full">
-          <Card className="p-3 flex flex-col items-center">
-            <p className="text-xs text-muted-foreground">Reportes Totales</p>
-            <div className="flex items-center gap-1">
-              <p className="text-lg font-semibold">{stats.totalVotes}</p>
-              <span className="text-xs text-muted-foreground">+5 este mes</span>
+    <div className="space-y-8 w-full">
+      {/* Estadísticas de Participación */}
+      <div>
+        <CardHeader className="p-0 mb-3">
+            <CardTitle className="text-lg font-semibold text-foreground flex items-center">
+                <BarChart3 className="h-5 w-5 mr-2 text-primary"/>Estadísticas de Participación
+            </CardTitle>
+            <CardDescription className="text-sm">Tu actividad en la comunidad +SEGURO</CardDescription>
+        </CardHeader>
+        <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-3 text-left">
+          <Card className="p-3 flex flex-col justify-between bg-blue-50 border-blue-200 rounded-lg">
+            <div>
+                <p className="text-xs text-blue-600 font-medium flex items-center"><FileText className="h-3.5 w-3.5 mr-1.5"/>Reportes Totales</p>
+                <AnimatedNumber value={totalUserReports} className="text-2xl font-bold text-blue-700 block mt-0.5"/>
             </div>
+            <p className="text-xs text-blue-500 mt-1 flex items-center"><TrendingUp className="h-3 w-3 mr-0.5"/> +5 este mes</p>
           </Card>
-          
-          <Card className="p-3 flex flex-col items-center">
-            <p className="text-xs text-muted-foreground">Votos Positivos</p>
-            <div className="flex items-center gap-1">
-              <p className="text-lg font-semibold text-green-500">{stats.upvotes}</p>
-              <ThumbsUp className="h-3 w-3 text-green-500" />
-              <span className="text-xs text-muted-foreground">+12 esta semana</span>
+          <Card className="p-3 flex flex-col justify-between bg-green-50 border-green-200 rounded-lg">
+            <div>
+                <p className="text-xs text-green-600 font-medium flex items-center"><ThumbsUp className="h-3.5 w-3.5 mr-1.5"/>Votos Positivos</p>
+                <AnimatedNumber value={stats.upvotesGiven} className="text-2xl font-bold text-green-700 block mt-0.5"/>
             </div>
+             <p className="text-xs text-green-500 mt-1 flex items-center"><TrendingUp className="h-3 w-3 mr-0.5"/> +12 esta semana</p>
           </Card>
-          
-          <Card className="p-3 flex flex-col items-center">
-            <p className="text-xs text-muted-foreground">Votos Negativos</p>
-            <div className="flex items-center gap-1">
-              <p className="text-lg font-semibold text-red-500">{stats.downvotes}</p>
-              <ThumbsDown className="h-3 w-3 text-red-500" />
-              <span className="text-xs text-muted-foreground">+2 esta semana</span>
+          <Card className="p-3 flex flex-col justify-between bg-red-50 border-red-200 rounded-lg">
+             <div>
+                <p className="text-xs text-red-600 font-medium flex items-center"><ThumbsDown className="h-3.5 w-3.5 mr-1.5"/>Votos Negativos</p>
+                <AnimatedNumber value={stats.downvotesGiven} className="text-2xl font-bold text-red-700 block mt-0.5"/>
             </div>
+            <p className="text-xs text-red-500 mt-1 flex items-center"><TrendingDown className="h-3 w-3 mr-0.5"/> +2 esta semana</p>
           </Card>
-          
-          <Card className="p-3 flex flex-col items-center">
-            <p className="text-xs text-muted-foreground">Frecuencia</p>
-            <div className="flex items-center gap-1">
-              <p className="text-lg font-semibold">{stats.participationRate}</p>
-              <span className="text-xs text-muted-foreground">+0.5 vs. anterior</span>
+          <Card className="p-3 flex flex-col justify-between bg-indigo-50 border-indigo-200 rounded-lg">
+            <div>
+                <p className="text-xs text-indigo-600 font-medium flex items-center"><Users className="h-3.5 w-3.5 mr-1.5"/>Promedio/día</p>
+                <AnimatedNumber value={stats.averageVotesPerDay} formatOptions={{ minimumFractionDigits: 1, maximumFractionDigits: 1 }} className="text-2xl font-bold text-indigo-700 block mt-0.5"/>
             </div>
+            <p className="text-xs text-indigo-500 mt-1 flex items-center"><TrendingUp className="h-3 w-3 mr-0.5"/> +0.5 vs. anterior</p>
           </Card>
         </div>
       </div>
 
-      {/* Actividad Reciente con visualización semanal */}
-      <div className="w-full">
-        <div className="flex items-center justify-between mb-3">
-          <h3 className="text-sm font-semibold">Actividad Reciente</h3>
-          <div className="flex space-x-2">
-            <button className="text-xs bg-blue-100 text-blue-700 px-2 py-1 rounded-md">Semana</button>
-            <button className="text-xs text-muted-foreground px-2 py-1">Mes</button>
-            <button className="text-xs text-muted-foreground px-2 py-1">Año</button>
-          </div>
-        </div>
-        
-        {/* Gráfico de actividad semanal */}
-        <div className="grid grid-cols-7 gap-2 mb-4 w-full">
-          {weeklyActivity.map((day, index) => (
-            <div key={index} className="flex flex-col items-center">
-              <p className="text-xs text-muted-foreground">{day.shortDay}</p>
-              <div className={`h-16 w-full ${day.hasActivity ? 'bg-blue-500' : 'bg-gray-100'} rounded-md my-1`}></div>
-              <p className="text-xs">{day.date}</p>
+      {/* Actividad Reciente */}
+      <div>
+        <CardHeader className="p-0 mb-3 flex flex-row justify-between items-center">
+            <div>
+                <CardTitle className="text-lg font-semibold text-foreground flex items-center">
+                    <TrendingUp className="h-5 w-5 mr-2 text-primary"/>Actividad Reciente
+                </CardTitle>
             </div>
-          ))}
-        </div>
-        
+            <div className="flex space-x-1 bg-muted p-0.5 rounded-md">
+                <Button variant="ghost" size="sm" className="text-xs h-7 px-2 data-[active=true]:bg-background data-[active=true]:text-primary data-[active=true]:shadow-sm" data-active={true}>Semana</Button>
+                <Button variant="ghost" size="sm" className="text-xs h-7 px-2 text-muted-foreground data-[active=true]:bg-background data-[active=true]:text-primary data-[active=true]:shadow-sm">Mes</Button>
+                <Button variant="ghost" size="sm" className="text-xs h-7 px-2 text-muted-foreground data-[active=true]:bg-background data-[active=true]:text-primary data-[active=true]:shadow-sm">Año</Button>
+            </div>
+        </CardHeader>
+        <Card className="p-4 bg-card rounded-lg border border-border">
+            <div className="grid grid-cols-7 gap-2 h-28 items-end">
+            {weeklyActivity.map((day, index) => (
+                <div key={index} className="flex flex-col items-center justify-end h-full">
+                <div 
+                    className={cn(
+                        "w-full rounded-t-md transition-all duration-300 ease-out",
+                        day.hasActivity ? 'bg-primary' : 'bg-muted'
+                    )}
+                    style={{ height: `${(day.count / maxActivityCount) * 100}%` }}
+                    title={`${day.count} actividades`}
+                ></div>
+                <p className="text-[10px] text-muted-foreground mt-1">{day.shortDay}</p>
+                </div>
+            ))}
+            </div>
+        </Card>
         <div className="text-right mt-2">
-          <p className="text-xs text-muted-foreground">Jueves: Día con más actividad</p>
-          <a href="#" className="text-xs text-blue-600 flex items-center justify-end">
+          <p className="text-xs text-muted-foreground">{stats.mostActiveDay}: Día con más actividad</p>
+          {/* <Link href="#" className="text-xs text-primary hover:text-primary/80 flex items-center justify-end">
             Ver análisis completo <ChevronRight className="h-3 w-3" />
-          </a>
-        </div>
-      </div>
-
-      {/* Logros desbloqueados */}
-      <div className="w-full">
-        <div className="flex items-center justify-between mb-3">
-          <h3 className="text-sm font-semibold">Logros Desbloqueados</h3>
-        </div>
-        
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3 w-full">
-          {achievements.map((achievement) => (
-            <div 
-              key={achievement.id} 
-              className={`p-3 rounded-lg border ${achievement.unlocked ? 'bg-amber-50 border-amber-200' : 'bg-gray-50 border-gray-200'} flex items-center gap-3`}
-            >
-              <div className={`p-2 rounded-full ${achievement.unlocked ? 'bg-amber-100' : 'bg-gray-100'}`}>
-                {achievement.icon}
-              </div>
-              <div>
-                <p className="text-sm font-medium">{achievement.title}</p>
-                <p className="text-xs text-muted-foreground">{achievement.description}</p>
-              </div>
-            </div>
-          ))}
-        </div>
-        
-        <div className="text-right mt-3">
-          <a href="#" className="text-xs text-blue-600 flex items-center justify-end">
-            Ver todos los logros disponibles <ChevronRight className="h-3 w-3" />
-          </a>
+          </Link> */}
         </div>
       </div>
     </div>
   );
 };
+
