@@ -4,7 +4,7 @@
 import type { FC } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Home, User, FileText, ShieldAlert, Globe, BarChart3, Award } from 'lucide-react'; // Added Award icon for Achievements
+import { Home, User, FileText, ShieldAlert, Globe, BarChart3 } from 'lucide-react'; // Removed Award icon
 import { cn } from '@/lib/utils';
 
 interface NavItemProps {
@@ -44,7 +44,7 @@ export const TopNavBar: FC = () => {
       <NavItem href="/community-reports" label="Comunidad" icon={<Globe className="h-5 w-5" />} />
       <NavItem href="/danger-zones" label="Zonas" icon={<ShieldAlert className="h-5 w-5" />} />
       <NavItem href="/statistics" label="Estadísticas" icon={<BarChart3 className="h-5 w-5" />} />
-      <NavItem href="/achievements" label="Logros" icon={<Award className="h-5 w-5" />} /> {/* Added Achievements NavItem */}
+      {/* <NavItem href="/achievements" label="Logros" icon={<Award className="h-5 w-5" />} /> Removed Achievements NavItem */}
       <NavItem href="/profile" label="Perfil" icon={<User className="h-5 w-5" />} />
     </nav>
   );
