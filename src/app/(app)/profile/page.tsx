@@ -1,7 +1,7 @@
 
 "use client";
 
-import type { FC } from 'react';
+import type { FC, ReactNode } from 'react'; // Added ReactNode
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link'; // Import Link
@@ -12,7 +12,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Skeleton } from '@/components/ui/skeleton';
-import { LogOut, Edit, User as UserIcon, Mail, Home, Phone, Cake, VenetianMask, ChevronRight } from 'lucide-react'; // Added ChevronRight
+import { LogOut, Edit, User as UserIcon, Mail, Home, Phone, Cake, VenetianMask, ChevronRight, Award, FilePlus, CheckSquare, TrendingUp, Star, Users, ThumbsUp, ShieldCheck, Target, CalendarClock, Sparkles, HelpCircle } from 'lucide-react'; // Added more icons for achievements
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale'; // Import Spanish locale
 import { useToast } from '@/hooks/use-toast';
@@ -26,7 +26,136 @@ export interface UserProfile { // Export UserProfile type
   gender?: 'masculino' | 'femenino' | 'otro';
   dob?: Date; // Store as Date object
   photoURL?: string | null; // Add photoURL field
+  upvotesGiven?: number; // For voting stats
+  downvotesGiven?: number; // For voting stats
 }
+
+// Define Achievement interface (same as in achievements page)
+interface Achievement {
+  id: string;
+  title: string;
+  description: string;
+  icon: ReactNode;
+  criteria?: string;
+  progress?: number;
+  unlocked?: boolean;
+  comingSoon?: boolean;
+}
+
+// Achievements list (same as in achievements page, could be moved to a shared file)
+const achievementsList: Achievement[] = [
+  {
+    id: 'first_report',
+    title: 'Primer Reporte',
+    description: '¡Bienvenido! Has dado el primer paso para un Uruapan más seguro.',
+    icon: <FilePlus className="h-6 w-6 text-primary" />, // Adjusted icon size
+    criteria: 'Envía tu primer reporte',
+    progress: 100,
+    unlocked: true,
+  },
+  {
+    id: 'active_voter',
+    title: 'Votante Activo',
+    description: 'Tu opinión cuenta. Has ayudado a validar la información de la comunidad.',
+    icon: <CheckSquare className="h-6 w-6 text-green-500" />, // Adjusted icon size
+    criteria: 'Vota en 10 reportes',
+    progress: 70,
+    unlocked: false,
+  },
+  {
+    id: 'detailed_reporter',
+    title: 'Observador Detallista',
+    description: 'Tus reportes son de calidad. ¡La evidencia ayuda mucho!',
+    icon: <Star className="h-6 w-6 text-yellow-500" />, // Adjusted icon size
+    criteria: 'Añade evidencia a 5 reportes',
+    progress: 40,
+    unlocked: false,
+  },
+   {
+    id: 'community_guardian',
+    title: 'Guardián Comunitario',
+    description: 'Has ayudado a verificar información crucial para la seguridad.',
+    icon: <ShieldCheck className="h-6 w-6 text-blue-500" />,
+    criteria: 'Recibe 10 votos positivos en tus reportes',
+    progress: 80,
+    unlocked: false,
+  },
+  {
+    id: 'pioneer',
+    title: 'Pionero +Seguro',
+    description: 'Uno de los primeros en unirse y fortalecer nuestra comunidad.',
+    icon: <Award className="h-6 w-6 text-purple-500" />,
+    criteria: 'Regístrate en los primeros 7 días',
+    progress: 100,
+    unlocked: true, 
+  },
+  {
+    id: 'consistent_contributor',
+    title: 'Colaborador Constante',
+    description: 'Tu perseverancia hace la diferencia. ¡Sigue así!',
+    icon: <TrendingUp className="h-6 w-6 text-indigo-500" />,
+    criteria: 'Envía 25 reportes en total',
+    progress: 15,
+    unlocked: false,
+  },
+  {
+    id: 'public_eye',
+    title: 'Ojo Público',
+    description: 'Atento a la conducta de los funcionarios. Tu supervisión es importante.',
+    icon: <Users className="h-6 w-6 text-teal-500" />,
+    criteria: 'Reporta 3 incidentes de funcionarios',
+    progress: 66,
+    unlocked: false,
+  },
+  {
+    id: 'incident_alert',
+    title: 'Alerta de Incidentes',
+    description: 'Informando sobre delitos, ayudas a prevenir y proteger.',
+    icon: <Target className="h-6 w-6 text-red-500" />,
+    criteria: 'Reporta 5 delitos/incidentes',
+    progress: 90,
+    unlocked: false,
+  },
+  {
+    id: 'trust_builder',
+    title: 'Constructor de Confianza',
+    description: 'Tus reportes son valorados positivamente por la comunidad.',
+    icon: <ThumbsUp className="h-6 w-6 text-pink-500" />,
+    criteria: 'Alcanza 50 votos positivos netos',
+    progress: 30,
+    unlocked: false,
+  },
+  {
+    id: 'timely_reporter',
+    title: 'Informador Oportuno',
+    description: 'Reportando con frecuencia, mantienes a la comunidad actualizada.',
+    icon: <CalendarClock className="h-6 w-6 text-cyan-500" />,
+    criteria: 'Reporta durante 7 días distintos en un mes',
+    progress: 50,
+    unlocked: false,
+  },
+   {
+    id: 'future_innovator',
+    title: 'Innovador Futuro',
+    description: 'Este logro está en desarrollo. ¡Prepárate para nuevas formas de contribuir!',
+    icon: <Sparkles className="h-6 w-6 text-gray-400" />,
+    criteria: 'Disponible próximamente',
+    progress: 0,
+    unlocked: false,
+    comingSoon: true,
+  },
+  {
+    id: 'community_expert',
+    title: 'Experto de la Comunidad',
+    description: 'Un nuevo desafío te espera. Conviértete en una referencia en +Seguro.',
+    icon: <HelpCircle className="h-6 w-6 text-gray-400" />,
+    criteria: 'Disponible próximamente',
+    progress: 0,
+    unlocked: false,
+    comingSoon: true,
+  },
+];
+
 
 // Function to get user profile data from Firestore
 export const getUserProfileData = async (userId: string): Promise<UserProfile | null> => { // Export function
@@ -47,10 +176,25 @@ export const getUserProfileData = async (userId: string): Promise<UserProfile | 
               // Convert Firestore Timestamp to Date object
               dob: data.dob instanceof Timestamp ? data.dob.toDate() : undefined,
               photoURL: data.photoURL, // Fetch photoURL from Firestore
+              upvotesGiven: data.upvotesGiven || 0, // Default to 0 if not present
+              downvotesGiven: data.downvotesGiven || 0, // Default to 0 if not present
           };
         } else {
            console.log("No profile document found for user:", userId);
-           return null; // No document found
+           // Create a default profile if one doesn't exist
+            const defaultProfile: UserProfile = {
+                fullName: auth.currentUser?.displayName || '',
+                address: '',
+                phoneNumber: '',
+                gender: undefined,
+                dob: undefined,
+                photoURL: auth.currentUser?.photoURL || null,
+                upvotesGiven: 0,
+                downvotesGiven: 0,
+            };
+            // Optionally, save this default profile to Firestore
+            // await setDoc(userDocRef, defaultProfile); 
+            return defaultProfile;
         }
     } catch (error) {
        console.error("Error fetching user profile data:", error);
@@ -65,6 +209,9 @@ const ProfilePage: FC = () => {
   const [user, setUser] = useState<User | null>(null);
   const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+
+  // Filter achievements to show only unlocked ones
+  const unlockedAchievements = achievementsList.filter(ach => ach.unlocked && !ach.comingSoon);
 
   useEffect(() => {
     setIsLoading(true); // Start loading
@@ -261,29 +408,31 @@ const ProfilePage: FC = () => {
             <div className="space-y-6">
               <div>
                 <h3 className="text-base font-semibold text-primary border-b pb-2 mb-4">Mis Estadísticas de Voto</h3>
-                <VotingStats userId={user.uid} />
+                {user && <VotingStats userId={user.uid} />}
               </div>
               
               {/* Achievements Preview Section */}
               <div>
-                <h3 className="text-base font-semibold text-primary border-b pb-2 mb-4">Logros Destacados</h3>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                  {/* Example placeholder for achievements - replace with actual data later */}
-                  <Card className="p-3 bg-muted/30 border-border/50">
-                    <CardHeader className="p-0 flex flex-row items-center gap-2">
-                      <div className="p-2 rounded-full bg-primary/10"><UserIcon className="h-4 w-4 text-primary" /></div>
-                      <CardTitle className="text-sm font-medium">Primer Reporte</CardTitle>
-                    </CardHeader>
-                    <CardDescription className="text-xs mt-1">Has enviado tu primer reporte.</CardDescription>
-                  </Card>
-                  <Card className="p-3 bg-muted/30 border-border/50">
-                    <CardHeader className="p-0 flex flex-row items-center gap-2">
-                       <div className="p-2 rounded-full bg-green-500/10"><VenetianMask className="h-4 w-4 text-green-500" /></div>
-                      <CardTitle className="text-sm font-medium">Votante Activo</CardTitle>
-                    </CardHeader>
-                    <CardDescription className="text-xs mt-1">Has votado en 5 reportes.</CardDescription>
-                  </Card>
-                </div>
+                <h3 className="text-base font-semibold text-primary border-b pb-2 mb-4">Mis Logros Desbloqueados</h3>
+                {unlockedAchievements.length > 0 ? (
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    {unlockedAchievements.map((achievement) => (
+                      <Card key={achievement.id} className="p-3 bg-muted/30 border-border/50 shadow-sm hover:shadow-md transition-shadow">
+                        <CardHeader className="p-0 flex flex-row items-center gap-2">
+                          <div className="p-1.5 rounded-full bg-primary/10">
+                            {achievement.icon}
+                          </div>
+                          <CardTitle className="text-sm font-medium text-primary">{achievement.title}</CardTitle>
+                        </CardHeader>
+                        <CardDescription className="text-xs mt-1 text-muted-foreground">{achievement.description}</CardDescription>
+                      </Card>
+                    ))}
+                  </div>
+                ) : (
+                  <p className="text-sm text-muted-foreground italic text-center py-2">
+                    Aún no has desbloqueado ningún logro. ¡Sigue participando!
+                  </p>
+                )}
                 <div className="text-right mt-3">
                   <Link href="/achievements" className="text-xs text-accent hover:text-accent/90 font-medium flex items-center justify-end">
                     Ver todos los logros disponibles
