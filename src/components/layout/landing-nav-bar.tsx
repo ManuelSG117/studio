@@ -18,7 +18,7 @@ const LandingNavBar: FC = () => {
   // Function to calculate section offsets
   const getSectionOffsets = () => {
     // Include 'top' for the +Seguro link
-    const sections = ['top', 'what-we-do', 'how-it-works', 'risk-map'];
+    const sections = ['top', 'what-we-do', 'how-it-works', 'risk-map', 'statistics']; // Added 'statistics'
     const offsets: { [key: string]: number } = {};
     sections.forEach(id => {
       if (id === 'top') {
@@ -104,8 +104,10 @@ const LandingNavBar: FC = () => {
         scrolled ? "opacity-100 translate-y-0 pointer-events-auto" : "opacity-0 -translate-y-full pointer-events-none"
       )}>
         <nav className={cn(
-          "flex items-center gap-3 text-sm font-medium rounded-full px-3 py-2.5 transition-all duration-300 ease-in-out backdrop-blur-2xl",
-          scrolled ? "bg-background/80 shadow-xl border border-border/50 scale-100" : "bg-white/10 scale-95 shadow-lg border border-white/20"
+          "flex items-center gap-3 text-sm font-medium rounded-full px-3 py-2.5 transition-all duration-300 ease-in-out",
+          scrolled 
+            ? "bg-background/70 backdrop-blur-lg shadow-xl border border-border/50 scale-100" 
+            : "bg-white/5 backdrop-blur-md scale-95 shadow-lg border border-white/20"
         )}>
           {/* +Seguro Link (Home/Top) */}
           <Link
@@ -127,6 +129,7 @@ const LandingNavBar: FC = () => {
             { href: '#what-we-do', label: '¿Qué hacemos?' },
             { href: '#how-it-works', label: '¿Cómo funciona?' },
             { href: '#risk-map', label: 'Zonas de Riesgo' },
+            { href: '#statistics', label: 'Estadísticas' }, // Added statistics link
           ].map(({ href, label }) => (
             <Link
               key={href}
@@ -181,7 +184,7 @@ const LandingNavBar: FC = () => {
           </SheetTrigger>
           <SheetContent
             side="right"
-            className="w-[300px] sm:w-[400px] bg-background/95 backdrop-blur-xl border-l border-border/50 shadow-2xl"
+            className="w-[300px] sm:w-[400px] bg-background/90 backdrop-blur-lg border-l border-border/50 shadow-2xl"
           >
             <nav className="flex flex-col space-y-3 mt-8">
               {[
@@ -189,6 +192,7 @@ const LandingNavBar: FC = () => {
                 { href: '#what-we-do', label: '¿Qué hacemos?' },
                 { href: '#how-it-works', label: '¿Cómo funciona?' },
                 { href: '#risk-map', label: 'Zonas de Riesgo' },
+                { href: '#statistics', label: 'Estadísticas' }, // Added statistics link
               ].map(({ href, label }) => (
                 <Link
                   key={href}
