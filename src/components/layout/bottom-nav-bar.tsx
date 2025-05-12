@@ -1,3 +1,4 @@
+
 "use client";
 
 import type { FC, ReactElement } from 'react';
@@ -110,7 +111,7 @@ export const TopNavBar: FC = () => {
         </Link>
         <Sheet open={isSheetOpen} onOpenChange={setIsSheetOpen}>
           <SheetTrigger asChild>
-            <Button variant="ghost" size="icon" className="text-foreground">
+            <Button variant="ghost" size="icon" className="text-foreground rounded-full">
               <Menu className="h-6 w-6" />
               <span className="sr-only">Abrir menú</span>
             </Button>
