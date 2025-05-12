@@ -95,6 +95,8 @@ const DangerZonesPage: FC = () => {
     });
   }, [reports, reportTypeFilter]);
 
+  const isReportTypeFilterActive = reportTypeFilter !== 'Todos';
+
 
   if (isLoading || !isClient) {
     return (
@@ -160,11 +162,14 @@ const DangerZonesPage: FC = () => {
                     <Button
                         variant="outline"
                         size="icon"
-                        className="rounded-full p-3 shadow-sm border border-border"
+                        className={cn(
+                            "rounded-full p-3 shadow-sm border border-border",
+                            isReportTypeFilterActive && "border-primary text-primary bg-primary/5"
+                        )}
                         onClick={() => setFilterModalOpen(true)}
                         aria-label="Filtrar Zonas"
                     >
-                        <SlidersHorizontal className="h-5 w-5" />
+                        <SlidersHorizontal className={cn("h-5 w-5", isReportTypeFilterActive && "text-primary")} />
                     </Button>
                  </div>
 
@@ -176,7 +181,10 @@ const DangerZonesPage: FC = () => {
                         value={reportTypeFilter}
                         onValueChange={(value: ReportTypeFilter) => setReportTypeFilter(value)}
                     >
-                        <SelectTrigger className="w-auto h-9 rounded-full border-none bg-background shadow-sm px-4">
+                        <SelectTrigger className={cn(
+                            "w-auto h-9 rounded-full border-none bg-background shadow-sm px-4",
+                            isReportTypeFilterActive && "bg-primary/10 text-primary border border-primary/30"
+                        )}>
                             <SelectValue placeholder="Tipo de Reporte" />
                         </SelectTrigger>
                         <SelectContent>
@@ -222,7 +230,10 @@ const DangerZonesPage: FC = () => {
                                 value={reportTypeFilter}
                                 onValueChange={(value: ReportTypeFilter) => setReportTypeFilter(value)}
                             >
-                                <SelectTrigger className="h-10 rounded-full border-none bg-background shadow-sm px-4">
+                                <SelectTrigger className={cn(
+                                    "h-10 rounded-full border-none bg-background shadow-sm px-4",
+                                    isReportTypeFilterActive && "bg-primary/10 text-primary border border-primary/30"
+                                )}>
                                     <SelectValue placeholder="Tipo de Reporte" />
                                 </SelectTrigger>
                                 <SelectContent>
@@ -322,3 +333,4 @@ const DangerZonesPage: FC = () => {
 
 export default DangerZonesPage;
     
+
