@@ -1,4 +1,3 @@
-
 "use client";
 
 import type { FC } from 'react';
@@ -48,13 +47,14 @@ const CommunityReportsPage: FC = () => {
   const [isFetchingMore, setIsFetchingMore] = useState(false);
   const [lastDoc, setLastDoc] = useState<any>(null);
   const [hasMore, setHasMore] = useState(true);
-  const [votingState, setVotingState] = useState<{ [reportId: string]: boolean }>({});
+  const [votingState, setVotingState = useState<{ [reportId: string]: boolean }>({});
   const [votesModalOpen, setVotesModalOpen] = useState(false);
   const [selectedReport, setSelectedReport] = useState<Report | null>(null);
   const isMobile = typeof window !== 'undefined' && window.innerWidth < 768; // crude mobile check
   const [filterModalOpen, setFilterModalOpen] = useState(false);
   const [currentFilterType, setCurrentFilterType] = useState<'todos' | 'incidente' | 'funcionario'>('todos');
   const [currentSortBy, setCurrentSortBy] = useState<'recientes' | 'antiguos' | 'populares'>('recientes');
+  const [currentPage, setCurrentPage] = useState(1); // For display purposes
 
 
   const ITEMS_PER_PAGE = 6; // Changed from 9 to 6
@@ -88,6 +88,7 @@ const CommunityReportsPage: FC = () => {
         setReports([]); // Clear reports on new filter/sort
         setLastDoc(null); // Reset lastDoc for new queries
         setHasMore(true); // Assume more reports initially
+        setCurrentPage(1); // Reset page to 1 on initial fetch or filter change
     }
     setIsFetchingMore(loadMore);
 
@@ -158,6 +159,9 @@ const CommunityReportsPage: FC = () => {
       const newLastDoc = querySnapshot.docs[querySnapshot.docs.length - 1] || null;
       setLastDoc(newLastDoc);
       setHasMore(fetchedReports.length === ITEMS_PER_PAGE);
+      if (loadMore && fetchedReports.length > 0) {
+        setCurrentPage(prev => prev + 1);
+      }
       console.log("Community fetch complete. Has More:", fetchedReports.length === ITEMS_PER_PAGE, "New Last Doc:", newLastDoc?.id);
 
     } catch (error) {
@@ -321,6 +325,23 @@ const CommunityReportsPage: FC = () => {
    const getTypeBadgeText = (type: 'incidente' | 'funcionario'): string => {
      return type === 'incidente' ? 'Incidente' : 'Funcionario';
    };
+
+    const handlePreviousPage = (e: React.MouseEvent<HTMLAnchorElement>) => {
+        e.preventDefault();
+        toast({ title: "Info", description: "Función 'Anterior' no implementada aún para paginación real." });
+        // To implement:
+        // if (currentPage > 1) {
+        //   setCurrentPage(prev => prev - 1);
+        //   // Need logic to fetch previous page using cursors or by page number
+        // }
+    };
+
+    const handleNextPageClick = (e: React.MouseEvent<HTMLAnchorElement>) => {
+        e.preventDefault();
+        if (hasMore && !isFetchingMore) {
+            loadMoreReports(); // This loads the next set of items
+        }
+    };
 
   return (
     <main className="flex flex-col p-4 sm:p-6 md:p-8 bg-secondary min-h-screen">
@@ -629,30 +650,32 @@ const CommunityReportsPage: FC = () => {
         )}
 
          {/* Pagination */}
-        {!isLoading && reports.length > 0 && (hasMore || lastDoc !== null) && (
+        {!isLoading && reports.length > 0 && (hasMore || currentPage > 1) && (
          <div className="mt-8 flex justify-center">
            <Pagination>
              <PaginationContent>
                <PaginationItem>
-                 <PaginationPrevious href="#" />
+                 <PaginationPrevious
+                    onClick={handlePreviousPage}
+                    className={cn(currentPage === 1 && "pointer-events-none opacity-50")}
+                  />
                </PaginationItem>
+               {/* Static page numbers for now, real functionality needs more complex state */}
                <PaginationItem>
-                 <PaginationLink href="#" isActive>1</PaginationLink>
+                 <PaginationLink href="#" isActive={currentPage ===1}>1</PaginationLink>
                </PaginationItem>
+               {currentPage > 2 && reports.length >= ITEMS_PER_PAGE && <PaginationItem><PaginationEllipsis /></PaginationItem>}
+               {currentPage > 1 && currentPage < (reports.length / ITEMS_PER_PAGE + (reports.length % ITEMS_PER_PAGE > 0 ? 1:0) ) && (
+                  <PaginationItem>
+                    <PaginationLink href="#" isActive>{currentPage}</PaginationLink>
+                  </PaginationItem>
+               )}
+               {/* Consider adding more page links or a more dynamic approach if full pagination is built */}
                <PaginationItem>
-                 <PaginationLink href="#">2</PaginationLink>
-               </PaginationItem>
-               <PaginationItem>
-                 <PaginationLink href="#">3</PaginationLink>
-               </PaginationItem>
-               <PaginationItem>
-                 <PaginationEllipsis />
-               </PaginationItem>
-               <PaginationItem>
-                 <PaginationLink href="#">8</PaginationLink>
-               </PaginationItem>
-               <PaginationItem>
-                 <PaginationNext href="#" />
+                  <PaginationNext
+                    onClick={handleNextPageClick}
+                    className={cn(!hasMore && "pointer-events-none opacity-50")}
+                  />
                </PaginationItem>
              </PaginationContent>
            </Pagination>
@@ -678,8 +701,3 @@ const CommunityReportsPage: FC = () => {
 };
 
 export default CommunityReportsPage;
-
-
-
-
-
