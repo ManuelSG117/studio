@@ -47,7 +47,7 @@ const CommunityReportsPage: FC = () => {
   const [isFetchingMore, setIsFetchingMore] = useState(false);
   const [lastDoc, setLastDoc] = useState<any>(null);
   const [hasMore, setHasMore] = useState(true);
-  const [votingState, setVotingState = useState<{ [reportId: string]: boolean }>({});
+  const [votingState, setVotingState] = useState<{ [reportId: string]: boolean }>({});
   const [votesModalOpen, setVotesModalOpen] = useState(false);
   const [selectedReport, setSelectedReport] = useState<Report | null>(null);
   const isMobile = typeof window !== 'undefined' && window.innerWidth < 768; // crude mobile check

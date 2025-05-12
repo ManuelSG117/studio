@@ -60,7 +60,7 @@ const WelcomePage: FC = () => {
   const [isFetchingMore, setIsFetchingMore] = useState(false);
   const [lastDoc, setLastDoc] = useState<any>(null); // Type any as it's a Firestore DocumentSnapshot
   const [hasMore, setHasMore] = useState(true);
-  const [votingState, setVotingState = useState<{ [reportId: string]: boolean }>({});
+  const [votingState, setVotingState] = useState<{ [reportId: string]: boolean }>({});
   const [votesModalOpen, setVotesModalOpen] = useState(false);
   const [selectedReport, setSelectedReport] = useState<Report | null>(null);
   const [currentPage, setCurrentPage] = useState(1); // For display purposes primarily
