@@ -1,3 +1,4 @@
+
 "use client";
 
 import type { FC } from 'react';
@@ -82,7 +83,7 @@ const WelcomePage: FC = () => {
       return null; // Indicate no vote or an error
   }, []);
 
-  // Fetch reports logic (remains the same, but adds placeholder status/comments)
+  // Fetch reports logic
   const fetchReports = useCallback(async (loadMore: boolean = false) => {
     if (!user) {
       console.error("fetchReports called without a valid user.");
@@ -91,14 +92,16 @@ const WelcomePage: FC = () => {
     }
     console.log("Fetching reports for user:", user.uid, "Load More:", loadMore);
 
-    if (!loadMore) {
+    if (!loadMore) { // Initial fetch or filter change
         setIsLoading(true);
-        setLastDoc(null); // Reset lastDoc for new initial fetches
-        setReports([]); // Clear current reports for a fresh fetch
-        setHasMore(true); // Assume there are more reports initially
-        setCurrentPage(1); // Reset page to 1 on initial fetch or filter change
+        setReports([]); 
+        setLastDoc(null); 
+        setHasMore(true); 
+        setCurrentPage(1);
+    } else { // Fetching next page
+        setIsFetchingMore(true);
     }
-    setIsFetchingMore(loadMore);
+    
 
     try {
       let q = query(
@@ -131,7 +134,6 @@ const WelcomePage: FC = () => {
           ? data.createdAt.toDate()
           : new Date();
 
-        // Placeholder status - replace with actual logic if status is added
 
         fetchedReports.push({
             id: reportDoc.id,
@@ -151,55 +153,61 @@ const WelcomePage: FC = () => {
 
         });
       }
+      
+      setReports(fetchedReports); // Always replace current reports to show only the current page's items
 
-      setReports(prevReports => loadMore ? [...prevReports, ...fetchedReports] : fetchedReports);
       const newLastDoc = querySnapshot.docs[querySnapshot.docs.length - 1] || null;
       setLastDoc(newLastDoc);
       setHasMore(fetchedReports.length === ITEMS_PER_PAGE);
+      
       if (loadMore && fetchedReports.length > 0) {
         setCurrentPage(prev => prev + 1);
+      } else if (!loadMore) {
+        setCurrentPage(1); // Ensure currentPage is 1 for initial load
       }
-      console.log("Fetch complete. Has More:", fetchedReports.length === ITEMS_PER_PAGE, "New Last Doc:", newLastDoc?.id);
+
+      console.log("Fetch complete. Has More:", fetchedReports.length === ITEMS_PER_PAGE, "New Last Doc:", newLastDoc?.id, "Current Page:", currentPage);
     } catch (error) {
       console.error("Error fetching reports: ", error);
       toast({ variant: "destructive", title: "Error", description: "Failed to fetch reports." });
     } finally {
-      console.log("Setting isLoading to false in finally block.");
+      console.log("Setting isLoading/isFetchingMore to false in finally block.");
       setIsLoading(false);
       setIsFetchingMore(false);
     }
-  }, [user, toast, fetchUserVote, lastDoc]);
+  }, [user, toast, fetchUserVote, lastDoc, currentPage]); // Added currentPage to dep array as it's used in logging
 
   // useEffect for initial load and auth check (remains the same)
   useEffect(() => {
     console.log("WelcomePage useEffect triggered. AuthLoading:", authLoading, "IsAuthenticated:", isAuthenticated, "User:", !!user);
     if (!authLoading) {
         if (isAuthenticated && user) {
-            // Fetch initial reports only if reports array is empty and not currently loading
-            if (reports.length === 0 && !isLoading && !isFetchingMore) {
-                 console.log("Auth confirmed, user available. Fetching initial reports.");
-                 fetchReports();
+            // Fetch initial reports only if reports array is empty AND not currently loading
+            // AND currentPage is 1 (to avoid re-fetching if navigating back via browser history potentially)
+            if (reports.length === 0 && !isLoading && !isFetchingMore && currentPage === 1) {
+                 console.log("Auth confirmed, user available. Fetching initial reports for WelcomePage.");
+                 fetchReports(false); // Pass false for initial load
             } else {
-                 console.log("Auth confirmed, user available, but not fetching (reports not empty or loading).");
+                 console.log("Auth confirmed, user available, but not fetching (reports not empty or loading or not on page 1). Reports length:", reports.length, "isLoading:", isLoading, "isFetchingMore:", isFetchingMore, "currentPage:", currentPage);
             }
         } else {
             console.log("Not authenticated or user not ready, redirecting to login.");
-            setIsLoading(false);
+            setIsLoading(false); // Ensure loading is false if redirecting
             router.replace("/login");
         }
     } else {
         console.log("Auth state still loading...");
-         setIsLoading(true);
+         setIsLoading(true); // Keep loading true while auth is resolving
     }
-  }, [authLoading, isAuthenticated, user, fetchReports, router, reports.length, isLoading, isFetchingMore]);
+  }, [authLoading, isAuthenticated, user, router, reports.length, isLoading, isFetchingMore, fetchReports, currentPage]);
 
 
   const loadMoreReports = () => {
-    if (hasMore && lastDoc && !isFetchingMore) {
-        console.log("Load more reports triggered.");
-        fetchReports(true);
+    if (hasMore && !isFetchingMore) { // Removed lastDoc check here as fetchReports handles it
+        console.log("Load more reports triggered for WelcomePage.");
+        fetchReports(true); // Pass true to indicate loading more
     } else {
-        console.log("Load more reports skipped. HasMore:", hasMore, "LastDoc:", !!lastDoc, "isFetchingMore:", isFetchingMore);
+        console.log("Load more reports skipped for WelcomePage. HasMore:", hasMore, "isFetchingMore:", isFetchingMore);
     }
   };
 
@@ -564,22 +572,6 @@ const WelcomePage: FC = () => {
           </div>
         )}
         
-        {/* Load More Button - DEPRECATED in favor of Pagination's Next button, but kept for reference or if pagination is removed.
-        {hasMore && !isLoading && reports.length >= ITEMS_PER_PAGE && (lastDoc === null || reports.length < ITEMS_PER_PAGE * 2) && (
-          <div className="text-center mt-4">
-            <Button
-              variant="outline"
-              onClick={loadMoreReports}
-              disabled={isFetchingMore}
-              className="rounded-full"
-            >
-              {isFetchingMore ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
-              Cargar más reportes
-            </Button>
-          </div>
-        )}
-        */}
-
       </div>
        {/* Footer */}
       <footer className="mt-12 text-center text-xs text-muted-foreground">
@@ -590,3 +582,4 @@ const WelcomePage: FC = () => {
 };
 
 export default WelcomePage;
+

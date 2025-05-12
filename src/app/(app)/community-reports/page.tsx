@@ -1,3 +1,4 @@
+
 "use client";
 
 import type { FC } from 'react';
@@ -74,7 +75,7 @@ const CommunityReportsPage: FC = () => {
       return null;
     }, []);
 
-  // Function to fetch reports (remains largely the same, adjust limit)
+  // Function to fetch reports
   const fetchReports = useCallback(async (loadMore: boolean = false, filterType = currentFilterType, sortBy = currentSortBy) => {
     if (!user) {
         console.error("fetchReports (Community) called without a valid user.");
@@ -83,14 +84,16 @@ const CommunityReportsPage: FC = () => {
     }
     console.log("Fetching community reports. Load More:", loadMore, "Filter Type:", filterType, "Sort By:", sortBy);
 
-    if (!loadMore) {
+    if (!loadMore) { // Initial fetch or filter/sort change
         setIsLoading(true);
-        setReports([]); // Clear reports on new filter/sort
-        setLastDoc(null); // Reset lastDoc for new queries
-        setHasMore(true); // Assume more reports initially
-        setCurrentPage(1); // Reset page to 1 on initial fetch or filter change
+        setReports([]); 
+        setLastDoc(null); 
+        setHasMore(true); 
+        setCurrentPage(1);
+    } else { // Fetching next page
+        setIsFetchingMore(true);
     }
-    setIsFetchingMore(loadMore);
+    
 
     try {
       let baseQuery = collection(db, "reports");
@@ -106,7 +109,7 @@ const CommunityReportsPage: FC = () => {
       if (sortBy === 'antiguos') {
         orderByDirection = "asc";
       } else if (sortBy === 'populares') {
-        orderByField = "upvotes"; // Example: sort by upvotes for popular
+        orderByField = "upvotes"; 
         orderByDirection = "desc";
       }
       
@@ -155,76 +158,80 @@ const CommunityReportsPage: FC = () => {
           });
        }
 
-      setReports(prevReports => loadMore ? [...prevReports, ...fetchedReports] : fetchedReports);
+      setReports(fetchedReports); // Always replace current reports
+      
       const newLastDoc = querySnapshot.docs[querySnapshot.docs.length - 1] || null;
       setLastDoc(newLastDoc);
       setHasMore(fetchedReports.length === ITEMS_PER_PAGE);
+
       if (loadMore && fetchedReports.length > 0) {
         setCurrentPage(prev => prev + 1);
+      } else if (!loadMore) {
+        setCurrentPage(1); // Ensure currentPage is 1 for initial load/filter
       }
-      console.log("Community fetch complete. Has More:", fetchedReports.length === ITEMS_PER_PAGE, "New Last Doc:", newLastDoc?.id);
+      console.log("Community fetch complete. Has More:", fetchedReports.length === ITEMS_PER_PAGE, "New Last Doc:", newLastDoc?.id, "Current Page:", currentPage);
 
     } catch (error) {
       console.error("Error fetching community reports: ", error);
       toast({ variant: "destructive", title: "Error", description: "Failed to fetch community reports." });
     } finally {
-      console.log("Setting isLoading to false in community finally block.");
+      console.log("Setting isLoading/isFetchingMore to false in community finally block.");
       setIsLoading(false);
       setIsFetchingMore(false);
     }
-  }, [user, toast, fetchUserVote, lastDoc, currentFilterType, currentSortBy]); // Added currentFilterType and currentSortBy
+  }, [user, toast, fetchUserVote, lastDoc, currentFilterType, currentSortBy, currentPage]); // Added currentPage
 
 
-    // useEffect for initial load and auth check (remains the same)
+    // useEffect for initial load and auth check
     useEffect(() => {
         console.log("CommunityReports useEffect triggered. AuthLoading:", authLoading, "IsAuthenticated:", isAuthenticated, "User:", !!user);
         if (!authLoading) {
             if (isAuthenticated && user) {
-                // Fetch initial reports only if reports array is empty and not currently loading
-                if (reports.length === 0 && !isLoading && !isFetchingMore) {
+                // Fetch initial reports only if reports array is empty AND not currently loading AND on page 1
+                if (reports.length === 0 && !isLoading && !isFetchingMore && currentPage === 1) {
                     console.log("Auth confirmed, user available. Fetching initial community reports with current filters.");
                     fetchReports(false, currentFilterType, currentSortBy);
                 } else {
-                     console.log("Auth confirmed, user available, but not fetching community (reports not empty or loading).");
+                     console.log("Auth confirmed, user available, but not fetching community (reports not empty or loading or not page 1).");
                 }
             } else {
                 console.log("Not authenticated or user not ready, redirecting to login.");
-                setIsLoading(false);
+                setIsLoading(false); // Ensure loading is false if redirecting
                 router.replace("/login");
             }
         } else {
             console.log("Auth state still loading...");
-             setIsLoading(true);
+             setIsLoading(true); // Keep loading true while auth is resolving
         }
-    }, [authLoading, isAuthenticated, user, fetchReports, router, reports.length, isLoading, isFetchingMore, currentFilterType, currentSortBy]); // Updated dependencies
+    }, [authLoading, isAuthenticated, user, router, reports.length, isLoading, isFetchingMore, fetchReports, currentFilterType, currentSortBy, currentPage]);
 
 
   const loadMoreReports = () => {
-     if (hasMore && lastDoc && !isFetchingMore) {
+     if (hasMore && !isFetchingMore) { // Removed lastDoc check here
          console.log("Load more community reports triggered.");
          fetchReports(true, currentFilterType, currentSortBy);
      } else {
-         console.log("Load more community reports skipped. HasMore:", hasMore, "LastDoc:", !!lastDoc, "isFetchingMore:", isFetchingMore);
+         console.log("Load more community reports skipped. HasMore:", hasMore, "isFetchingMore:", isFetchingMore);
      }
   };
 
  const handleFilterChange = (newFilterType: 'todos' | 'incidente' | 'funcionario') => {
     setCurrentFilterType(newFilterType);
-    fetchReports(false, newFilterType, currentSortBy);
+    fetchReports(false, newFilterType, currentSortBy); // This will reset to page 1
   };
 
   const handleSortChange = (newSortBy: 'recientes' | 'antiguos' | 'populares') => {
     setCurrentSortBy(newSortBy);
-    fetchReports(false, currentFilterType, newSortBy);
+    fetchReports(false, currentFilterType, newSortBy); // This will reset to page 1
   };
 
- // Handle Voting Logic (remains the same for now, could be removed if not needed on this view)
+ // Handle Voting Logic
  const handleVote = async (reportId: string, voteType: 'up' | 'down') => {
     if (!user) {
         toast({ variant: "destructive", title: "Error", description: "Debes iniciar sesión para votar." });
         return;
     }
-    // ... (rest of the handleVote logic remains the same) ...
+
      const currentReport = reports.find(report => report.id === reportId);
     if (!currentReport) {
         toast({ variant: "destructive", title: "Error", description: "Reporte no encontrado." });
@@ -701,3 +708,4 @@ const CommunityReportsPage: FC = () => {
 };
 
 export default CommunityReportsPage;
+
