@@ -5,7 +5,7 @@ import type { ReactNode, FC } from 'react';
 import { createContext, useContext, useState, useEffect, useMemo } from 'react';
 import { onAuthStateChanged, type User } from 'firebase/auth';
 import { auth, db } from '@/lib/firebase/client';
-import { doc, getDoc } from 'firebase/firestore';
+import { doc, getDoc, setDoc, Timestamp } from 'firebase/firestore'; // Added setDoc and Timestamp
 
 // Define the shape of the user object within the context
 interface AuthUser extends User {
@@ -44,6 +44,9 @@ export const AuthProvider: FC<AuthProviderProps> = ({ children }) => {
         // Check Firestore for profile completeness
         try {
           const userDocRef = doc(db, "users", firebaseUser.uid);
+          // Update lastActivity timestamp on each auth state confirmation
+          await setDoc(userDocRef, { lastActivity: Timestamp.now() }, { merge: true });
+
           const userDocSnap = await getDoc(userDocRef);
 
           let isProfileComplete = false;
@@ -66,7 +69,7 @@ export const AuthProvider: FC<AuthProviderProps> = ({ children }) => {
 
           setUser({ ...firebaseUser, isProfileComplete });
         } catch (error) {
-           console.error("Error fetching user profile data:", error);
+           console.error("Error fetching user profile data or updating lastActivity:", error);
            // Assume profile is incomplete if fetching fails
            setUser({ ...firebaseUser, isProfileComplete: false });
         }
@@ -93,3 +96,4 @@ export const AuthProvider: FC<AuthProviderProps> = ({ children }) => {
     </AuthContext.Provider>
   );
 };
+

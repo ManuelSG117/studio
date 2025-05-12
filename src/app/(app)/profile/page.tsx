@@ -1,23 +1,47 @@
+
 "use client";
 
 import type { FC, ReactNode } from 'react'; 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link'; 
 import { onAuthStateChanged, signOut, type User } from 'firebase/auth';
-import { doc, getDoc, Timestamp } from 'firebase/firestore'; 
+import { doc, getDoc, Timestamp, collection, query, where, getDocs } from 'firebase/firestore'; 
 import { auth, db } from '@/lib/firebase/client'; 
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Skeleton } from '@/components/ui/skeleton';
-import { LogOut, Edit, User as UserIcon, Mail, Home, Phone, Cake, VenetianMask, ChevronRight, Award, FilePlus, CheckSquare, TrendingUp, Star, Users, ThumbsUp, ShieldCheck, Target, CalendarClock, Sparkles, HelpCircle, MapPin } from 'lucide-react'; 
-import { format } from 'date-fns';
+import { LogOut, Edit, Mail, Home, Phone, Cake, ChevronRight, Award, FilePlus, CheckSquare, TrendingUp, Star, Users, ThumbsUp, ShieldCheck, Target, CalendarClock, Sparkles, HelpCircle, MapPin, Activity, ShieldQuestion } from 'lucide-react'; 
+import { format, differenceInDays, isAfter, subDays } from 'date-fns';
 import { es } from 'date-fns/locale'; 
 import { useToast } from '@/hooks/use-toast';
 import { VotingStats } from '@/components/profile/voting-stats'; 
 import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
+import type { Report as WelcomeReportType } from '@/app/(app)/welcome/page';
+
+// Copied Achievement structure from achievements/page.tsx for calculation
+interface AchievementDefinition {
+  id: string;
+  target?: number;
+  comingSoon?: boolean;
+}
+// Copied achievement list for calculation logic from achievements/page.tsx
+const achievementsDefinitionList: AchievementDefinition[] = [
+  { id: 'first_report', target: 1 },
+  { id: 'active_voter', target: 10 },
+  { id: 'detailed_reporter', target: 5 },
+  { id: 'community_guardian', target: 10 },
+  { id: 'pioneer', target: 1 },
+  { id: 'consistent_contributor', target: 25 },
+  { id: 'public_eye', target: 3 },
+  { id: 'incident_alert', target: 5 },
+  { id: 'trust_builder', target: 50 },
+  { id: 'timely_reporter', target: 7 },
+  // "Coming soon" achievements are not relevant for level calculation
+];
+
 
 export interface UserProfile { 
   fullName?: string;
@@ -28,74 +52,34 @@ export interface UserProfile {
   photoURL?: string | null; 
   upvotesGiven?: number; 
   downvotesGiven?: number; 
-  memberSince?: Date; // Added memberSince
+  memberSince?: Date;
+  lastActivity?: Date; // Added lastActivity
 }
 
-interface Achievement {
-  id: string;
-  title: string;
-  description: string;
-  icon: ReactNode;
-  criteria?: string;
-  progress?: number;
-  unlocked?: boolean;
-  comingSoon?: boolean;
+// Report type for achievement calculation
+interface ReportForAchievements extends WelcomeReportType {
+    // ensure all necessary fields are present
 }
 
-const achievementsList: Achievement[] = [
+// Copied from achievements page for consistency in display
+const achievementsListDisplay: Array<{ id: string; title: string; description: string; icon: ReactNode; unlocked?: boolean;}> = [
   {
     id: 'first_report',
     title: 'Primer Reporte',
-    description: '¡Bienvenido! Has dado el primer paso para un Uruapan más seguro.',
-    icon: <FilePlus className="h-5 w-5 text-primary" />, // Adjusted icon size
-    criteria: 'Envía tu primer reporte',
-    progress: 100,
-    unlocked: true,
+    description: '¡Bienvenido! Has dado el primer paso.',
+    icon: <FilePlus className="h-5 w-5 text-yellow-700" />,
   },
   {
-    id: 'active_voter',
-    title: 'Votante Activo',
-    description: 'Tu opinión cuenta. Has ayudado a validar la información de la comunidad.',
-    icon: <CheckSquare className="h-5 w-5 text-green-500" />, // Adjusted icon size
-    criteria: 'Vota en 10 reportes',
-    progress: 70,
-    unlocked: false,
-  },
-  {
-    id: 'detailed_reporter',
-    title: 'Observador Detallista',
-    description: 'Tus reportes son de calidad. ¡La evidencia ayuda mucho!',
-    icon: <Star className="h-5 w-5 text-yellow-500" />, // Adjusted icon size
-    criteria: 'Añade evidencia a 5 reportes',
-    progress: 40,
-    unlocked: false,
-  },
-   {
     id: 'community_guardian',
     title: 'Guardián Comunitario',
-    description: 'Has ayudado a verificar información crucial para la seguridad.',
-    icon: <ShieldCheck className="h-5 w-5 text-blue-500" />,
-    criteria: 'Recibe 10 votos positivos en tus reportes',
-    progress: 80,
-    unlocked: true, // Example, changed for visual consistency with image
+    description: 'Has ayudado a verificar información.',
+    icon: <ShieldCheck className="h-5 w-5 text-blue-700" />,
   },
   {
     id: 'pioneer',
     title: 'Pionero +Seguro',
-    description: 'Uno de los primeros en unirse y fortalecer nuestra comunidad.',
-    icon: <Award className="h-5 w-5 text-purple-500" />,
-    criteria: 'Regístrate en los primeros 7 días',
-    progress: 100,
-    unlocked: true, 
-  },
-  {
-    id: 'consistent_contributor',
-    title: 'Colaborador Constante',
-    description: 'Tu perseverancia hace la diferencia. ¡Sigue así!',
-    icon: <TrendingUp className="h-5 w-5 text-indigo-500" />,
-    criteria: 'Envía 25 reportes en total',
-    progress: 15,
-    unlocked: false,
+    description: 'De los primeros en unirse.',
+    icon: <Award className="h-5 w-5 text-green-700" />,
   },
 ];
 
@@ -119,7 +103,8 @@ export const getUserProfileData = async (userId: string): Promise<UserProfile | 
               photoURL: data.photoURL, 
               upvotesGiven: data.upvotesGiven || 0, 
               downvotesGiven: data.downvotesGiven || 0, 
-              memberSince: data.createdAt instanceof Timestamp ? data.createdAt.toDate() : undefined, // Assuming createdAt is memberSince
+              memberSince: data.createdAt instanceof Timestamp ? data.createdAt.toDate() : undefined,
+              lastActivity: data.lastActivity instanceof Timestamp ? data.lastActivity.toDate() : undefined,
           };
         } else {
            console.log("No profile document found for user:", userId);
@@ -133,6 +118,7 @@ export const getUserProfileData = async (userId: string): Promise<UserProfile | 
                 upvotesGiven: 0,
                 downvotesGiven: 0,
                 memberSince: auth.currentUser?.metadata.creationTime ? new Date(auth.currentUser.metadata.creationTime) : undefined,
+                lastActivity: undefined, // No lastActivity for default
             };
             return defaultProfile;
         }
@@ -149,8 +135,11 @@ const ProfilePage: FC = () => {
   const [user, setUser] = useState<User | null>(null);
   const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [isLoadingEnhancements, setIsLoadingEnhancements] = useState(true);
+  const [userLevel, setUserLevel] = useState<number | null>(null);
+  const [isCitizenActive, setIsCitizenActive] = useState(false);
+  const [displayAchievements, setDisplayAchievements] = useState<Array<{ id: string; title: string; description: string; icon: ReactNode; unlocked?: boolean;}>>([]);
 
-  const unlockedAchievements = achievementsList.filter(ach => ach.unlocked && !ach.comingSoon).slice(0, 3); // Show max 3
 
   useEffect(() => {
     setIsLoading(true); 
@@ -159,6 +148,12 @@ const ProfilePage: FC = () => {
         setUser(currentUser);
         const profileData = await getUserProfileData(currentUser.uid);
         setUserProfile(profileData);
+
+        if (profileData?.lastActivity) {
+            const sevenDaysAgo = subDays(new Date(), 7);
+            setIsCitizenActive(isAfter(profileData.lastActivity, sevenDaysAgo));
+        }
+
         if (profileData?.photoURL !== currentUser.photoURL) {
            setUser({ ...currentUser, photoURL: profileData?.photoURL || null });
            console.log("Syncing auth photoURL with Firestore data");
@@ -170,9 +165,95 @@ const ProfilePage: FC = () => {
       }
       setIsLoading(false); 
     });
-
     return () => unsubscribe();
   }, [router]); 
+
+  const calculateUserLevelAndAchievements = useCallback(async (currentUser: User) => {
+    setIsLoadingEnhancements(true);
+    try {
+        const userUid = currentUser.uid;
+        const reportsQuery = query(collection(db, "reports"), where("userId", "==", userUid));
+        const reportsSnapshot = await getDocs(reportsQuery);
+        const userReports: ReportForAchievements[] = reportsSnapshot.docs.map(doc => {
+            const data = doc.data();
+            return {
+                id: doc.id,
+                userId: data.userId, reportType: data.reportType, title: data.title,
+                description: data.description, location: data.location,
+                mediaUrl: data.mediaUrl || null, latitude: data.latitude || null,
+                longitude: data.longitude || null,
+                createdAt: data.createdAt instanceof Timestamp ? data.createdAt.toDate() : new Date(data.createdAt),
+                upvotes: data.upvotes || 0, downvotes: data.downvotes || 0,
+            } as ReportForAchievements;
+        });
+
+        const votesGivenQuery = query(collection(db, "userVotes"), where("userId", "==", userUid));
+        const votesGivenSnapshot = await getDocs(votesGivenQuery);
+        const userVotesGivenCount = votesGivenSnapshot.size;
+        
+        const registrationTime = currentUser?.metadata.creationTime;
+        const registrationDate = registrationTime ? new Date(registrationTime) : null;
+
+        let unlockedCount = 0;
+        const processedDisplayAchievements = achievementsListDisplay.map(dispAch => {
+            const defAch = achievementsDefinitionList.find(d => d.id === dispAch.id);
+            if (!defAch || defAch.comingSoon) return {...dispAch, unlocked: false};
+
+            let current = 0;
+            const target = defAch.target || 1;
+
+            switch (defAch.id) {
+                case 'first_report': current = userReports.length; break;
+                case 'active_voter': current = userVotesGivenCount; break;
+                case 'detailed_reporter': current = userReports.filter(r => !!r.mediaUrl).length; break;
+                case 'community_guardian': current = userReports.reduce((sum, r) => sum + r.upvotes, 0); break;
+                case 'pioneer':
+                    if (registrationDate) {
+                        const launchDate = new Date('2024-05-01T00:00:00Z'); // Example launch date
+                        if (differenceInDays(registrationDate, launchDate) <= 7 && differenceInDays(registrationDate, launchDate) >= 0) current = 1;
+                    }
+                    break;
+                case 'consistent_contributor': current = userReports.length; break;
+                case 'public_eye': current = userReports.filter(r => r.reportType === 'funcionario').length; break;
+                case 'incident_alert': current = userReports.filter(r => r.reportType === 'incidente').length; break;
+                case 'trust_builder': current = userReports.reduce((sum, r) => sum + (r.upvotes - r.downvotes), 0); break;
+                case 'timely_reporter':
+                    const oneMonthAgo = subDays(new Date(), 30);
+                    const recentReports = userReports.filter(r => r.createdAt && isAfter(new Date(r.createdAt), oneMonthAgo));
+                    const distinctDays = new Set(recentReports.map(r => format(new Date(r.createdAt), 'yyyy-MM-dd'))).size;
+                    current = distinctDays;
+                    break;
+            }
+            const isUnlocked = target > 0 ? (current >= target) : (current > 0);
+            if (isUnlocked) unlockedCount++;
+            return {...dispAch, unlocked: isUnlocked};
+        });
+
+        setDisplayAchievements(processedDisplayAchievements.filter(a => a.unlocked).slice(0,3));
+
+
+        if (unlockedCount >= 8) setUserLevel(5);
+        else if (unlockedCount >= 6) setUserLevel(4);
+        else if (unlockedCount >= 4) setUserLevel(3);
+        else if (unlockedCount >= 2) setUserLevel(2);
+        else setUserLevel(1);
+
+    } catch (error) {
+        console.error("Error calculating user level/achievements:", error);
+        setUserLevel(1); // Default to level 1 on error
+        setDisplayAchievements(achievementsListDisplay.slice(0,3).map(a => ({...a, unlocked: false })));
+    } finally {
+        setIsLoadingEnhancements(false);
+    }
+  }, []);
+
+
+  useEffect(() => {
+    if (user && !isLoading) { // Ensure user is loaded before calculating level
+      calculateUserLevelAndAchievements(user);
+    }
+  }, [user, isLoading, calculateUserLevelAndAchievements]);
+
 
   const handleLogout = async () => {
     try {
@@ -202,7 +283,7 @@ const ProfilePage: FC = () => {
   const displayPhotoURL = userProfile?.photoURL ?? user?.photoURL ?? undefined;
 
 
-  if (isLoading) {
+  if (isLoading || isLoadingEnhancements) {
     return (
       <main className="flex flex-col items-center p-4 sm:p-8 bg-secondary min-h-screen">
         <Card className="w-full max-w-4xl shadow-lg border-none rounded-xl bg-card">
@@ -214,7 +295,7 @@ const ProfilePage: FC = () => {
                 <Skeleton className="h-6 w-3/4 mb-1" />
                 <Skeleton className="h-4 w-1/2 mb-3" />
                 <div className="flex gap-2">
-                  <Skeleton className="h-6 w-20 rounded-full" />
+                  <Skeleton className="h-6 w-24 rounded-full" />
                   <Skeleton className="h-6 w-16 rounded-full" />
                 </div>
               </div>
@@ -266,8 +347,7 @@ const ProfilePage: FC = () => {
   return (
     <main className="flex flex-col items-center py-8 px-4 sm:px-6 lg:px-8 bg-secondary min-h-screen">
       <Card className="w-full max-w-4xl shadow-xl border-none rounded-2xl bg-card overflow-hidden"> 
-        <CardContent className="p-0 sm:p-0 md:grid md:grid-cols-12"> {/* Removed default padding, use grid for layout */}
-          {/* Left Column: User Info */}
+        <CardContent className="p-0 sm:p-0 md:grid md:grid-cols-12">
           <div className="md:col-span-4 bg-muted/40 p-6 space-y-5 border-r border-border/50">
             <div className="flex flex-col items-center text-center">
               <div className="relative mb-3">
@@ -285,11 +365,22 @@ const ProfilePage: FC = () => {
                  {userProfile?.fullName || user.displayName || 'Usuario +Seguro'}
               </h2>
               <p className="text-xs text-muted-foreground">
-                Miembro desde {userProfile?.memberSince ? format(userProfile.memberSince, "MMM yyyy", { locale: es }) : 'N/A'}
+                Miembro desde {userProfile?.memberSince ? format(userProfile.memberSince, "MMMM yyyy", { locale: es }) : 'N/A'}
               </p>
               <div className="flex gap-2 mt-3">
-                <Badge variant="secondary" className="bg-blue-100 text-blue-700 border-blue-300">Ciudadano Activo</Badge>
-                <Badge variant="secondary" className="bg-yellow-100 text-yellow-700 border-yellow-300">Nivel 3</Badge>
+                {isCitizenActive && (
+                  <Badge variant="secondary" className="bg-blue-100 text-blue-700 border-blue-300 flex items-center gap-1">
+                    <Activity className="h-3 w-3" /> Ciudadano Activo
+                  </Badge>
+                )}
+                {userLevel !== null && (
+                  <Badge variant="secondary" className="bg-yellow-100 text-yellow-700 border-yellow-300">Nivel {userLevel}</Badge>
+                )}
+                 {!isCitizenActive && userLevel === null && ( // Show if neither are determined yet or false
+                    <Badge variant="outline" className="border-dashed flex items-center gap-1">
+                        <ShieldQuestion className="h-3 w-3" /> Verificando actividad...
+                    </Badge>
+                )}
               </div>
             </div>
 
@@ -318,7 +409,7 @@ const ProfilePage: FC = () => {
                 <div className="flex items-start space-x-2.5 text-sm">
                   <Cake className="h-4 w-4 text-muted-foreground flex-shrink-0 mt-0.5" />
                   <p className="text-foreground">
-                    {format(userProfile.dob, "dd/MM/yyyy", { locale: es })}
+                    {format(userProfile.dob, "dd 'de' MMMM 'de' yyyy", { locale: es })}
                   </p>
                 </div>
               )}
@@ -331,7 +422,6 @@ const ProfilePage: FC = () => {
             </div>
           </div>
 
-          {/* Right Column: Stats, Activity, Achievements */}
           <div className="md:col-span-8 p-6 space-y-8">
             {user && <VotingStats userId={user.uid} />}
             
@@ -345,20 +435,22 @@ const ProfilePage: FC = () => {
                     <ChevronRight className="h-3 w-3 ml-0.5" />
                 </Link>
               </div>
-              {unlockedAchievements.length > 0 ? (
+              {displayAchievements.length > 0 ? (
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                  {unlockedAchievements.map((achievement) => (
+                  {displayAchievements.map((achievement) => (
                     <Card key={achievement.id} className={cn(
                         "p-3 rounded-lg border flex items-center gap-3 shadow-sm hover:shadow-md transition-shadow",
-                        achievement.id === 'first_report' ? 'bg-yellow-50 border-yellow-200' : 
-                        achievement.id === 'community_guardian' ? 'bg-blue-50 border-blue-200' :
-                        'bg-green-50 border-green-200' // Default to green for others or pioneer
+                         achievement.id === 'first_report' ? 'bg-yellow-50 border-yellow-200' : 
+                         achievement.id === 'community_guardian' ? 'bg-blue-50 border-blue-200' :
+                         achievement.id === 'pioneer' ? 'bg-green-50 border-green-200' :
+                         'bg-gray-50 border-gray-200' // Default for other unlocked achievements if any
                         )}>
                       <div className={cn(
                           "p-2 rounded-full",
                            achievement.id === 'first_report' ? 'bg-yellow-100' : 
                            achievement.id === 'community_guardian' ? 'bg-blue-100' :
-                           'bg-green-100'
+                           achievement.id === 'pioneer' ? 'bg-green-100' :
+                           'bg-gray-100'
                           )}>
                         {achievement.icon}
                       </div>
@@ -367,9 +459,10 @@ const ProfilePage: FC = () => {
                             "text-sm font-semibold",
                              achievement.id === 'first_report' ? 'text-yellow-700' : 
                              achievement.id === 'community_guardian' ? 'text-blue-700' :
-                             'text-green-700'
+                             achievement.id === 'pioneer' ? 'text-green-700' :
+                             'text-gray-700'
                             )}>{achievement.title}</p>
-                        <p className="text-xs text-muted-foreground">{achievement.description}</p>
+                        <p className="text-xs text-muted-foreground line-clamp-1">{achievement.description}</p>
                       </div>
                     </Card>
                   ))}
