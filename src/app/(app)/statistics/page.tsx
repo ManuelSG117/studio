@@ -1,16 +1,17 @@
+
 "use client";
 
 import type { FC } from 'react';
-import { useState, useEffect, useMemo, useCallback, useRef } from 'react'; // Added useRef
+import { useState, useEffect, useMemo, useCallback, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { onAuthStateChanged, type User } from 'firebase/auth';
 import { auth, db } from '@/lib/firebase/client';
-import { collection, getDocs, query, orderBy, Timestamp, where } from "firebase/firestore"; // Added where
+import { collection, getDocs, query, orderBy, Timestamp, where } from "firebase/firestore";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
-import { LineChart as LineChartIcon, Loader2, CalendarRange, Hash, TrendingUp, AlertTriangle, UserCog, Filter, MapPin, TrendingDown, CalendarCheck, List, ThumbsDown, AtSign, CheckCircle } from 'lucide-react'; // Added List, ThumbsDown, AtSign, CheckCircle
+import { LineChart as LineChartIcon, Loader2, CalendarRange, Hash, TrendingUp, AlertTriangle, UserCog, Filter, MapPin, TrendingDown, CalendarCheck, List, ThumbsDown, AtSign, CheckCircle, SlidersHorizontal, Search } from 'lucide-react'; // Added SlidersHorizontal, Search
 import { Button } from "@/components/ui/button";
-import type { Report } from '@/app/(app)/welcome/page'; // Reuse Report type
+import type { Report } from '@/app/(app)/welcome/page';
 import {
   format,
   parseISO,
@@ -30,27 +31,29 @@ import {
   differenceInDays,
   differenceInWeeks,
   differenceInMonths
-} from 'date-fns'; // Import date-fns functions
-import { es } from 'date-fns/locale'; // Import Spanish locale for date formatting
-import { Area, AreaChart, CartesianGrid, XAxis, YAxis, Tooltip as ChartTooltip } from 'recharts'; // Import AreaChart components from recharts
+} from 'date-fns';
+import { es } from 'date-fns/locale';
+import { Area, AreaChart, CartesianGrid, XAxis, YAxis, Tooltip as ChartTooltip } from 'recharts';
 import {
   ChartConfig,
   ChartContainer,
   ChartTooltipContent,
-} from "@/components/ui/chart"; // Import Chart components
+} from "@/components/ui/chart";
 import { cn } from '@/lib/utils';
-import { AnimatedNumber } from '@/components/ui/animated-number'; // Import AnimatedNumber
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"; // Import Select components
-import { Badge } from '@/components/ui/badge'; // Import Badge
+import { AnimatedNumber } from '@/components/ui/animated-number';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Badge } from '@/components/ui/badge';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog'; // Import Dialog components
+import { Input } from '@/components/ui/input'; // Import Input
 
 type FilterPeriod = 'day' | 'week' | 'month';
-type ReportTypeFilter = 'Todos' | 'Funcionario' | 'Incidente'; // Added report type filter
+type ReportTypeFilter = 'Todos' | 'Funcionario' | 'Incidente';
 
 interface ChartDataPoint {
-    period: string; // Format depends on filter: 'YYYY-MM-DD', 'YYYY-Www', 'YYYY-MM'
+    period: string;
     count: number;
-    incidentCount: number; // Count for 'incidente'
-    officerCount: number; // Count for 'funcionario'
+    incidentCount: number;
+    officerCount: number;
 }
 
 
@@ -58,27 +61,27 @@ const StatisticsPage: FC = () => {
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(true);
   const [user, setUser] = useState<User | null>(null);
-  const [reports, setReports] = useState<Report[]>([]); // State for all reports data (unfiltered)
-  const [chartData, setChartData] = useState<ChartDataPoint[]>([]); // State for chart data
-  const [filterPeriod, setFilterPeriod] = useState<FilterPeriod>('month'); // Default period filter
-  const [reportTypeFilter, setReportTypeFilter] = useState<ReportTypeFilter>('Todos'); // Default report type filter
+  const [reports, setReports] = useState<Report[]>([]);
+  const [chartData, setChartData] = useState<ChartDataPoint[]>([]);
+  const [filterPeriod, setFilterPeriod] = useState<FilterPeriod>('month');
+  const [reportTypeFilter, setReportTypeFilter] = useState<ReportTypeFilter>('Todos');
   const [totalReports, setTotalReports] = useState<number>(0);
   const [averageReports, setAverageReports] = useState<number>(0);
-  const [mostActiveDay, setMostActiveDay] = useState<string | null>(null); // Placeholder for now
-  const [officerReportsCount, setOfficerReportsCount] = useState<number>(0); // State for officer reports count
+  const [mostActiveDay, setMostActiveDay] = useState<string | null>(null);
+  const [officerReportsCount, setOfficerReportsCount] = useState<number>(0);
+  const [filterModalOpen, setFilterModalOpen] = useState(false); // State for mobile filter modal
 
   useEffect(() => {
-    setIsLoading(true); // Start loading
+    setIsLoading(true);
     const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
       if (!currentUser) {
         router.replace("/login");
       } else {
         setUser(currentUser);
-        // Fetch ALL reports from Firestore (similar to DangerZonesPage)
         try {
           console.log("Fetching all reports for statistics...");
           const reportsCollectionRef = collection(db, "reports");
-          const q = query(reportsCollectionRef, orderBy("createdAt", "asc")); // Order ascending for interval calculation
+          const q = query(reportsCollectionRef, orderBy("createdAt", "asc"));
           const querySnapshot = await getDocs(q);
 
           const fetchedReports: Report[] = querySnapshot.docs.map(doc => {
@@ -99,18 +102,16 @@ const StatisticsPage: FC = () => {
               latitude: data.latitude || null,
               longitude: data.longitude || null,
               createdAt: createdAtDate,
-              // Add votes if available, needed for card metrics logic later maybe
               upvotes: data.upvotes || 0,
               downvotes: data.downvotes || 0,
             } as Report;
           });
           console.log("Fetched reports for statistics:", fetchedReports.length);
-          setReports(fetchedReports); // Store all fetched reports
-          // Initial processing will happen in the processing useEffect
+          setReports(fetchedReports);
         } catch (error) {
           console.error("Error fetching reports for statistics: ", error);
         } finally {
-           setIsLoading(false); // Stop loading after fetch attempt
+           setIsLoading(false);
         }
       }
     });
@@ -118,50 +119,44 @@ const StatisticsPage: FC = () => {
     return () => unsubscribe();
   }, [router]);
 
-  // Function to process reports based on BOTH selected filter periods
   const processReportsForChart = useCallback((period: FilterPeriod, typeFilter: ReportTypeFilter) => {
-    // Filter reports by type first for overall counts
     const filteredReportsByType = reports.filter(report =>
         typeFilter === 'Todos' ||
         (typeFilter === 'Funcionario' && report.reportType === 'funcionario') ||
         (typeFilter === 'Incidente' && report.reportType === 'incidente')
     );
 
-    setTotalReports(filteredReportsByType.length); // Update total based on type filter
-    setOfficerReportsCount(reports.filter(r => r.reportType === 'funcionario').length); // Calculate total officer reports regardless of date filter
+    setTotalReports(filteredReportsByType.length);
+    setOfficerReportsCount(reports.filter(r => r.reportType === 'funcionario').length);
 
-    if (reports.length === 0) { // Check the original reports array for date range calculation
+    if (reports.length === 0) {
       setChartData([]);
-      setAverageReports(0); // Reset average if no reports match filters
+      setAverageReports(0);
       setMostActiveDay(null);
       return;
     }
 
     const reportsByPeriod: Record<string, { total: number, incident: number, officer: number }> = {};
-    // Use the unfiltered list for date range calculation to ensure all periods are shown
-    const firstReportDate = reports[0].createdAt; // Reports are already sorted ascending
+    const firstReportDate = reports[0].createdAt;
     const lastReportDate = reports[reports.length - 1].createdAt;
 
     let interval: Interval;
     let allPeriodsInInterval: Date[];
     let formatKey: (date: Date) => string;
-    let parseKey: (key: string) => Date; // Keep for potential future use
     let numberOfPeriods: number;
-    let dayOfWeekCounter: Record<string, number> = {}; // For most active day
+    let dayOfWeekCounter: Record<string, number> = {};
 
     switch (period) {
       case 'day':
         interval = { start: startOfDay(firstReportDate), end: endOfDay(lastReportDate) };
         allPeriodsInInterval = eachDayOfInterval(interval);
         formatKey = (date) => format(date, 'yyyy-MM-dd');
-        parseKey = (key) => parseISO(key);
         numberOfPeriods = differenceInDays(interval.end, interval.start) + 1;
         break;
       case 'week':
         interval = { start: startOfWeek(firstReportDate, { locale: es }), end: endOfWeek(lastReportDate, { locale: es }) };
         allPeriodsInInterval = eachWeekOfInterval(interval, { locale: es });
         formatKey = (date) => format(date, 'RRRR-II', { locale: es });
-        parseKey = (key) => startOfWeek(parseISO(key.substring(0, 4) + "-01-01"), { weekStartsOn: 1 });
         numberOfPeriods = differenceInWeeks(interval.end, interval.start, { locale: es }) + 1;
         break;
       case 'month':
@@ -169,34 +164,29 @@ const StatisticsPage: FC = () => {
         interval = { start: startOfMonth(firstReportDate), end: endOfMonth(lastReportDate) };
         allPeriodsInInterval = eachMonthOfInterval(interval);
         formatKey = (date) => format(date, 'yyyy-MM');
-        parseKey = (key) => parseISO(key + '-01');
         numberOfPeriods = differenceInMonths(interval.end, interval.start) + 1;
         break;
     }
 
-    // Initialize counts for all periods in the interval to 0
     allPeriodsInInterval.forEach(periodDate => {
         const periodKey = formatKey(periodDate);
         reportsByPeriod[periodKey] = { total: 0, incident: 0, officer: 0 };
     });
 
-    // Count reports for each period using the unfiltered list and track day of week
     reports.forEach(report => {
        const periodKey = formatKey(report.createdAt);
-       if (reportsByPeriod[periodKey]) { // Ensure the key exists (it should due to initialization)
-          reportsByPeriod[periodKey].total++; // Increment total count
+       if (reportsByPeriod[periodKey]) {
+          reportsByPeriod[periodKey].total++;
             if (report.reportType === 'incidente') {
               reportsByPeriod[periodKey].incident++;
             } else if (report.reportType === 'funcionario') {
               reportsByPeriod[periodKey].officer++;
             }
        }
-       // Count reports per day of the week (using the unfiltered list)
        const dayName = format(report.createdAt, 'EEEE', { locale: es });
        dayOfWeekCounter[dayName] = (dayOfWeekCounter[dayName] || 0) + 1;
     });
 
-    // Find the most active day
     let maxCount = 0;
     let activeDay = null;
     for (const [day, count] of Object.entries(dayOfWeekCounter)) {
@@ -205,10 +195,8 @@ const StatisticsPage: FC = () => {
             activeDay = day;
         }
     }
-    setMostActiveDay(activeDay ? activeDay.charAt(0).toUpperCase() + activeDay.slice(1) : 'N/A'); // Capitalize
+    setMostActiveDay(activeDay ? activeDay.charAt(0).toUpperCase() + activeDay.slice(1) : 'N/A');
 
-
-    // Format data for the chart, ensuring chronological order
     const formattedChartData: ChartDataPoint[] = Object.entries(reportsByPeriod)
        .map(([period, counts]) => ({
             period,
@@ -216,26 +204,20 @@ const StatisticsPage: FC = () => {
             incidentCount: counts.incident,
             officerCount: counts.officer
         }))
-       .sort((a, b) => a.period.localeCompare(b.period)); // Sort by period key string
+       .sort((a, b) => a.period.localeCompare(b.period));
 
     setChartData(formattedChartData);
 
-    // Calculate average reports based on the type-filtered total
     const totalFiltered = filteredReportsByType.length;
     const avg = numberOfPeriods > 0 ? totalFiltered / numberOfPeriods : 0;
     setAverageReports(avg);
-    console.log(`Filter: ${typeFilter}, Total: ${totalFiltered}, Periods: ${numberOfPeriods}, Avg: ${avg.toFixed(1)}`);
 
+  }, [reports]);
 
-  }, [reports]); // Dependency ONLY on reports array (filters passed as args)
-
-  // Recalculate chart data when filters or reports change
   useEffect(() => {
     processReportsForChart(filterPeriod, reportTypeFilter);
   }, [reports, filterPeriod, reportTypeFilter, processReportsForChart]);
 
-
-  // Moved useMemo hook before the conditional return
   const averageLabel = useMemo(() => {
      switch(filterPeriod) {
         case 'day': return 'Promedio Diario';
@@ -245,107 +227,92 @@ const StatisticsPage: FC = () => {
      }
   }, [filterPeriod]);
 
-
-  // Chart Configuration
   const chartConfig = {
-    incident: { // Key matches dataKey in Area component
+    incident: {
       label: "Incidentes",
-      color: "hsl(var(--destructive))", // Use destructive color for incidents
+      color: "hsl(var(--destructive))",
     },
-    officer: { // Key matches dataKey in Area component
+    officer: {
       label: "Funcionarios",
-      color: "hsl(var(--warning))", // Use warning color for officers
+      color: "hsl(var(--warning))",
     },
   } satisfies ChartConfig;
 
-  // X-axis tick formatter based on filter period
   const formatXAxisTick = (value: string) => {
     try {
         switch (filterPeriod) {
           case 'day':
-            return format(parseISO(value), 'dd MMM', { locale: es }); // e.g., '01 Ene'
+            return format(parseISO(value), 'dd MMM', { locale: es });
           case 'week':
-             // Format 'YYYY-Www' to 'Sem WW, YY' (e.g., 'Sem 23, 24')
             const [yearW, weekW] = value.split('-W');
             return `Sem ${weekW}, ${yearW.substring(2)}`;
           case 'month':
           default:
-            // Format 'YYYY-MM' to 'Mmm yy' (e.g., 'Ene 24')
             const [yearM, monthM] = value.split('-');
             const dateM = new Date(parseInt(yearM), parseInt(monthM) - 1);
             return format(dateM, 'MMM yy', { locale: es });
         }
     } catch (e) {
         console.error("Error formatting tick:", value, e);
-        return value; // Fallback
+        return value;
     }
   };
 
-  // Tooltip label formatter
     const formatTooltipLabel = (label: string) => {
         try {
             switch (filterPeriod) {
                 case 'day':
-                    return format(parseISO(label), 'PPP', { locale: es }); // e.g., '1 de enero de 2024'
+                    return format(parseISO(label), 'PPP', { locale: es });
                  case 'week':
-                    // Extract year and week number from 'YYYY-Www'
                     const [yearW, weekNum] = label.split('-W');
-                    // Calculate start and end of the week (approximated for display)
-                    // Note: Direct parsing of ISO week date isn't standard in date-fns, this is an approximation
                     const approxWeekStart = new Date(parseInt(yearW), 0, 1 + (parseInt(weekNum) - 1) * 7);
                     const weekStartDate = startOfWeek(approxWeekStart, { locale: es });
                     const weekEndDate = endOfWeek(approxWeekStart, { locale: es });
                     return `Semana ${weekNum} (${format(weekStartDate, 'd MMM', { locale: es })} - ${format(weekEndDate, 'd MMM yyyy', { locale: es })})`;
                 case 'month':
                 default:
-                    return format(parseISO(label + '-01'), 'MMMM yyyy', { locale: es }); // e.g., 'enero de 2024'
+                    return format(parseISO(label + '-01'), 'MMMM yyyy', { locale: es });
             }
         } catch (e) {
             console.error("Error formatting tooltip label:", label, e);
-            return label; // Fallback
+            return label;
         }
     };
 
-  // Loading state skeleton
   if (isLoading) {
     return (
       <main className="flex flex-col items-center p-4 sm:p-6 bg-secondary min-h-screen">
-         <div className="w-full max-w-7xl mx-auto space-y-6"> {/* Use max-w-7xl */}
-            {/* Header Skeleton */}
-            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-2 gap-2"> {/* Reduced mb */}
+         <div className="w-full max-w-7xl mx-auto space-y-6">
+            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-2 gap-2">
                 <div className="space-y-1">
                     <Skeleton className="h-8 w-64" />
                     <Skeleton className="h-4 w-80" />
                 </div>
                  <div className="flex flex-wrap justify-center sm:justify-end gap-2">
-                     <Skeleton className="h-9 w-20 rounded-md" />
-                     <Skeleton className="h-9 w-20 rounded-md" />
-                     <Skeleton className="h-9 w-20 rounded-md" />
-                     <Skeleton className="h-9 w-36 rounded-md" />
+                     <Skeleton className="h-9 w-36 rounded-md" /> {/* Filter Select Skeleton */}
+                     <Skeleton className="h-9 w-36 rounded-md" /> {/* Filter Select Skeleton */}
                  </div>
             </div>
-             {/* Metrics Skeleton Grid */}
              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-4">
                  {[...Array(4)].map((_, i) => (
-                     <Card key={i} className="bg-card rounded-lg"> {/* Added rounded-lg */}
-                         <CardHeader className="pb-2 pt-4 px-4 flex flex-row items-center justify-between space-y-0"> {/* Added px-4 */}
+                     <Card key={i} className="bg-card rounded-lg">
+                         <CardHeader className="pb-2 pt-4 px-4 flex flex-row items-center justify-between space-y-0">
                               <Skeleton className="h-4 w-24" />
-                              <Skeleton className="h-5 w-5" /> {/* Icon skeleton */}
+                              <Skeleton className="h-5 w-5" />
                          </CardHeader>
-                         <CardContent className="pt-1 pb-4 px-4"> {/* Added px-4 */}
-                             <Skeleton className="h-8 w-16 mb-1" /> {/* Number skeleton */}
-                             <Skeleton className="h-3 w-20 mt-1" /> {/* Percentage skeleton */}
+                         <CardContent className="pt-1 pb-4 px-4">
+                             <Skeleton className="h-8 w-16 mb-1" />
+                             <Skeleton className="h-3 w-20 mt-1" />
                          </CardContent>
                      </Card>
                  ))}
             </div>
-            {/* Chart Card Skeleton */}
             <Card className="w-full shadow-sm rounded-lg border border-border bg-card">
                <CardHeader>
                    <Skeleton className="h-6 w-1/3 mb-2" />
                    <Skeleton className="h-4 w-1/2" />
                </CardHeader>
-               <CardContent className="h-[350px] sm:h-[450px] flex items-center justify-center"> {/* Increased height */}
+               <CardContent className="h-[350px] sm:h-[450px] flex items-center justify-center">
                     <Skeleton className="h-full w-full" />
                </CardContent>
             </Card>
@@ -354,64 +321,103 @@ const StatisticsPage: FC = () => {
     );
   }
 
-
-
   return (
     <main className="flex flex-col items-center p-4 sm:p-6 bg-secondary min-h-screen">
-         <div className="w-full max-w-7xl mx-auto space-y-8"> {/* Use max-w-7xl and increase spacing */}
-             {/* Header and Filters */}
-              <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4"> {/* Keep mb-6 */}
+         <div className="w-full max-w-7xl mx-auto space-y-8">
+              <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4">
                  <div className="space-y-1">
-                     <h1 className="text-2xl md:text-3xl font-semibold text-foreground flex items-center"> {/* Larger title */}
+                     <h1 className="text-2xl md:text-3xl font-semibold text-foreground flex items-center">
                          Dashboard de Estadísticas <span className="text-primary font-bold ml-1.5">+SEGURO</span>
                      </h1>
                      <p className="text-muted-foreground text-sm md:text-base">
                         Visualización de datos de reportes ciudadanos para promover la seguridad pública
                      </p>
                  </div>
-                  {/* Combined Filters */}
-                 <div className="flex flex-wrap items-center justify-center md:justify-end gap-3 bg-card border border-border p-2 rounded-lg shadow-sm"> {/* Card background for filters */}
-                      {/* Period Filters */}
-                     {(['day', 'week', 'month'] as const).map((period) => (
-                         <Button
-                             key={period}
-                             variant={filterPeriod === period ? 'secondary' : 'ghost'} // Use secondary for active
-                             size="sm"
-                             onClick={() => setFilterPeriod(period)}
-                             className={cn(
-                                 "capitalize px-4 h-9 text-sm transition-all duration-200", // Adjusted padding/height
-                                 filterPeriod === period ? "bg-primary text-primary-foreground shadow-md" : "text-muted-foreground hover:bg-muted/80"
-                             )}
-                             aria-pressed={filterPeriod === period}
-                         >
-                             {period === 'day' ? 'Día' : period === 'week' ? 'Semana' : 'Mes'}
-                         </Button>
-                     ))}
-                      <div className="h-6 w-px bg-border mx-1 hidden sm:block"></div> {/* Divider */}
-                     {/* Report Type Select Filter */}
-                     <div className="flex items-center gap-1.5">
-                         <Filter className="h-4 w-4 text-muted-foreground" />
-                         <Select
-                             value={reportTypeFilter}
-                             onValueChange={(value: ReportTypeFilter) => setReportTypeFilter(value)}
-                         >
-                             <SelectTrigger className="h-9 w-[160px] text-sm bg-background border-input focus:ring-primary focus:border-primary"> {/* Background style */}
-                                 <SelectValue placeholder="Filtrar por tipo" />
-                             </SelectTrigger>
-                             <SelectContent>
-                                 <SelectItem value="Todos">Todos los Tipos</SelectItem>
-                                 <SelectItem value="Funcionario">Funcionarios</SelectItem>
-                                 <SelectItem value="Incidente">Incidentes</SelectItem>
-                             </SelectContent>
-                         </Select>
-                     </div>
+                  {/* Filters - Styled like community-reports */}
+                  <div className="w-full md:w-auto">
+                      {/* Mobile: Minimal button */}
+                      <div className="md:hidden flex items-center gap-2">
+                        <Button
+                          variant="outline"
+                          size="lg" // Make button larger on mobile
+                          className="rounded-full p-3 shadow-sm border border-border flex-1" // flex-1 to take available width
+                          onClick={() => setFilterModalOpen(true)}
+                          aria-label="Filtrar Estadísticas"
+                        >
+                          <SlidersHorizontal className="h-5 w-5 mr-2" /> Filtrar Estadísticas
+                        </Button>
+                      </div>
+                      {/* Desktop: Inline filters */}
+                      <div className="hidden md:flex flex-row items-center gap-3 p-2 bg-card rounded-full shadow-md border border-border">
+                         <span className="text-sm font-medium text-muted-foreground pl-2 pr-1">Filtrar por:</span>
+                         <Select value={reportTypeFilter} onValueChange={(value) => setReportTypeFilter(value as ReportTypeFilter)}>
+                            <SelectTrigger className="w-full md:w-[180px] h-9 rounded-full border-none bg-background shadow-sm px-4">
+                              <SelectValue placeholder="Tipo de Reporte" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="Todos">Todos los Tipos</SelectItem>
+                              <SelectItem value="Incidente">Incidentes</SelectItem>
+                              <SelectItem value="Funcionario">Funcionarios</SelectItem>
+                            </SelectContent>
+                          </Select>
+                          <Select value={filterPeriod} onValueChange={(value) => setFilterPeriod(value as FilterPeriod)}>
+                            <SelectTrigger className="w-full md:w-[140px] h-9 rounded-full border-none bg-background shadow-sm px-4">
+                              <SelectValue placeholder="Periodo" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="day">Día</SelectItem>
+                              <SelectItem value="week">Semana</SelectItem>
+                              <SelectItem value="month">Mes</SelectItem>
+                            </SelectContent>
+                          </Select>
+                      </div>
+                      {/* Mobile: Modal for filters */}
+                      <Dialog open={filterModalOpen} onOpenChange={setFilterModalOpen}>
+                        <DialogContent className="p-0 max-w-sm w-full rounded-2xl">
+                          <DialogHeader className="flex flex-row items-center justify-between px-4 pt-4 pb-2">
+                            <DialogTitle className="text-lg font-semibold">Filtrar Estadísticas</DialogTitle>
+                          </DialogHeader>
+                          <div className="px-4 pb-4 space-y-4">
+                            <div>
+                              <label className="block text-xs font-medium mb-1">Tipo de Reporte</label>
+                              <Select value={reportTypeFilter} onValueChange={(value) => setReportTypeFilter(value as ReportTypeFilter)}>
+                                <SelectTrigger className="h-10 rounded-full border-none bg-background shadow-sm px-4">
+                                  <SelectValue placeholder="Tipo de Reporte" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                  <SelectItem value="Todos">Todos los Tipos</SelectItem>
+                                  <SelectItem value="Incidente">Incidentes</SelectItem>
+                                  <SelectItem value="Funcionario">Funcionarios</SelectItem>
+                                </SelectContent>
+                              </Select>
+                            </div>
+                            <div>
+                              <label className="block text-xs font-medium mb-1">Periodo</label>
+                              <Select value={filterPeriod} onValueChange={(value) => setFilterPeriod(value as FilterPeriod)}>
+                                <SelectTrigger className="h-10 rounded-full border-none bg-background shadow-sm px-4">
+                                  <SelectValue placeholder="Periodo" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                  <SelectItem value="day">Día</SelectItem>
+                                  <SelectItem value="week">Semana</SelectItem>
+                                  <SelectItem value="month">Mes</SelectItem>
+                                </SelectContent>
+                              </Select>
+                            </div>
+                          </div>
+                          <DialogFooter className="px-4 pb-4">
+                            <Button className="w-full rounded-full" onClick={() => setFilterModalOpen(false)}>
+                              Aplicar filtros
+                            </Button>
+                          </DialogFooter>
+                        </DialogContent>
+                      </Dialog>
                   </div>
              </div>
 
-             {/* Key Metrics Section - Updated to match image */}
-             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6"> {/* Increased gap */}
-                 {/* Total Reports Card */}
-                 <Card className="bg-card shadow-md border-border hover:shadow-lg transition-shadow group rounded-lg border-l-4 border-l-primary"> {/* Added rounded-lg */}
+             {/* Key Metrics Section */}
+             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+                 <Card className="bg-card shadow-md border-border hover:shadow-lg transition-shadow group rounded-lg border-l-4 border-l-primary">
                      <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 pt-4 px-4">
                          <CardTitle className="text-sm font-medium text-muted-foreground">Total Reportes</CardTitle>
                          <List className="h-5 w-5 text-primary opacity-70 group-hover:opacity-100 transition-opacity" />
@@ -421,77 +427,73 @@ const StatisticsPage: FC = () => {
                            <AnimatedNumber value={totalReports} formatOptions={{ maximumFractionDigits: 0 }} className="block"/>
                          </div>
                           <p className="text-xs text-muted-foreground mt-1 flex items-center gap-1 text-green-600">
-                                <TrendingUp className="h-3.5 w-3.5"/> 12.5% más votos positivos este mes {/* Placeholder */}
+                                <TrendingUp className="h-3.5 w-3.5"/> {averageReports.toFixed(1)} {averageLabel}
                           </p>
                      </CardContent>
                  </Card>
-                  {/* Reports Not Verified Card */}
-                 <Card className="bg-card shadow-md border-border hover:shadow-lg transition-shadow group rounded-lg border-l-4 border-l-destructive"> {/* Added rounded-lg */}
+                 <Card className="bg-card shadow-md border-border hover:shadow-lg transition-shadow group rounded-lg border-l-4 border-l-destructive">
                      <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 pt-4 px-4">
-                         <CardTitle className="text-sm font-medium text-muted-foreground">Reportes No Verídicos</CardTitle>
-                         <ThumbsDown className="h-5 w-5 text-destructive opacity-70 group-hover:opacity-100 transition-opacity" />
+                         <CardTitle className="text-sm font-medium text-muted-foreground">Incidentes Reportados</CardTitle>
+                         <AlertTriangle className="h-5 w-5 text-destructive opacity-70 group-hover:opacity-100 transition-opacity" />
                      </CardHeader>
                      <CardContent className="pt-1 pb-4 px-4">
                           <div className="text-3xl font-bold text-destructive">
-                             <AnimatedNumber value={1356} formatOptions={{ maximumFractionDigits: 0 }} className="block"/> {/* Placeholder */}
+                             <AnimatedNumber value={reports.filter(r => r.reportType === 'incidente').length} formatOptions={{ maximumFractionDigits: 0 }} className="block"/>
                           </div>
                            <p className="text-xs text-muted-foreground mt-1 flex items-center gap-1 text-red-600">
-                             <TrendingDown className="h-3.5 w-3.5"/> 8.3% más votos negativos este mes {/* Placeholder */}
+                             <TrendingDown className="h-3.5 w-3.5"/> {mostActiveDay} día más común
                          </p>
                      </CardContent>
                  </Card>
-                  {/* Officer Incidents Card */}
-                 <Card className="bg-card shadow-md border-border hover:shadow-lg transition-shadow group rounded-lg border-l-4 border-l-warning"> {/* Added rounded-lg */}
+                 <Card className="bg-card shadow-md border-border hover:shadow-lg transition-shadow group rounded-lg border-l-4 border-l-warning">
                      <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 pt-4 px-4">
-                         <CardTitle className="text-sm font-medium text-muted-foreground">Incidentes Funcionarios</CardTitle>
-                         <AtSign className="h-5 w-5 text-warning opacity-70 group-hover:opacity-100 transition-opacity" />
+                         <CardTitle className="text-sm font-medium text-muted-foreground">Reportes Funcionarios</CardTitle>
+                         <UserCog className="h-5 w-5 text-warning opacity-70 group-hover:opacity-100 transition-opacity" />
                      </CardHeader>
                      <CardContent className="pt-1 pb-4 px-4">
                          <div className="text-3xl font-bold text-warning">
                             <AnimatedNumber value={officerReportsCount} formatOptions={{ maximumFractionDigits: 0 }} className="block"/>
                          </div>
-                          <p className="text-xs text-muted-foreground mt-1 flex items-center gap-1 text-red-600">
-                             <TrendingDown className="h-3.5 w-3.5"/> 3.2% menos votos negativos este mes {/* Placeholder */}
+                          <p className="text-xs text-muted-foreground mt-1 flex items-center gap-1 text-yellow-600">
+                             <TrendingUp className="h-3.5 w-3.5"/> +2% este mes {/* Placeholder */}
                           </p>
                      </CardContent>
                  </Card>
-                  {/* Verified Reports Card */}
-                  <Card className="bg-card shadow-md border-border hover:shadow-lg transition-shadow group rounded-lg border-l-4 border-l-green-500"> {/* Added rounded-lg */}
+                  <Card className="bg-card shadow-md border-border hover:shadow-lg transition-shadow group rounded-lg border-l-4 border-l-green-500">
                      <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 pt-4 px-4">
-                         <CardTitle className="text-sm font-medium text-muted-foreground">Reportes Verificados</CardTitle>
-                          <CheckCircle className="h-5 w-5 text-green-600 opacity-70 group-hover:opacity-100 transition-opacity" />
+                         <CardTitle className="text-sm font-medium text-muted-foreground">Zona Más Activa</CardTitle>
+                          <MapPin className="h-5 w-5 text-green-600 opacity-70 group-hover:opacity-100 transition-opacity" />
                      </CardHeader>
                      <CardContent className="pt-1 pb-4 px-4">
-                          <div className="text-3xl font-bold text-green-600">
-                            <AnimatedNumber value={962} formatOptions={{ maximumFractionDigits: 0 }} className="block"/> {/* Placeholder */}
+                          <div className="text-3xl font-bold text-green-600 truncate">
+                            Col. Centro {/* Placeholder */}
                           </div>
                            <p className="text-xs text-muted-foreground mt-1 flex items-center gap-1 text-green-600">
-                             <TrendingUp className="h-3.5 w-3.5"/> 15.8% más votos positivos este mes {/* Placeholder */}
+                             <CheckCircle className="h-3.5 w-3.5"/> Tendencia estable {/* Placeholder */}
                           </p>
                      </CardContent>
                  </Card>
              </div>
 
              {/* Report Trend Chart */}
-             <Card className="w-full shadow-lg rounded-xl border border-border bg-card overflow-hidden"> {/* Increased shadow, rounded-xl */}
-                <CardHeader className="bg-muted/30 p-4 sm:p-5 border-b border-border/50 flex flex-row items-center justify-between"> {/* Lighter background */}
+             <Card className="w-full shadow-lg rounded-xl border border-border bg-card overflow-hidden">
+                <CardHeader className="bg-muted/30 p-4 sm:p-5 border-b border-border/50 flex flex-row items-center justify-between">
                      <div>
                          <CardTitle className="text-lg font-semibold flex items-center gap-2 text-foreground">
                             <CalendarRange className="h-5 w-5 text-primary" /> Tendencia de Reportes {reportTypeFilter !== 'Todos' ? `(${reportTypeFilter}s)` : ''} por {filterPeriod === 'day' ? 'Día' : filterPeriod === 'week' ? 'Semana' : 'Mes'}
                          </CardTitle>
                          <CardDescription className="text-sm mt-1 text-muted-foreground">Número de reportes registrados en el periodo seleccionado.</CardDescription>
                      </div>
-                     {/* Adjusted Period Filters - moved from top */}
                       <div className="flex flex-wrap items-center justify-end gap-2 bg-background/70 border border-border p-1 rounded-lg shadow-sm">
-                          {(['month', 'year', 'Todos'] as const).map((p) => ( // Example periods
+                          {(['month', 'year', 'Todos'] as const).map((p) => (
                               <Button
                                   key={p}
-                                  variant={'ghost'} // Keep it simple
+                                  variant={'ghost'}
                                   size="sm"
                                   onClick={() => { /* TODO: Implement filter logic if needed here */ }}
                                   className={cn(
                                       "capitalize px-3 h-8 text-xs transition-all duration-200 text-muted-foreground hover:bg-muted/80",
-                                      p === 'month' && "bg-primary/10 text-primary" // Example active style
+                                      p === 'month' && "bg-primary/10 text-primary"
                                   )}
                                   aria-pressed={p === 'month'}
                               >
@@ -500,16 +502,16 @@ const StatisticsPage: FC = () => {
                           ))}
                       </div>
                  </CardHeader>
-                  <CardContent className="p-2 sm:p-4 md:p-6"> {/* Adjusted padding */}
-                     {chartData.length > 1 ? ( // Ensure at least 2 data points for a meaningful chart
-                         <ChartContainer config={chartConfig} className="h-[350px] sm:h-[450px] w-full"> {/* Increased height */}
+                  <CardContent className="p-2 sm:p-4 md:p-6">
+                     {chartData.length > 1 ? (
+                         <ChartContainer config={chartConfig} className="h-[350px] sm:h-[450px] w-full">
                             <AreaChart
                                 data={chartData}
                                 margin={{
                                   top: 10,
-                                  right: 30, // Increased right margin for labels
-                                  left: 5, // Adjusted left margin
-                                  bottom: 30, // Increased bottom margin for angled labels
+                                  right: 30,
+                                  left: 5,
+                                  bottom: 30,
                                 }}
                             >
                                 <defs>
@@ -522,62 +524,60 @@ const StatisticsPage: FC = () => {
                                          <stop offset="95%" stopColor="hsl(var(--warning))" stopOpacity={0.1}/>
                                      </linearGradient>
                                 </defs>
-                                <CartesianGrid vertical={false} strokeDasharray="3 3" stroke="hsl(var(--border) / 0.6)"/> {/* Lighter grid */}
+                                <CartesianGrid vertical={false} strokeDasharray="3 3" stroke="hsl(var(--border) / 0.6)"/>
                                 <XAxis
                                    dataKey="period"
                                    tickLine={false}
                                    axisLine={false}
                                    tickMargin={10}
                                    tickFormatter={formatXAxisTick}
-                                   interval={chartData.length > 10 ? Math.floor(chartData.length / 10) : 0} // Dynamic interval
-                                   angle={filterPeriod === 'day' && chartData.length > 7 ? -45 : 0} // Angle ticks if many days
+                                   interval={chartData.length > 10 ? Math.floor(chartData.length / 10) : 0}
+                                   angle={filterPeriod === 'day' && chartData.length > 7 ? -45 : 0}
                                    textAnchor={filterPeriod === 'day' && chartData.length > 7 ? 'end' : 'middle'}
-                                   height={filterPeriod === 'day' && chartData.length > 7 ? 60 : 40} // Adjust height for angled labels
-                                   className="text-xs fill-muted-foreground" // Use theme color
+                                   height={filterPeriod === 'day' && chartData.length > 7 ? 60 : 40}
+                                   className="text-xs fill-muted-foreground"
                                 />
                                 <YAxis
                                     tickLine={false}
                                     axisLine={false}
                                     tickMargin={8}
                                     allowDecimals={false}
-                                    width={30} // Adjust width for Y-axis labels
-                                    className="text-xs fill-muted-foreground" // Use theme color
+                                    width={30}
+                                    className="text-xs fill-muted-foreground"
                                 />
                                 <ChartTooltip
-                                    cursor={{ fill: "hsl(var(--accent) / 0.1)" }} // Use theme accent with opacity
+                                    cursor={{ fill: "hsl(var(--accent) / 0.1)" }}
                                     content={<ChartTooltipContent indicator="dot" labelFormatter={formatTooltipLabel} />}
                                 />
-                                {/* Area for Incidents */}
                                 <Area
-                                   dataKey="incidentCount" // Use specific count
+                                   dataKey="incidentCount"
                                    type="monotone"
                                    fill="url(#fillIncident)"
                                    stroke="hsl(var(--destructive))"
                                    stackId="a"
-                                   name={chartConfig.incident.label} // Use label from config
+                                   name={chartConfig.incident.label}
                                    strokeWidth={2}
                                    dot={chartData.length < 30}
                                  />
-                                 {/* Area for Officer Reports */}
                                  <Area
-                                   dataKey="officerCount" // Use specific count
+                                   dataKey="officerCount"
                                    type="monotone"
                                    fill="url(#fillOfficer)"
                                    stroke="hsl(var(--warning))"
-                                   stackId="b" // Different stackId or no stackId if you want them separate
-                                   name={chartConfig.officer.label} // Use label from config
+                                   stackId="b"
+                                   name={chartConfig.officer.label}
                                    strokeWidth={2}
                                    dot={chartData.length < 30}
                                  />
                             </AreaChart>
                         </ChartContainer>
                      ) : (
-                          <div className="h-[350px] sm:h-[450px] flex flex-col items-center justify-center text-center p-6 bg-muted/30 rounded-lg border border-dashed border-border"> {/* Dashed border */}
-                             <LineChartIcon className="h-16 w-16 text-muted-foreground opacity-40 mb-5" /> {/* Larger icon */}
-                             <p className="text-lg font-semibold text-muted-foreground mb-2"> {/* Larger text */}
+                          <div className="h-[350px] sm:h-[450px] flex flex-col items-center justify-center text-center p-6 bg-muted/30 rounded-lg border border-dashed border-border">
+                             <LineChartIcon className="h-16 w-16 text-muted-foreground opacity-40 mb-5" />
+                             <p className="text-lg font-semibold text-muted-foreground mb-2">
                                  {isLoading ? "Calculando datos..." : `No hay suficientes datos ${reportTypeFilter !== 'Todos' ? `de tipo "${reportTypeFilter}"` : ''} para mostrar la tendencia.`}
                              </p>
-                               <p className="text-sm text-muted-foreground/80">Intenta ajustar los filtros o espera a que se registren más reportes.</p> {/* Improved suggestion */}
+                               <p className="text-sm text-muted-foreground/80">Intenta ajustar los filtros o espera a que se registren más reportes.</p>
                          </div>
                      )}
                  </CardContent>
@@ -588,3 +588,4 @@ const StatisticsPage: FC = () => {
 };
 
 export default StatisticsPage;
+
