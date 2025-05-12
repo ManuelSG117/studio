@@ -1,4 +1,3 @@
-
 "use client";
 
 import type { FC } from 'react';
@@ -44,7 +43,7 @@ import { AnimatedNumber } from '@/components/ui/animated-number';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from '@/components/ui/badge';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
-import { Input } from '@/components/ui/input';
+import { Input } from "@/components/ui/input";
 
 type FilterPeriod = 'day' | 'week' | 'month';
 type ReportTypeFilter = 'Todos' | 'Funcionario' | 'Incidente';
@@ -444,6 +443,18 @@ const StatisticsPage: FC = () => {
                          <TrendingUp className="h-3 w-3 mr-0.5"/> {averageReports.toFixed(1)} {averageLabel}
                      </p>
                  </Card>
+                
+                 <Card className="p-3 flex flex-col justify-between bg-red-500/5 border-red-500/20 rounded-lg shadow-sm hover:shadow-md transition-shadow">
+                     <div>
+                         <p className="text-xs text-red-600 font-medium flex items-center">
+                            <UserCog className="h-3.5 w-3.5 mr-1.5"/>Reportes Funcionarios
+                         </p>
+                         <AnimatedNumber value={officerReportsCount} className="text-2xl font-bold text-red-700 block mt-0.5"/>
+                     </div>
+                     <p className="text-xs text-red-500 mt-1 flex items-center">
+                        <TrendingUp className="h-3 w-3 mr-0.5"/> +2% este mes
+                     </p>
+                 </Card>
 
                  <Card className="p-3 flex flex-col justify-between bg-blue-500/5 border-blue-500/20 rounded-lg shadow-sm hover:shadow-md transition-shadow">
                      <div>
@@ -454,18 +465,6 @@ const StatisticsPage: FC = () => {
                      </div>
                      <p className="text-xs text-blue-500 mt-1 flex items-center">
                          <TrendingDown className="h-3 w-3 mr-0.5"/> {mostActiveDay} día más común
-                     </p>
-                 </Card>
-
-                 <Card className="p-3 flex flex-col justify-between bg-red-500/5 border-red-500/20 rounded-lg shadow-sm hover:shadow-md transition-shadow">
-                     <div>
-                         <p className="text-xs text-red-600 font-medium flex items-center">
-                            <UserCog className="h-3.5 w-3.5 mr-1.5"/>Reportes Funcionarios
-                         </p>
-                         <AnimatedNumber value={officerReportsCount} className="text-2xl font-bold text-red-700 block mt-0.5"/>
-                     </div>
-                     <p className="text-xs text-red-500 mt-1 flex items-center">
-                        <TrendingUp className="h-3 w-3 mr-0.5"/> +2% este mes
                      </p>
                  </Card>
                 
@@ -577,4 +576,3 @@ const StatisticsPage: FC = () => {
 };
 
 export default StatisticsPage;
-
