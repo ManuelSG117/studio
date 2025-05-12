@@ -1,3 +1,4 @@
+
 "use client";
 
 import type { FC } from 'react';
@@ -462,8 +463,9 @@ const WelcomePage: FC = () => {
                <PaginationItem>
                  <PaginationPrevious
                     onClick={handlePreviousPage}
-                    className={cn(currentPage === 1 && "pointer-events-none opacity-50")}
+                    className={cn(currentPage === 1 && "pointer-events-none opacity-50", isLoading && "pointer-events-none opacity-50")}
                     href="#" // Added href to make it a valid link for styling
+                    aria-disabled={currentPage === 1 || isLoading}
                   />
                </PaginationItem>
                <PaginationItem>
@@ -479,8 +481,9 @@ const WelcomePage: FC = () => {
                <PaginationItem>
                   <PaginationNext
                     onClick={handleNextPage}
-                    className={cn(!hasMore && "pointer-events-none opacity-50")}
+                    className={cn(!hasMore && "pointer-events-none opacity-50", isLoading && "pointer-events-none opacity-50")}
                     href="#" // Added href to make it a valid link for styling
+                    aria-disabled={!hasMore || isLoading}
                   />
                </PaginationItem>
              </PaginationContent>
@@ -497,3 +500,4 @@ const WelcomePage: FC = () => {
 };
 
 export default WelcomePage;
+
