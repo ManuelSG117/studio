@@ -233,13 +233,13 @@ const StatisticsPage: FC = () => {
   }, [filterPeriod]);
 
   const chartConfig = {
-    incident: { 
+    incidentCount: { 
       label: "Incidentes",
-      color: "hsl(var(--primary))",
+      color: "hsl(var(--primary))", // Blue for incidentes
     },
-    officer: { 
+    officerCount: { 
       label: "Funcionarios",
-      color: "hsl(var(--destructive))",
+      color: "hsl(var(--destructive))", // Red for funcionarios
     },
   } satisfies ChartConfig;
 
@@ -350,23 +350,23 @@ const StatisticsPage: FC = () => {
                         Visualización de datos de reportes ciudadanos para promover la seguridad pública
                      </p>
                  </div>
-                 {/* New Filter UI */}
+                 {/* New Filter UI - Consistent with Community Reports */}
                   <div className="w-full md:w-auto">
                       {/* Mobile: Minimal button */}
                         <div className="md:hidden flex items-center gap-2">
                             <Button
-                            variant="outline"
-                            size="lg"
-                            className="rounded-full p-3 shadow-sm border border-border flex-1"
-                            onClick={() => setFilterModalOpen(true)}
-                            aria-label="Filtrar Estadísticas"
+                                variant="outline"
+                                size="icon" // Changed to icon for consistency
+                                className="rounded-full p-3 shadow-sm border border-border"
+                                onClick={() => setFilterModalOpen(true)}
+                                aria-label="Filtrar Estadísticas"
                             >
-                            <SlidersHorizontal className="h-5 w-5 mr-2" /> Filtrar Estadísticas
+                                <SlidersHorizontal className="h-5 w-5" />
                             </Button>
                         </div>
                         {/* Desktop: Inline filters */}
                         <div className="hidden md:flex flex-row items-center gap-3 p-2 bg-card rounded-full shadow-md border border-border">
-                            <span className="text-sm font-medium text-muted-foreground pl-2 pr-1">Filtrar por:</span>
+                            <span className="text-sm font-medium text-muted-foreground pl-2 pr-1 hidden md:inline">Filtrar por:</span>
                             <Select value={reportTypeFilter} onValueChange={(value) => setReportTypeFilter(value as ReportTypeFilter)}>
                                 <SelectTrigger className="w-full md:w-[180px] h-9 rounded-full border-none bg-background shadow-sm px-4">
                                 <SelectValue placeholder="Tipo de Reporte" />
@@ -553,7 +553,7 @@ const StatisticsPage: FC = () => {
                                    fill="url(#fillIncident)"
                                    stroke="hsl(var(--primary))" 
                                    stackId="a" 
-                                   name={chartConfig.incident.label}
+                                   name={chartConfig.incidentCount.label}
                                    strokeWidth={2}
                                    dot={chartData.length < 30}
                                  />
@@ -563,7 +563,7 @@ const StatisticsPage: FC = () => {
                                    fill="url(#fillOfficer)"
                                    stroke="hsl(var(--destructive))" 
                                    stackId="b" 
-                                   name={chartConfig.officer.label}
+                                   name={chartConfig.officerCount.label}
                                    strokeWidth={2}
                                    dot={chartData.length < 30}
                                  />
