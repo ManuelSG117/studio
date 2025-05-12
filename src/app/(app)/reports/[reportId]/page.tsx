@@ -1,3 +1,4 @@
+
 "use client";
 
 import type { FC } from 'react';
@@ -11,7 +12,7 @@ import { doc, getDoc, Timestamp, runTransaction, collection, query, where, getDo
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
-import { CalendarDays, MapPin, UserCog, TriangleAlert, Image as ImageIcon, Loader2, ArrowLeft, ArrowUp, ArrowDown, Share2, Printer, ShieldAlert, Eye, MessageSquare } from 'lucide-react';
+import { CalendarDays, MapPin, UserCog, TriangleAlert, Image as ImageIcon, Loader2, ArrowLeft, ArrowUp, ArrowDown, Share2, Printer, ShieldAlert, Eye, MessageSquare, ThumbsUp, ThumbsDown } from 'lucide-react';
 import type { Report } from '@/app/(app)/welcome/page';
 import { format, formatDistanceToNow } from 'date-fns';
 import { es } from 'date-fns/locale';
