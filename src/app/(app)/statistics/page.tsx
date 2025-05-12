@@ -203,8 +203,8 @@ const StatisticsPage: FC = () => {
     setMostActiveDay(activeDay ? activeDay.charAt(0).toUpperCase() + activeDay.slice(1) : 'N/A');
 
     const formattedChartData: ChartDataPoint[] = Object.entries(reportsByPeriod)
-       .map(([period, counts]) => ({
-            period,
+       .map(([periodValue, counts]) => ({ // Renamed period to periodValue to avoid conflict
+            period: periodValue,
             count: counts.total, 
             incidentCount: counts.incident,
             officerCount: counts.officer
@@ -295,6 +295,9 @@ const StatisticsPage: FC = () => {
             return label;
         }
     };
+  
+  const isAnyFilterActive = reportTypeFilter !== 'Todos' || filterPeriod !== 'month';
+
 
   if (isLoading) {
     return (
@@ -353,17 +356,25 @@ const StatisticsPage: FC = () => {
                             <Button
                                 variant="outline"
                                 size="icon"
-                                className="rounded-full p-3 shadow-sm border border-border"
+                                className={cn(
+                                    "rounded-full p-3 shadow-sm border border-border",
+                                    isAnyFilterActive && "border-primary text-primary bg-primary/5"
+                                )}
                                 onClick={() => setFilterModalOpen(true)}
                                 aria-label="Filtrar Estadísticas"
                             >
-                                <SlidersHorizontal className="h-5 w-5" />
+                                <SlidersHorizontal className={cn("h-5 w-5", isAnyFilterActive && "text-primary")} />
                             </Button>
                         </div>
                         <div className="hidden md:flex flex-row items-center gap-3 p-2 bg-card rounded-full shadow-md border border-border">
                             <span className="text-sm font-medium text-muted-foreground pl-2 pr-1 hidden md:inline">Filtrar por:</span>
                             <Select value={reportTypeFilter} onValueChange={(value) => setReportTypeFilter(value as ReportTypeFilter)}>
-                                <SelectTrigger className="w-full md:w-[180px] h-9 rounded-full border-none bg-background shadow-sm px-4">
+                                <SelectTrigger 
+                                     className={cn(
+                                        "w-full md:w-[180px] h-9 rounded-full border-none bg-background shadow-sm px-4",
+                                        reportTypeFilter !== 'Todos' && "bg-primary/10 text-primary border border-primary/30"
+                                    )}
+                                >
                                 <SelectValue placeholder="Tipo de Reporte" />
                                 </SelectTrigger>
                                 <SelectContent>
@@ -373,7 +384,12 @@ const StatisticsPage: FC = () => {
                                 </SelectContent>
                             </Select>
                             <Select value={filterPeriod} onValueChange={(value) => setFilterPeriod(value as FilterPeriod)}>
-                                <SelectTrigger className="w-full md:w-[140px] h-9 rounded-full border-none bg-background shadow-sm px-4">
+                                <SelectTrigger 
+                                    className={cn(
+                                        "w-full md:w-[140px] h-9 rounded-full border-none bg-background shadow-sm px-4",
+                                        filterPeriod !== 'month' && "bg-primary/10 text-primary border border-primary/30"
+                                    )}
+                                >
                                 <SelectValue placeholder="Periodo" />
                                 </SelectTrigger>
                                 <SelectContent>
@@ -392,7 +408,10 @@ const StatisticsPage: FC = () => {
                                 <div>
                                 <label className="block text-xs font-medium mb-1">Tipo de Reporte</label>
                                 <Select value={reportTypeFilter} onValueChange={(value) => setReportTypeFilter(value as ReportTypeFilter)}>
-                                    <SelectTrigger className="h-10 rounded-full border-none bg-background shadow-sm px-4">
+                                    <SelectTrigger className={cn(
+                                        "h-10 rounded-full border-none bg-background shadow-sm px-4",
+                                        reportTypeFilter !== 'Todos' && "bg-primary/10 text-primary border border-primary/30"
+                                    )}>
                                     <SelectValue placeholder="Tipo de Reporte" />
                                     </SelectTrigger>
                                     <SelectContent>
@@ -405,7 +424,10 @@ const StatisticsPage: FC = () => {
                                 <div>
                                 <label className="block text-xs font-medium mb-1">Periodo</label>
                                 <Select value={filterPeriod} onValueChange={(value) => setFilterPeriod(value as FilterPeriod)}>
-                                    <SelectTrigger className="h-10 rounded-full border-none bg-background shadow-sm px-4">
+                                    <SelectTrigger className={cn(
+                                        "h-10 rounded-full border-none bg-background shadow-sm px-4",
+                                         filterPeriod !== 'month' && "bg-primary/10 text-primary border border-primary/30"
+                                    )}>
                                     <SelectValue placeholder="Periodo" />
                                     </SelectTrigger>
                                     <SelectContent>
