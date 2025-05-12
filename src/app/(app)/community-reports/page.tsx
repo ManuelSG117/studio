@@ -1,3 +1,4 @@
+
 "use client";
 
 import type { FC } from 'react';
@@ -52,6 +53,9 @@ const CommunityReportsPage: FC = () => {
   const [selectedReport, setSelectedReport] = useState<Report | null>(null);
   const isMobile = typeof window !== 'undefined' && window.innerWidth < 768; // crude mobile check
   const [filterModalOpen, setFilterModalOpen] = useState(false);
+  const [currentFilterType, setCurrentFilterType] = useState<'todos' | 'incidente' | 'funcionario'>('todos');
+  const [currentSortBy, setCurrentSortBy] = useState<'recientes' | 'antiguos' | 'populares'>('recientes');
+
 
   const ITEMS_PER_PAGE = 9; // Adjust to fit 3 columns
 
@@ -71,35 +75,49 @@ const CommunityReportsPage: FC = () => {
     }, []);
 
   // Function to fetch reports (remains largely the same, adjust limit)
-  const fetchReports = useCallback(async (loadMore: boolean = false) => {
+  const fetchReports = useCallback(async (loadMore: boolean = false, filterType = currentFilterType, sortBy = currentSortBy) => {
     if (!user) {
         console.error("fetchReports (Community) called without a valid user.");
         setIsLoading(false);
         return;
     }
-    console.log("Fetching community reports. Load More:", loadMore);
+    console.log("Fetching community reports. Load More:", loadMore, "Filter Type:", filterType, "Sort By:", sortBy);
 
     if (!loadMore) {
         setIsLoading(true);
+        setReports([]); // Clear reports on new filter/sort
+        setLastDoc(null); // Reset lastDoc for new queries
+        setHasMore(true); // Assume more reports initially
     }
     setIsFetchingMore(loadMore);
 
     try {
-      let q = query(
-        collection(db, "reports"),
-        orderBy("createdAt", "desc"),
-        limit(ITEMS_PER_PAGE)
-      );
+      let baseQuery = collection(db, "reports");
+      let conditions: any[] = [];
 
-      if (loadMore && lastDoc) {
-         console.log("Fetching more community reports starting after:", lastDoc.id);
-        q = query(
-          collection(db, "reports"),
-          orderBy("createdAt", "desc"),
-          startAfter(lastDoc),
-          limit(ITEMS_PER_PAGE)
-        );
+      if (filterType !== 'todos') {
+        conditions.push(where("reportType", "==", filterType));
       }
+
+      let orderByField = "createdAt";
+      let orderByDirection: "desc" | "asc" = "desc";
+
+      if (sortBy === 'antiguos') {
+        orderByDirection = "asc";
+      } else if (sortBy === 'populares') {
+        orderByField = "upvotes"; // Example: sort by upvotes for popular
+        orderByDirection = "desc";
+      }
+      
+      conditions.push(orderBy(orderByField, orderByDirection));
+      
+      if (loadMore && lastDoc) {
+        conditions.push(startAfter(lastDoc));
+      }
+      conditions.push(limit(ITEMS_PER_PAGE));
+      
+      const q = query(baseQuery, ...conditions);
+
 
       const querySnapshot = await getDocs(q);
       const fetchedReports: Report[] = [];
@@ -150,7 +168,7 @@ const CommunityReportsPage: FC = () => {
       setIsLoading(false);
       setIsFetchingMore(false);
     }
-  }, [user, toast, fetchUserVote, lastDoc]);
+  }, [user, toast, fetchUserVote, lastDoc, currentFilterType, currentSortBy]); // Added currentFilterType and currentSortBy
 
 
     // useEffect for initial load and auth check (remains the same)
@@ -158,11 +176,12 @@ const CommunityReportsPage: FC = () => {
         console.log("CommunityReports useEffect triggered. AuthLoading:", authLoading, "IsAuthenticated:", isAuthenticated, "User:", !!user);
         if (!authLoading) {
             if (isAuthenticated && user) {
-                if (isLoading) {
-                    console.log("Auth confirmed, user available. Fetching initial community reports.");
-                    fetchReports();
+                // Fetch initial reports only if reports array is empty and not currently loading
+                if (reports.length === 0 && !isLoading && !isFetchingMore) {
+                    console.log("Auth confirmed, user available. Fetching initial community reports with current filters.");
+                    fetchReports(false, currentFilterType, currentSortBy);
                 } else {
-                     console.log("Auth confirmed, user available, but not fetching community (isLoading is false).");
+                     console.log("Auth confirmed, user available, but not fetching community (reports not empty or loading).");
                 }
             } else {
                 console.log("Not authenticated or user not ready, redirecting to login.");
@@ -173,16 +192,26 @@ const CommunityReportsPage: FC = () => {
             console.log("Auth state still loading...");
              setIsLoading(true);
         }
-    }, [authLoading, isAuthenticated, user, fetchReports, router, isLoading]);
+    }, [authLoading, isAuthenticated, user, fetchReports, router, reports.length, isLoading, isFetchingMore, currentFilterType, currentSortBy]); // Updated dependencies
 
 
   const loadMoreReports = () => {
      if (hasMore && lastDoc && !isFetchingMore) {
          console.log("Load more community reports triggered.");
-         fetchReports(true);
+         fetchReports(true, currentFilterType, currentSortBy);
      } else {
          console.log("Load more community reports skipped. HasMore:", hasMore, "LastDoc:", !!lastDoc, "isFetchingMore:", isFetchingMore);
      }
+  };
+
+ const handleFilterChange = (newFilterType: 'todos' | 'incidente' | 'funcionario') => {
+    setCurrentFilterType(newFilterType);
+    fetchReports(false, newFilterType, currentSortBy);
+  };
+
+  const handleSortChange = (newSortBy: 'recientes' | 'antiguos' | 'populares') => {
+    setCurrentSortBy(newSortBy);
+    fetchReports(false, currentFilterType, newSortBy);
   };
 
  // Handle Voting Logic (remains the same for now, could be removed if not needed on this view)
@@ -342,7 +371,7 @@ const CommunityReportsPage: FC = () => {
             </div>
             <div className="flex items-center gap-2 bg-muted p-1 rounded-full">
               <span className="text-sm font-medium text-muted-foreground hidden md:inline pl-2">Filtrar por:</span>
-              <Select defaultValue="todos">
+              <Select value={currentFilterType} onValueChange={(value) => handleFilterChange(value as 'todos' | 'incidente' | 'funcionario')}>
                 <SelectTrigger className="w-full md:w-auto h-9 rounded-full border-none bg-background shadow-sm px-4">
                   <SelectValue placeholder="Todos los tipos" />
                 </SelectTrigger>
@@ -360,7 +389,7 @@ const CommunityReportsPage: FC = () => {
                   <SelectItem value="cualquier">Cualquier ubicación</SelectItem>
                 </SelectContent>
               </Select>
-              <Select defaultValue="recientes">
+              <Select value={currentSortBy} onValueChange={(value) => handleSortChange(value as 'recientes' | 'antiguos' | 'populares')}>
                 <SelectTrigger className="w-full md:w-auto h-9 rounded-full border-none bg-background shadow-sm px-4">
                   <SelectValue placeholder="Más recientes" />
                 </SelectTrigger>
@@ -381,7 +410,7 @@ const CommunityReportsPage: FC = () => {
               <div className="px-4 pb-4 space-y-4">
                 <div>
                   <label className="block text-xs font-medium mb-1">Tipo</label>
-                  <Select defaultValue="todos">
+                   <Select value={currentFilterType} onValueChange={(value) => setCurrentFilterType(value as 'todos' | 'incidente' | 'funcionario')}>
                     <SelectTrigger className="h-10 rounded-full border-none bg-background shadow-sm px-4">
                       <SelectValue placeholder="Todos los tipos" />
                     </SelectTrigger>
@@ -405,7 +434,7 @@ const CommunityReportsPage: FC = () => {
                 </div>
                 <div>
                   <label className="block text-xs font-medium mb-1">Ordenar por</label>
-                  <Select defaultValue="recientes">
+                   <Select value={currentSortBy} onValueChange={(value) => setCurrentSortBy(value as 'recientes' | 'antiguos' | 'populares')}>
                     <SelectTrigger className="h-10 rounded-full border-none bg-background shadow-sm px-4">
                       <SelectValue placeholder="Más recientes" />
                     </SelectTrigger>
@@ -418,7 +447,10 @@ const CommunityReportsPage: FC = () => {
                 </div>
               </div>
               <DialogFooter className="px-4 pb-4">
-                <Button className="w-full rounded-full" onClick={() => setFilterModalOpen(false)}>
+                <Button className="w-full rounded-full" onClick={() => {
+                    fetchReports(false, currentFilterType, currentSortBy);
+                    setFilterModalOpen(false);
+                }}>
                   Aplicar filtros
                 </Button>
               </DialogFooter>
@@ -596,8 +628,8 @@ const CommunityReportsPage: FC = () => {
            </Card>
         )}
 
-         {/* Pagination (Placeholder) */}
-        {reports.length > 0 && (
+         {/* Pagination */}
+        {!isLoading && reports.length > 6 && (
          <div className="mt-8 flex justify-center">
            <Pagination>
              <PaginationContent>
@@ -646,6 +678,7 @@ const CommunityReportsPage: FC = () => {
 };
 
 export default CommunityReportsPage;
+
 
 
 

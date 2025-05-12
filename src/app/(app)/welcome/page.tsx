@@ -1,3 +1,4 @@
+
 "use client";
 
 import type { FC } from 'react';
@@ -504,8 +505,39 @@ const WelcomePage: FC = () => {
           </Card>
         )}
 
-        {/* Pagination Placeholder (use loadMore logic or implement full pagination) */}
-        {hasMore && !isLoading && reports.length >= ITEMS_PER_PAGE && (
+        {/* Pagination */}
+        {!isLoading && reports.length > 6 && (
+          <div className="text-center mt-4">
+            <Pagination>
+             <PaginationContent>
+               <PaginationItem>
+                 <PaginationPrevious href="#" />
+               </PaginationItem>
+               <PaginationItem>
+                 <PaginationLink href="#" isActive>1</PaginationLink>
+               </PaginationItem>
+               <PaginationItem>
+                 <PaginationLink href="#">2</PaginationLink>
+               </PaginationItem>
+               <PaginationItem>
+                 <PaginationLink href="#">3</PaginationLink>
+               </PaginationItem>
+               <PaginationItem>
+                 <PaginationEllipsis />
+               </PaginationItem>
+               <PaginationItem>
+                 <PaginationLink href="#">8</PaginationLink>
+               </PaginationItem>
+               <PaginationItem>
+                 <PaginationNext href="#" />
+               </PaginationItem>
+             </PaginationContent>
+           </Pagination>
+          </div>
+        )}
+        
+        {/* Load More Button - only show if there are more reports and pagination is not sufficient */}
+        {hasMore && !isLoading && reports.length >= ITEMS_PER_PAGE && reports.length <= 6 && (
           <div className="text-center mt-4">
             <Button
               variant="outline"
@@ -518,12 +550,7 @@ const WelcomePage: FC = () => {
             </Button>
           </div>
         )}
-        {/* Optional: Add full pagination if needed */}
-        {/* {reports.length > 0 && (
-            <div className="mt-8 flex justify-center">
-                <Pagination> ... </Pagination>
-            </div>
-        )} */}
+
 
       </div>
        {/* Footer */}
@@ -535,6 +562,7 @@ const WelcomePage: FC = () => {
 };
 
 export default WelcomePage;
+
 
 
 
