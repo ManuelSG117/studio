@@ -301,13 +301,12 @@ const StatisticsPage: FC = () => {
       <main className="flex flex-col items-center p-4 sm:p-6 bg-secondary min-h-screen">
          <div className="w-full max-w-7xl mx-auto space-y-6">
             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-2 gap-2">
-                <div className="space-y-1">
+                <div className="space-y-1 hidden md:block"> {/* Hide on mobile */}
                     <Skeleton className="h-8 w-64" />
                     <Skeleton className="h-4 w-80" />
                 </div>
-                 <div className="flex flex-wrap justify-center sm:justify-end gap-2">
-                     <Skeleton className="h-9 w-36 rounded-md" />
-                     <Skeleton className="h-9 w-36 rounded-md" />
+                 <div className="flex flex-wrap justify-center sm:justify-end gap-2 w-full md:w-auto"> {/* Full width on mobile */}
+                     <Skeleton className="h-9 w-full md:w-36 rounded-md" /> {/* Full width on mobile */}
                  </div>
             </div>
              <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 mb-4">
@@ -342,7 +341,7 @@ const StatisticsPage: FC = () => {
     <main className="flex flex-col items-center p-4 sm:p-6 bg-secondary min-h-screen">
          <div className="w-full max-w-7xl mx-auto space-y-8">
               <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4">
-                 <div className="space-y-1">
+                 <div className="space-y-1 hidden md:block"> {/* Hide on mobile */}
                      <h1 className="text-2xl md:text-3xl font-semibold text-foreground flex items-center">
                          Dashboard de Estadísticas <span className="text-primary font-bold ml-1.5">+SEGURO</span>
                      </h1>
@@ -428,49 +427,49 @@ const StatisticsPage: FC = () => {
                     </div>
              </div>
 
-             <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
-                 <Card className="p-2 sm:p-3 flex flex-col justify-between bg-green-50 border-green-200 rounded-lg shadow-sm hover:shadow-md transition-shadow">
+             <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+                 <Card className="p-3 flex flex-col justify-between bg-green-50 border-green-200 rounded-lg shadow-sm hover:shadow-md transition-shadow">
                      <div>
                          <p className="text-xs text-green-700 font-medium flex items-center">
                             <List className="h-3.5 w-3.5 mr-1.5"/>Total Reportes ({reportTypeFilter})
                          </p>
-                         <AnimatedNumber value={totalReports} className="text-xl sm:text-2xl font-bold text-green-700 block mt-0.5"/>
+                         <AnimatedNumber value={totalReports} className="text-2xl sm:text-3xl font-bold text-green-700 block mt-0.5"/>
                      </div>
                      <p className="text-xs text-green-500 mt-1 flex items-center">
                          <TrendingUp className="h-3 w-3 mr-0.5"/> {averageReports.toFixed(1)} {averageLabel}
                      </p>
                  </Card>
                 
-                 <Card className="p-2 sm:p-3 flex flex-col justify-between bg-red-50 border-red-200 rounded-lg shadow-sm hover:shadow-md transition-shadow">
+                 <Card className="p-3 flex flex-col justify-between bg-red-50 border-red-200 rounded-lg shadow-sm hover:shadow-md transition-shadow">
                      <div>
                          <p className="text-xs text-red-600 font-medium flex items-center">
                             <UserCog className="h-3.5 w-3.5 mr-1.5"/>Reportes Funcionarios
                          </p>
-                         <AnimatedNumber value={officerReportsCount} className="text-xl sm:text-2xl font-bold text-red-700 block mt-0.5"/>
+                         <AnimatedNumber value={officerReportsCount} className="text-2xl sm:text-3xl font-bold text-red-700 block mt-0.5"/>
                      </div>
                      <p className="text-xs text-red-500 mt-1 flex items-center">
                         <TrendingUp className="h-3 w-3 mr-0.5"/> +2% este mes
                      </p>
                  </Card>
 
-                 <Card className="p-2 sm:p-3 flex flex-col justify-between bg-blue-50 border-blue-200 rounded-lg shadow-sm hover:shadow-md transition-shadow">
+                 <Card className="p-3 flex flex-col justify-between bg-blue-50 border-blue-200 rounded-lg shadow-sm hover:shadow-md transition-shadow">
                      <div>
                          <p className="text-xs text-blue-600 font-medium flex items-center">
                             <AlertTriangle className="h-3.5 w-3.5 mr-1.5"/>Incidentes Reportados
                          </p>
-                         <AnimatedNumber value={incidentReportsCount} className="text-xl sm:text-2xl font-bold text-blue-700 block mt-0.5"/>
+                         <AnimatedNumber value={incidentReportsCount} className="text-2xl sm:text-3xl font-bold text-blue-700 block mt-0.5"/>
                      </div>
                      <p className="text-xs text-blue-500 mt-1 flex items-center">
                          <TrendingDown className="h-3 w-3 mr-0.5"/> {mostActiveDay} día más común
                      </p>
                  </Card>
                 
-                 <Card className="p-2 sm:p-3 flex flex-col justify-between bg-orange-50 border-orange-200 rounded-lg shadow-sm hover:shadow-md transition-shadow">
+                 <Card className="p-3 flex flex-col justify-between bg-orange-50 border-orange-200 rounded-lg shadow-sm hover:shadow-md transition-shadow">
                     <div>
                         <p className="text-xs text-orange-700 font-medium flex items-center">
                            <MapPin className="h-3.5 w-3.5 mr-1.5"/>Zona Más Peligrosa
                         </p>
-                        <div className="text-xl sm:text-2xl font-bold text-orange-700 block mt-0.5 truncate">Col. Centro</div> {/* Placeholder */}
+                        <div className="text-2xl sm:text-3xl font-bold text-orange-700 block mt-0.5 truncate">Col. Centro</div> {/* Placeholder */}
                     </div>
                     <p className="text-xs text-orange-600 mt-1 flex items-center">
                        <AlertTriangle className="h-3 w-3 mr-0.5"/> Riesgo Elevado
@@ -573,4 +572,5 @@ const StatisticsPage: FC = () => {
 };
 
 export default StatisticsPage;
+
 
