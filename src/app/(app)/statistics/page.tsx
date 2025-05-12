@@ -1,4 +1,5 @@
 
+
 "use client";
 
 import type { FC } from 'react';
@@ -9,7 +10,7 @@ import { auth, db } from '@/lib/firebase/client';
 import { collection, getDocs, query, orderBy, Timestamp, where } from "firebase/firestore";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
-import { LineChart as LineChartIcon, Loader2, CalendarRange, Hash, TrendingUp, AlertTriangle, UserCog, Filter, MapPin, TrendingDown, CalendarCheck, List, ThumbsDown, AtSign, CheckCircle, SlidersHorizontal, Search } from 'lucide-react';
+import { LineChart as LineChartIcon, Loader2, CalendarRange, Hash, TrendingUp, AlertTriangle, UserCog, Filter, MapPin, TrendingDown, CalendarCheck, List, ThumbsDown, AtSign, CheckCircle, SlidersHorizontal, Search, RotateCcw } from 'lucide-react'; // Added RotateCcw
 import { Button } from "@/components/ui/button";
 import type { Report } from '@/app/(app)/welcome/page';
 import {
@@ -298,6 +299,13 @@ const StatisticsPage: FC = () => {
   
   const isAnyFilterActive = reportTypeFilter !== 'Todos' || filterPeriod !== 'month';
 
+  const handleClearMobileFilters = () => {
+    setReportTypeFilter('Todos');
+    setFilterPeriod('month');
+    setFilterModalOpen(false);
+    // processReportsForChart will be called by useEffect
+  };
+
 
   if (isLoading) {
     return (
@@ -438,7 +446,10 @@ const StatisticsPage: FC = () => {
                                 </Select>
                                 </div>
                             </div>
-                            <DialogFooter className="px-4 pb-4">
+                            <DialogFooter className="grid grid-cols-2 gap-2 px-4 pb-4 sm:flex sm:flex-row sm:justify-end sm:space-x-2">
+                                <Button variant="ghost" className="w-full rounded-full flex items-center gap-2" onClick={handleClearMobileFilters}>
+                                     <RotateCcw className="h-4 w-4" /> Limpiar
+                                </Button>
                                 <Button className="w-full rounded-full" onClick={() => setFilterModalOpen(false)}>
                                 Aplicar filtros
                                 </Button>
@@ -596,3 +607,6 @@ const StatisticsPage: FC = () => {
 
 export default StatisticsPage;
 
+
+
+    

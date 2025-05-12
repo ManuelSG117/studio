@@ -1,4 +1,5 @@
 
+
 "use client";
 
 import type { FC } from 'react';
@@ -10,7 +11,7 @@ import { collection, getDocs, query, orderBy, Timestamp } from "firebase/firesto
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Button } from '@/components/ui/button';
-import { MapPin, AlertTriangle, Loader2, List, Map, Waves, Filter, SlidersHorizontal } from 'lucide-react'; // Added SlidersHorizontal
+import { MapPin, AlertTriangle, Loader2, List, Map, Waves, Filter, SlidersHorizontal, RotateCcw } from 'lucide-react'; // Added SlidersHorizontal, RotateCcw
 import { ReportsMap } from '@/components/reports-map';
 import type { Report } from '@/app/(app)/welcome/page';
 import { format } from 'date-fns';
@@ -97,6 +98,11 @@ const DangerZonesPage: FC = () => {
 
   const isReportTypeFilterActive = reportTypeFilter !== 'Todos';
 
+  const handleClearMobileFilters = () => {
+    setReportTypeFilter('Todos');
+    setMapViewMode('heatmap'); // Optionally reset map view mode or keep current
+    setFilterModalOpen(false);
+  };
 
   if (isLoading || !isClient) {
     return (
@@ -251,9 +257,12 @@ const DangerZonesPage: FC = () => {
                             </div>
                         </div>
                     </div>
-                    <DialogFooter className="px-4 pb-4">
+                    <DialogFooter className="grid grid-cols-2 gap-2 px-4 pb-4 sm:flex sm:flex-row sm:justify-end sm:space-x-2">
+                        <Button variant="ghost" className="w-full rounded-full flex items-center gap-2" onClick={handleClearMobileFilters}>
+                            <RotateCcw className="h-4 w-4" /> Limpiar
+                        </Button>
                         <Button className="w-full rounded-full" onClick={() => setFilterModalOpen(false)}>
-                        Aplicar y Cerrar
+                            Aplicar y Cerrar
                         </Button>
                     </DialogFooter>
                 </DialogContent>
@@ -334,3 +343,6 @@ const DangerZonesPage: FC = () => {
 export default DangerZonesPage;
     
 
+
+
+    

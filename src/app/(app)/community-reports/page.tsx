@@ -1,3 +1,4 @@
+
 "use client";
 
 import type { FC } from 'react';
@@ -13,7 +14,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Input } from "@/components/ui/input"; 
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"; 
 import { Badge } from "@/components/ui/badge"; 
-import { FileText, MapPin, CalendarDays, Loader2, UserCog, TriangleAlert, Video, Image as ImageIcon, Search, Ellipsis, ChevronLeft, ChevronRight, Plus, ArrowUp, ArrowDown, X, SlidersHorizontal } from 'lucide-react'; 
+import { FileText, MapPin, CalendarDays, Loader2, UserCog, TriangleAlert, Video, Image as ImageIcon, Search, Ellipsis, ChevronLeft, ChevronRight, Plus, ArrowUp, ArrowDown, X, SlidersHorizontal, RotateCcw } from 'lucide-react'; 
 import { VotesModal } from "@/components/votes-modal"; 
 import { format, formatDistanceToNow } from 'date-fns'; 
 import { es } from 'date-fns/locale';
@@ -54,7 +55,7 @@ const CommunityReportsPage: FC = () => {
   const [filterModalOpen, setFilterModalOpen] = useState(false);
   const [currentFilterType, setCurrentFilterType] = useState<'todos' | 'incidente' | 'funcionario'>('todos');
   const [currentSortBy, setCurrentSortBy] = useState<'recientes' | 'antiguos' | 'populares'>('recientes');
-  const [searchTerm, setSearchTerm] = useState(''); // State for search term
+  const [searchTerm, setSearchTerm] = useState(''); // State for search term in mobile modal
   const [displayedSearchTerm, setDisplayedSearchTerm] = useState(''); // For desktop search input
 
   const [currentPage, setCurrentPage] = useState(1);
@@ -235,6 +236,15 @@ const CommunityReportsPage: FC = () => {
   const handleApplyMobileFilters = () => {
     setDisplayedSearchTerm(searchTerm); // Apply search term from modal state
     fetchReports('filterOrSort', currentFilterType, currentSortBy, searchTerm);
+    setFilterModalOpen(false);
+  };
+
+  const handleClearMobileFilters = () => {
+    setCurrentFilterType('todos');
+    setCurrentSortBy('recientes');
+    setSearchTerm('');
+    setDisplayedSearchTerm('');
+    fetchReports('filterOrSort', 'todos', 'recientes', '');
     setFilterModalOpen(false);
   };
 
@@ -492,7 +502,10 @@ const CommunityReportsPage: FC = () => {
                   </Select>
                 </div>
               </div>
-              <DialogFooter className="px-4 pb-4">
+              <DialogFooter className="grid grid-cols-2 gap-2 px-4 pb-4 sm:flex sm:flex-row sm:justify-end sm:space-x-2">
+                <Button variant="ghost" className="w-full rounded-full flex items-center gap-2" onClick={handleClearMobileFilters}>
+                  <RotateCcw className="h-4 w-4" /> Limpiar
+                </Button>
                 <Button className="w-full rounded-full" onClick={handleApplyMobileFilters}>
                   Aplicar filtros
                 </Button>
@@ -689,5 +702,7 @@ const CommunityReportsPage: FC = () => {
 export default CommunityReportsPage;
 
 
+
+    
 
     
