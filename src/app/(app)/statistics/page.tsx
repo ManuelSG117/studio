@@ -69,7 +69,7 @@ const StatisticsPage: FC = () => {
   const [averageReports, setAverageReports] = useState<number>(0);
   const [mostActiveDay, setMostActiveDay] = useState<string | null>(null);
   const [officerReportsCount, setOfficerReportsCount] = useState<number>(0);
-  const [incidentReportsCount, setIncidentReportsCount] = useState<number>(0); // Added for incident count
+  const [incidentReportsCount, setIncidentReportsCount] = useState<number>(0); 
   const [filterModalOpen, setFilterModalOpen] = useState(false);
 
   useEffect(() => {
@@ -82,7 +82,7 @@ const StatisticsPage: FC = () => {
         try {
           console.log("Fetching all reports for statistics...");
           const reportsCollectionRef = collection(db, "reports");
-          const q = query(reportsCollectionRef, orderBy("createdAt", "asc")); // Order by asc for correct period calculation
+          const q = query(reportsCollectionRef, orderBy("createdAt", "asc")); 
           const querySnapshot = await getDocs(q);
 
           const fetchedReports: Report[] = querySnapshot.docs.map(doc => {
@@ -121,7 +121,6 @@ const StatisticsPage: FC = () => {
   }, [router]);
 
   const processReportsForChart = useCallback((period: FilterPeriod, typeFilter: ReportTypeFilter) => {
-    // This filtering is for the overall stats cards, not directly for the chart which plots both types
     const filteredReportsForCards = reports.filter(report =>
         typeFilter === 'Todos' ||
         (typeFilter === 'Funcionario' && report.reportType === 'funcionario') ||
@@ -162,7 +161,7 @@ const StatisticsPage: FC = () => {
       case 'week':
         interval = { start: startOfWeek(firstReportDate, { locale: es }), end: endOfWeek(lastReportDate, { locale: es }) };
         allPeriodsInInterval = eachWeekOfInterval(interval, { locale: es });
-        formatKey = (date) => format(date, 'RRRR-II', { locale: es }); // RRRR for ISO week-numbering year, II for ISO week number
+        formatKey = (date) => format(date, 'RRRR-II', { locale: es }); 
         numberOfPeriods = differenceInWeeks(interval.end, interval.start, { locale: es }) + 1;
         break;
       case 'month':
@@ -179,18 +178,16 @@ const StatisticsPage: FC = () => {
         reportsByPeriod[periodKey] = { total: 0, incident: 0, officer: 0 };
     });
 
-    // Iterate over ALL reports for chart data, regardless of typeFilter
     reports.forEach(report => {
        const periodKey = formatKey(report.createdAt);
        if (reportsByPeriod[periodKey]) {
-          reportsByPeriod[periodKey].total++; // This total is for all types in the period
+          reportsByPeriod[periodKey].total++; 
             if (report.reportType === 'incidente') {
               reportsByPeriod[periodKey].incident++;
             } else if (report.reportType === 'funcionario') {
               reportsByPeriod[periodKey].officer++;
             }
        }
-       // Day of week counter uses all reports
        const dayName = format(report.createdAt, 'EEEE', { locale: es });
        dayOfWeekCounter[dayName] = (dayOfWeekCounter[dayName] || 0) + 1;
     });
@@ -208,15 +205,14 @@ const StatisticsPage: FC = () => {
     const formattedChartData: ChartDataPoint[] = Object.entries(reportsByPeriod)
        .map(([period, counts]) => ({
             period,
-            count: counts.total, // This will be total for tooltip if needed, but areas use specific counts
+            count: counts.total, 
             incidentCount: counts.incident,
             officerCount: counts.officer
         }))
-       .sort((a, b) => a.period.localeCompare(b.period)); // Ensure chronological order
+       .sort((a, b) => a.period.localeCompare(b.period)); 
 
     setChartData(formattedChartData);
 
-    // Average reports considers the typeFilter for the card display
     const totalForAverage = filteredReportsForCards.length;
     const avg = numberOfPeriods > 0 ? totalForAverage / numberOfPeriods : 0;
     setAverageReports(avg);
@@ -237,11 +233,11 @@ const StatisticsPage: FC = () => {
   }, [filterPeriod]);
 
   const chartConfig = {
-    incident: { // Incidentes will be blue (primary)
+    incident: { 
       label: "Incidentes",
       color: "hsl(var(--primary))",
     },
-    officer: { // Funcionarios will be red (destructive)
+    officer: { 
       label: "Funcionarios",
       color: "hsl(var(--destructive))",
     },
@@ -249,28 +245,25 @@ const StatisticsPage: FC = () => {
 
   const formatXAxisTick = (value: string) => {
     try {
-        // Ensure value is a string before parsing
         if (typeof value !== 'string') return String(value);
 
         switch (filterPeriod) {
           case 'day':
             return format(parseISO(value), 'dd MMM', { locale: es });
           case 'week':
-            // Expects format like '2023-W34' or '2023-34'
             const partsW = value.split(/-W?/)
             if (partsW.length === 2) {
                 return `Sem ${partsW[1]}, '${partsW[0].substring(2)}`;
             }
-            return value; // Fallback
+            return value; 
           case 'month':
           default:
-            // Expects format 'YYYY-MM'
-             const dateM = parseISO(value + '-01'); // Add day for parsing
+             const dateM = parseISO(value + '-01'); 
             return format(dateM, 'MMM yy', { locale: es });
         }
     } catch (e) {
         console.warn("Error formatting X-axis tick:", value, e);
-        return value; // Fallback to original value on error
+        return value; 
     }
   };
 
@@ -285,12 +278,10 @@ const StatisticsPage: FC = () => {
                     if (partsW.length === 2) {
                         const yearW = parseInt(partsW[0]);
                         const weekNum = parseInt(partsW[1]);
-                        // Create a date at the start of the year, then add weeks.
-                        // Note: getISOWeek assumes weeks start on Monday.
                         const firstDayOfYear = new Date(yearW, 0, 1);
                         const daysOffset = (weekNum - 1) * 7;
                         const approxWeekStart = new Date(firstDayOfYear.setDate(firstDayOfYear.getDate() + daysOffset));
-                        const weekStartDate = startOfWeek(approxWeekStart, { locale: es, weekStartsOn: 1 }); // Monday
+                        const weekStartDate = startOfWeek(approxWeekStart, { locale: es, weekStartsOn: 1 }); 
                         const weekEndDate = endOfWeek(approxWeekStart, { locale: es, weekStartsOn: 1 });
                         return `Semana ${weekNum} (${format(weekStartDate, 'd MMM', { locale: es })} - ${format(weekEndDate, 'd MMM yyyy', { locale: es })})`;
                     }
@@ -359,82 +350,86 @@ const StatisticsPage: FC = () => {
                         Visualización de datos de reportes ciudadanos para promover la seguridad pública
                      </p>
                  </div>
+                 {/* New Filter UI */}
                   <div className="w-full md:w-auto">
-                      <div className="md:hidden flex items-center gap-2">
-                        <Button
-                          variant="outline"
-                          size="lg"
-                          className="rounded-full p-3 shadow-sm border border-border flex-1"
-                          onClick={() => setFilterModalOpen(true)}
-                          aria-label="Filtrar Estadísticas"
-                        >
-                          <SlidersHorizontal className="h-5 w-5 mr-2" /> Filtrar Estadísticas
-                        </Button>
-                      </div>
-                      <div className="hidden md:flex flex-row items-center gap-3 p-2 bg-card rounded-full shadow-md border border-border">
-                         <span className="text-sm font-medium text-muted-foreground pl-2 pr-1">Filtrar por:</span>
-                         <Select value={reportTypeFilter} onValueChange={(value) => setReportTypeFilter(value as ReportTypeFilter)}>
-                            <SelectTrigger className="w-full md:w-[180px] h-9 rounded-full border-none bg-background shadow-sm px-4">
-                              <SelectValue placeholder="Tipo de Reporte" />
-                            </SelectTrigger>
-                            <SelectContent>
-                              <SelectItem value="Todos">Todos los Tipos</SelectItem>
-                              <SelectItem value="Incidente">Incidentes</SelectItem>
-                              <SelectItem value="Funcionario">Funcionarios</SelectItem>
-                            </SelectContent>
-                          </Select>
-                          <Select value={filterPeriod} onValueChange={(value) => setFilterPeriod(value as FilterPeriod)}>
-                            <SelectTrigger className="w-full md:w-[140px] h-9 rounded-full border-none bg-background shadow-sm px-4">
-                              <SelectValue placeholder="Periodo" />
-                            </SelectTrigger>
-                            <SelectContent>
-                              <SelectItem value="day">Día</SelectItem>
-                              <SelectItem value="week">Semana</SelectItem>
-                              <SelectItem value="month">Mes</SelectItem>
-                            </SelectContent>
-                          </Select>
-                      </div>
-                      <Dialog open={filterModalOpen} onOpenChange={setFilterModalOpen}>
-                        <DialogContent className="p-0 max-w-sm w-full rounded-2xl">
-                          <DialogHeader className="flex flex-row items-center justify-between px-4 pt-4 pb-2">
-                            <DialogTitle className="text-lg font-semibold">Filtrar Estadísticas</DialogTitle>
-                          </DialogHeader>
-                          <div className="px-4 pb-4 space-y-4">
-                            <div>
-                              <label className="block text-xs font-medium mb-1">Tipo de Reporte</label>
-                              <Select value={reportTypeFilter} onValueChange={(value) => setReportTypeFilter(value as ReportTypeFilter)}>
-                                <SelectTrigger className="h-10 rounded-full border-none bg-background shadow-sm px-4">
-                                  <SelectValue placeholder="Tipo de Reporte" />
-                                </SelectTrigger>
-                                <SelectContent>
-                                  <SelectItem value="Todos">Todos los Tipos</SelectItem>
-                                  <SelectItem value="Incidente">Incidentes</SelectItem>
-                                  <SelectItem value="Funcionario">Funcionarios</SelectItem>
-                                </SelectContent>
-                              </Select>
-                            </div>
-                            <div>
-                              <label className="block text-xs font-medium mb-1">Periodo</label>
-                              <Select value={filterPeriod} onValueChange={(value) => setFilterPeriod(value as FilterPeriod)}>
-                                <SelectTrigger className="h-10 rounded-full border-none bg-background shadow-sm px-4">
-                                  <SelectValue placeholder="Periodo" />
-                                </SelectTrigger>
-                                <SelectContent>
-                                  <SelectItem value="day">Día</SelectItem>
-                                  <SelectItem value="week">Semana</SelectItem>
-                                  <SelectItem value="month">Mes</SelectItem>
-                                </SelectContent>
-                              </Select>
-                            </div>
-                          </div>
-                          <DialogFooter className="px-4 pb-4">
-                            <Button className="w-full rounded-full" onClick={() => setFilterModalOpen(false)}>
-                              Aplicar filtros
+                      {/* Mobile: Minimal button */}
+                        <div className="md:hidden flex items-center gap-2">
+                            <Button
+                            variant="outline"
+                            size="lg"
+                            className="rounded-full p-3 shadow-sm border border-border flex-1"
+                            onClick={() => setFilterModalOpen(true)}
+                            aria-label="Filtrar Estadísticas"
+                            >
+                            <SlidersHorizontal className="h-5 w-5 mr-2" /> Filtrar Estadísticas
                             </Button>
-                          </DialogFooter>
-                        </DialogContent>
-                      </Dialog>
-                  </div>
+                        </div>
+                        {/* Desktop: Inline filters */}
+                        <div className="hidden md:flex flex-row items-center gap-3 p-2 bg-card rounded-full shadow-md border border-border">
+                            <span className="text-sm font-medium text-muted-foreground pl-2 pr-1">Filtrar por:</span>
+                            <Select value={reportTypeFilter} onValueChange={(value) => setReportTypeFilter(value as ReportTypeFilter)}>
+                                <SelectTrigger className="w-full md:w-[180px] h-9 rounded-full border-none bg-background shadow-sm px-4">
+                                <SelectValue placeholder="Tipo de Reporte" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                <SelectItem value="Todos">Todos los Tipos</SelectItem>
+                                <SelectItem value="Incidente">Incidentes</SelectItem>
+                                <SelectItem value="Funcionario">Funcionarios</SelectItem>
+                                </SelectContent>
+                            </Select>
+                            <Select value={filterPeriod} onValueChange={(value) => setFilterPeriod(value as FilterPeriod)}>
+                                <SelectTrigger className="w-full md:w-[140px] h-9 rounded-full border-none bg-background shadow-sm px-4">
+                                <SelectValue placeholder="Periodo" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                <SelectItem value="day">Día</SelectItem>
+                                <SelectItem value="week">Semana</SelectItem>
+                                <SelectItem value="month">Mes</SelectItem>
+                                </SelectContent>
+                            </Select>
+                        </div>
+                        {/* Mobile: Modal for filters */}
+                        <Dialog open={filterModalOpen} onOpenChange={setFilterModalOpen}>
+                            <DialogContent className="p-0 max-w-sm w-full rounded-2xl">
+                            <DialogHeader className="flex flex-row items-center justify-between px-4 pt-4 pb-2">
+                                <DialogTitle className="text-lg font-semibold">Filtrar Estadísticas</DialogTitle>
+                            </DialogHeader>
+                            <div className="px-4 pb-4 space-y-4">
+                                <div>
+                                <label className="block text-xs font-medium mb-1">Tipo de Reporte</label>
+                                <Select value={reportTypeFilter} onValueChange={(value) => setReportTypeFilter(value as ReportTypeFilter)}>
+                                    <SelectTrigger className="h-10 rounded-full border-none bg-background shadow-sm px-4">
+                                    <SelectValue placeholder="Tipo de Reporte" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                    <SelectItem value="Todos">Todos los Tipos</SelectItem>
+                                    <SelectItem value="Incidente">Incidentes</SelectItem>
+                                    <SelectItem value="Funcionario">Funcionarios</SelectItem>
+                                    </SelectContent>
+                                </Select>
+                                </div>
+                                <div>
+                                <label className="block text-xs font-medium mb-1">Periodo</label>
+                                <Select value={filterPeriod} onValueChange={(value) => setFilterPeriod(value as FilterPeriod)}>
+                                    <SelectTrigger className="h-10 rounded-full border-none bg-background shadow-sm px-4">
+                                    <SelectValue placeholder="Periodo" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                    <SelectItem value="day">Día</SelectItem>
+                                    <SelectItem value="week">Semana</SelectItem>
+                                    <SelectItem value="month">Mes</SelectItem>
+                                    </SelectContent>
+                                </Select>
+                                </div>
+                            </div>
+                            <DialogFooter className="px-4 pb-4">
+                                <Button className="w-full rounded-full" onClick={() => setFilterModalOpen(false)}>
+                                Aplicar filtros
+                                </Button>
+                            </DialogFooter>
+                            </DialogContent>
+                        </Dialog>
+                    </div>
              </div>
 
              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
@@ -452,7 +447,7 @@ const StatisticsPage: FC = () => {
                           </p>
                      </CardContent>
                  </Card>
-                 <Card className="bg-card shadow-md border-border hover:shadow-lg transition-shadow group rounded-lg border-l-4 border-l-blue-500"> {/* Changed to blue for incidents */}
+                 <Card className="bg-card shadow-md border-border hover:shadow-lg transition-shadow group rounded-lg border-l-4 border-l-blue-500"> 
                      <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 pt-4 px-4">
                          <CardTitle className="text-sm font-medium text-muted-foreground">Incidentes Reportados</CardTitle>
                          <AlertTriangle className="h-5 w-5 text-blue-500 opacity-70 group-hover:opacity-100 transition-opacity" />
@@ -461,12 +456,12 @@ const StatisticsPage: FC = () => {
                           <div className="text-3xl font-bold text-blue-500">
                              <AnimatedNumber value={incidentReportsCount} formatOptions={{ maximumFractionDigits: 0 }} className="block"/>
                           </div>
-                           <p className="text-xs text-muted-foreground mt-1 flex items-center gap-1 text-blue-600"> {/* Changed to blue */}
+                           <p className="text-xs text-muted-foreground mt-1 flex items-center gap-1 text-blue-600"> 
                              <TrendingDown className="h-3.5 w-3.5"/> {mostActiveDay} día más común
                          </p>
                      </CardContent>
                  </Card>
-                 <Card className="bg-card shadow-md border-border hover:shadow-lg transition-shadow group rounded-lg border-l-4 border-l-red-500"> {/* Changed to red for funcionarios */}
+                 <Card className="bg-card shadow-md border-border hover:shadow-lg transition-shadow group rounded-lg border-l-4 border-l-red-500"> 
                      <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 pt-4 px-4">
                          <CardTitle className="text-sm font-medium text-muted-foreground">Reportes Funcionarios</CardTitle>
                          <UserCog className="h-5 w-5 text-red-500 opacity-70 group-hover:opacity-100 transition-opacity" />
@@ -475,7 +470,7 @@ const StatisticsPage: FC = () => {
                          <div className="text-3xl font-bold text-red-500">
                             <AnimatedNumber value={officerReportsCount} formatOptions={{ maximumFractionDigits: 0 }} className="block"/>
                          </div>
-                          <p className="text-xs text-muted-foreground mt-1 flex items-center gap-1 text-red-600"> {/* Changed to red */}
+                          <p className="text-xs text-muted-foreground mt-1 flex items-center gap-1 text-red-600"> 
                              <TrendingUp className="h-3.5 w-3.5"/> +2% este mes
                           </p>
                      </CardContent>
@@ -556,8 +551,8 @@ const StatisticsPage: FC = () => {
                                    dataKey="incidentCount"
                                    type="monotone"
                                    fill="url(#fillIncident)"
-                                   stroke="hsl(var(--primary))" // Blue for incidents
-                                   stackId="a" // Ensure different stackIds if not stacked, or same if stacked
+                                   stroke="hsl(var(--primary))" 
+                                   stackId="a" 
                                    name={chartConfig.incident.label}
                                    strokeWidth={2}
                                    dot={chartData.length < 30}
@@ -566,8 +561,8 @@ const StatisticsPage: FC = () => {
                                    dataKey="officerCount"
                                    type="monotone"
                                    fill="url(#fillOfficer)"
-                                   stroke="hsl(var(--destructive))" // Red for officers
-                                   stackId="b" // Ensure different stackIds if not stacked, or same if stacked
+                                   stroke="hsl(var(--destructive))" 
+                                   stackId="b" 
                                    name={chartConfig.officer.label}
                                    strokeWidth={2}
                                    dot={chartData.length < 30}
