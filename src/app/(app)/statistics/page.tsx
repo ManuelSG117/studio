@@ -353,7 +353,7 @@ const StatisticsPage: FC = () => {
                  {/* New Filter UI - Consistent with Community Reports */}
                   <div className="w-full md:w-auto">
                       {/* Mobile: Minimal button */}
-                        <div className="md:hidden flex items-center gap-2">
+                        <div className="md:hidden flex items-center justify-end gap-2">
                             <Button
                                 variant="outline"
                                 size="icon" // Changed to icon for consistency
