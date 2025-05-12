@@ -57,7 +57,7 @@ const CommunityReportsPage: FC = () => {
   const [currentSortBy, setCurrentSortBy] = useState<'recientes' | 'antiguos' | 'populares'>('recientes');
 
 
-  const ITEMS_PER_PAGE = 9; // Adjust to fit 3 columns
+  const ITEMS_PER_PAGE = 6; // Changed from 9 to 6
 
     // Function to fetch user's vote for a specific report (remains the same)
     const fetchUserVote = useCallback(async (userId: string, reportId: string) => {
@@ -629,7 +629,7 @@ const CommunityReportsPage: FC = () => {
         )}
 
          {/* Pagination */}
-        {!isLoading && reports.length > 6 && (
+        {!isLoading && reports.length > 0 && (hasMore || lastDoc !== null) && (
          <div className="mt-8 flex justify-center">
            <Pagination>
              <PaginationContent>
@@ -678,6 +678,7 @@ const CommunityReportsPage: FC = () => {
 };
 
 export default CommunityReportsPage;
+
 
 
 

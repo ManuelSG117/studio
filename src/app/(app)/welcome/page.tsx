@@ -65,7 +65,7 @@ const WelcomePage: FC = () => {
   const [votesModalOpen, setVotesModalOpen] = useState(false);
   const [selectedReport, setSelectedReport] = useState<Report | null>(null);
 
-  const ITEMS_PER_PAGE = 5; // Define items per page
+  const ITEMS_PER_PAGE = 6; // Define items per page, changed from 5 to 6
 
   // Function to fetch user's vote for this specific report (remains the same)
   const fetchUserVote = useCallback(async (userId: string, reportId: string) => {
@@ -93,6 +93,9 @@ const WelcomePage: FC = () => {
 
     if (!loadMore) {
         setIsLoading(true);
+        setLastDoc(null); // Reset lastDoc for new initial fetches
+        setReports([]); // Clear current reports for a fresh fetch
+        setHasMore(true); // Assume there are more reports initially
     }
     setIsFetchingMore(loadMore);
 
@@ -168,11 +171,12 @@ const WelcomePage: FC = () => {
     console.log("WelcomePage useEffect triggered. AuthLoading:", authLoading, "IsAuthenticated:", isAuthenticated, "User:", !!user);
     if (!authLoading) {
         if (isAuthenticated && user) {
-            if (isLoading) {
+            // Fetch initial reports only if reports array is empty and not currently loading
+            if (reports.length === 0 && !isLoading && !isFetchingMore) {
                  console.log("Auth confirmed, user available. Fetching initial reports.");
                  fetchReports();
             } else {
-                 console.log("Auth confirmed, user available, but not fetching (isLoading is false).");
+                 console.log("Auth confirmed, user available, but not fetching (reports not empty or loading).");
             }
         } else {
             console.log("Not authenticated or user not ready, redirecting to login.");
@@ -181,9 +185,9 @@ const WelcomePage: FC = () => {
         }
     } else {
         console.log("Auth state still loading...");
-        setIsLoading(true);
+         setIsLoading(true);
     }
-  }, [authLoading, isAuthenticated, user, fetchReports, router, isLoading]);
+  }, [authLoading, isAuthenticated, user, fetchReports, router, reports.length, isLoading, isFetchingMore]);
 
 
   const loadMoreReports = () => {
@@ -505,8 +509,8 @@ const WelcomePage: FC = () => {
           </Card>
         )}
 
-        {/* Pagination */}
-        {!isLoading && reports.length > 6 && (
+        {/* Pagination: Show if not loading, there are reports, AND (there are more pages OR we are not on the first page) */}
+        {!isLoading && reports.length > 0 && (hasMore || lastDoc !== null) && (
           <div className="text-center mt-4">
             <Pagination>
              <PaginationContent>
@@ -537,7 +541,7 @@ const WelcomePage: FC = () => {
         )}
         
         {/* Load More Button - only show if there are more reports and pagination is not sufficient */}
-        {hasMore && !isLoading && reports.length >= ITEMS_PER_PAGE && reports.length <= 6 && (
+        {hasMore && !isLoading && reports.length >= ITEMS_PER_PAGE && (lastDoc === null || reports.length < ITEMS_PER_PAGE * 2 /* Example condition, adjust as needed*/) && (
           <div className="text-center mt-4">
             <Button
               variant="outline"
@@ -562,6 +566,7 @@ const WelcomePage: FC = () => {
 };
 
 export default WelcomePage;
+
 
 
 
