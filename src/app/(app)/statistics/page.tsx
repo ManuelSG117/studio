@@ -235,11 +235,11 @@ const StatisticsPage: FC = () => {
   const chartConfig = {
     incidentCount: { 
       label: "Incidentes",
-      color: "hsl(var(--primary))", // Blue for incidentes
+      color: "hsl(var(--primary))", // Blue for incidentes (theme's primary)
     },
     officerCount: { 
       label: "Funcionarios",
-      color: "hsl(var(--destructive))", // Red for funcionarios
+      color: "hsl(var(--destructive))", // Red for funcionarios (theme's destructive)
     },
   } satisfies ChartConfig;
 
@@ -433,19 +433,19 @@ const StatisticsPage: FC = () => {
              </div>
 
              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-                 <Card className="p-3 flex flex-col justify-between bg-accent/5 border-accent/20 rounded-lg shadow-sm hover:shadow-md transition-shadow">
+                 <Card className="p-3 flex flex-col justify-between bg-indigo-50 border-indigo-200 rounded-lg shadow-sm hover:shadow-md transition-shadow">
                      <div>
-                         <p className="text-xs text-accent font-medium flex items-center">
+                         <p className="text-xs text-indigo-700 font-medium flex items-center">
                             <List className="h-3.5 w-3.5 mr-1.5"/>Total Reportes ({reportTypeFilter})
                          </p>
-                         <AnimatedNumber value={totalReports} className="text-2xl font-bold text-accent block mt-0.5"/>
+                         <AnimatedNumber value={totalReports} className="text-2xl font-bold text-indigo-700 block mt-0.5"/>
                      </div>
-                     <p className="text-xs text-accent/80 mt-1 flex items-center">
+                     <p className="text-xs text-indigo-500 mt-1 flex items-center">
                          <TrendingUp className="h-3 w-3 mr-0.5"/> {averageReports.toFixed(1)} {averageLabel}
                      </p>
                  </Card>
                 
-                 <Card className="p-3 flex flex-col justify-between bg-red-500/5 border-red-500/20 rounded-lg shadow-sm hover:shadow-md transition-shadow">
+                 <Card className="p-3 flex flex-col justify-between bg-red-50 border-red-200 rounded-lg shadow-sm hover:shadow-md transition-shadow">
                      <div>
                          <p className="text-xs text-red-600 font-medium flex items-center">
                             <UserCog className="h-3.5 w-3.5 mr-1.5"/>Reportes Funcionarios
@@ -457,7 +457,7 @@ const StatisticsPage: FC = () => {
                      </p>
                  </Card>
 
-                 <Card className="p-3 flex flex-col justify-between bg-blue-500/5 border-blue-500/20 rounded-lg shadow-sm hover:shadow-md transition-shadow">
+                 <Card className="p-3 flex flex-col justify-between bg-blue-50 border-blue-200 rounded-lg shadow-sm hover:shadow-md transition-shadow">
                      <div>
                          <p className="text-xs text-blue-600 font-medium flex items-center">
                             <AlertTriangle className="h-3.5 w-3.5 mr-1.5"/>Incidentes Reportados
@@ -469,14 +469,14 @@ const StatisticsPage: FC = () => {
                      </p>
                  </Card>
                 
-                 <Card className="p-3 flex flex-col justify-between bg-warning/5 border-warning/20 rounded-lg shadow-sm hover:shadow-md transition-shadow">
+                 <Card className="p-3 flex flex-col justify-between bg-amber-50 border-amber-200 rounded-lg shadow-sm hover:shadow-md transition-shadow">
                     <div>
-                        <p className="text-xs text-warning font-medium flex items-center">
-                           <AlertTriangle className="h-3.5 w-3.5 mr-1.5"/>Zona Más Peligrosa
+                        <p className="text-xs text-amber-700 font-medium flex items-center">
+                           <MapPin className="h-3.5 w-3.5 mr-1.5"/>Zona Más Peligrosa
                         </p>
-                        <div className="text-2xl font-bold text-warning block mt-0.5 truncate">Col. Centro</div> {/* Placeholder */}
+                        <div className="text-2xl font-bold text-amber-700 block mt-0.5 truncate">Col. Centro</div> {/* Placeholder */}
                     </div>
-                    <p className="text-xs text-warning/80 mt-1 flex items-center">
+                    <p className="text-xs text-amber-600 mt-1 flex items-center">
                        <AlertTriangle className="h-3 w-3 mr-0.5"/> Riesgo Elevado
                     </p>
                 </Card>
