@@ -469,14 +469,14 @@ const StatisticsPage: FC = () => {
                      </p>
                  </Card>
                 
-                 <Card className="p-3 flex flex-col justify-between bg-amber-50 border-amber-200 rounded-lg shadow-sm hover:shadow-md transition-shadow">
+                 <Card className="p-3 flex flex-col justify-between bg-orange-50 border-orange-200 rounded-lg shadow-sm hover:shadow-md transition-shadow">
                     <div>
-                        <p className="text-xs text-amber-700 font-medium flex items-center">
+                        <p className="text-xs text-orange-700 font-medium flex items-center">
                            <MapPin className="h-3.5 w-3.5 mr-1.5"/>Zona Más Peligrosa
                         </p>
-                        <div className="text-2xl font-bold text-amber-700 block mt-0.5 truncate">Col. Centro</div> {/* Placeholder */}
+                        <div className="text-2xl font-bold text-orange-700 block mt-0.5 truncate">Col. Centro</div> {/* Placeholder */}
                     </div>
-                    <p className="text-xs text-amber-600 mt-1 flex items-center">
+                    <p className="text-xs text-orange-600 mt-1 flex items-center">
                        <AlertTriangle className="h-3 w-3 mr-0.5"/> Riesgo Elevado
                     </p>
                 </Card>
