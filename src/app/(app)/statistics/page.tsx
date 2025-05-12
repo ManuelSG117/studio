@@ -1,3 +1,4 @@
+
 "use client";
 
 import type { FC } from 'react';
@@ -297,15 +298,14 @@ const StatisticsPage: FC = () => {
 
   if (isLoading) {
     return (
-      <main className="flex flex-col items-center p-4 sm:p-6 bg-secondary min-h-screen">
+      <main className="flex flex-col p-4 sm:p-6 bg-secondary min-h-screen">
          <div className="w-full max-w-7xl mx-auto space-y-6">
-            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-2 gap-2">
+            <div className="flex flex-row justify-between items-center mb-2 gap-2"> {/* Changed to flex-row and items-center */}
                 <div className="space-y-1"> 
                     <Skeleton className="h-8 w-64" />
-                    <Skeleton className="h-4 w-80 md:hidden" /> {/* Skeleton for mobile description */}
                 </div>
-                 <div className="flex flex-wrap justify-center sm:justify-end gap-2 w-full md:w-auto"> 
-                     <Skeleton className="h-9 w-full md:w-36 rounded-md" /> 
+                 <div className="flex flex-wrap justify-end gap-2 w-auto">  {/* Removed w-full for desktop */}
+                     <Skeleton className="h-9 w-36 rounded-md" /> 
                  </div>
             </div>
              <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 mb-4">
@@ -337,18 +337,18 @@ const StatisticsPage: FC = () => {
   }
 
   return (
-    <main className="flex flex-col items-center p-4 sm:p-6 bg-secondary min-h-screen">
+    <main className="flex flex-col p-4 sm:p-6 bg-secondary min-h-screen">
          <div className="w-full max-w-7xl mx-auto space-y-8">
-              <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4">
-                 <div className="space-y-1"> 
-                     <h1 className="text-2xl md:text-3xl font-semibold text-foreground flex items-center">
-                         Dashboard de Estadísticas <span className="text-primary font-bold ml-1.5">+SEGURO</span>
-                     </h1>
-                     <p className="text-muted-foreground text-sm hidden md:block">
-                        Visualización de datos de reportes ciudadanos para promover la seguridad pública
-                     </p>
-                 </div>
-                  <div className="w-full md:w-auto">
+              <div className="flex flex-row justify-between items-center mb-6 gap-4"> {/* Main header row */}
+                 
+                  {/* Title Section */}
+                  <h1 className="text-2xl md:text-3xl font-semibold text-foreground flex items-center">
+                      <span className="hidden md:inline">Dashboard de Estadísticas </span> {/* Hidden on mobile */}
+                      <span className="text-primary font-bold md:ml-1.5">+SEGURO</span>
+                  </h1>
+                 
+                  {/* Filter Section */}
+                  <div className="w-auto"> {/* Ensure filter section doesn't take full width on mobile */}
                         <div className="md:hidden flex items-center justify-end gap-2">
                             <Button
                                 variant="outline"
@@ -573,3 +573,4 @@ const StatisticsPage: FC = () => {
 };
 
 export default StatisticsPage;
+
