@@ -1,4 +1,3 @@
-
 "use client";
 
 import type { FC } from 'react';
@@ -345,7 +344,7 @@ const StatisticsPage: FC = () => {
                      <h1 className="text-2xl md:text-3xl font-semibold text-foreground flex items-center">
                          Dashboard de Estadísticas <span className="text-primary font-bold ml-1.5">+SEGURO</span>
                      </h1>
-                     <p className="text-muted-foreground text-sm block md:hidden">
+                     <p className="text-muted-foreground text-sm hidden md:block">
                         Visualización de datos de reportes ciudadanos para promover la seguridad pública
                      </p>
                  </div>
@@ -427,7 +426,7 @@ const StatisticsPage: FC = () => {
                     </div>
              </div>
 
-             <div className="grid grid-cols-1 xs:grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+             <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
                  <Card className="p-3 flex flex-col justify-between bg-green-50 border-green-200 rounded-lg shadow-sm hover:shadow-md transition-shadow">
                      <div>
                          <p className="text-xs text-green-700 font-medium flex items-center">
@@ -574,4 +573,3 @@ const StatisticsPage: FC = () => {
 };
 
 export default StatisticsPage;
-
