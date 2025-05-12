@@ -9,20 +9,19 @@ import { auth, db } from '@/lib/firebase/client';
 import { collection, getDocs, query, orderBy, Timestamp } from "firebase/firestore";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Button } from '@/components/ui/button'; // Import Button
-import { MapPin, AlertTriangle, Loader2, List, Map, Waves, Filter } from 'lucide-react'; // Added Map, Waves, and Filter icons
-import { ReportsMap } from '@/components/reports-map'; // Import the ReportsMap component
+import { Button } from '@/components/ui/button';
+import { MapPin, AlertTriangle, Loader2, List, Map, Waves, Filter, SlidersHorizontal } from 'lucide-react'; // Added SlidersHorizontal
+import { ReportsMap } from '@/components/reports-map';
 import type { Report } from '@/app/(app)/welcome/page';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
 import Link from 'next/link';
-import { cn, formatLocation } from "@/lib/utils"; // Import cn and formatLocation
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"; // Import Select components
+import { cn, formatLocation } from "@/lib/utils";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog'; // Import Dialog components
 
-// Helper function to format location moved to utils
-
-type MapViewMode = 'markers' | 'heatmap'; // Define view modes
-type ReportTypeFilter = 'Todos' | 'Funcionario' | 'Incidente'; // Define report type filters
+type MapViewMode = 'markers' | 'heatmap';
+type ReportTypeFilter = 'Todos' | 'Funcionario' | 'Incidente';
 
 const DangerZonesPage: FC = () => {
   const router = useRouter();
@@ -30,8 +29,9 @@ const DangerZonesPage: FC = () => {
   const [user, setUser] = useState<User | null>(null);
   const [reports, setReports] = useState<Report[]>([]);
   const [isClient, setIsClient] = useState(false);
-  const [mapViewMode, setMapViewMode] = useState<MapViewMode>('heatmap'); // Default to heatmap view
-  const [reportTypeFilter, setReportTypeFilter] = useState<ReportTypeFilter>('Todos'); // Add state for report type filter
+  const [mapViewMode, setMapViewMode] = useState<MapViewMode>('heatmap');
+  const [reportTypeFilter, setReportTypeFilter] = useState<ReportTypeFilter>('Todos');
+  const [filterModalOpen, setFilterModalOpen] = useState(false); // State for mobile filter modal
 
    useEffect(() => {
     setIsClient(true);
@@ -80,7 +80,6 @@ const DangerZonesPage: FC = () => {
     return () => unsubscribe();
   }, [router]);
 
-  // Memoize filtered reports based on reportTypeFilter
   const filteredReports = useMemo(() => {
     return reports.filter(report => {
       if (reportTypeFilter === 'Todos') {
@@ -99,16 +98,16 @@ const DangerZonesPage: FC = () => {
 
   if (isLoading || !isClient) {
     return (
-      <main className="flex flex-col items-center p-4 sm:p-6 bg-secondary min-h-screen">
-         <div className="w-full max-w-4xl space-y-6">
+      <main className="flex flex-col p-4 sm:p-6 bg-secondary min-h-screen">
+         <div className="w-full max-w-5xl mx-auto space-y-6"> {/* Increased max-width */}
             {/* Header Skeleton */}
-            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4 gap-3">
+             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4">
                  <Skeleton className="h-8 w-2/3 sm:w-1/2" />
-                 {/* Toggle Buttons & Filter Skeleton */}
-                 <div className="flex items-center gap-2 flex-wrap justify-end">
-                     <Skeleton className="h-9 w-28 rounded-md" />
-                     <Skeleton className="h-9 w-28 rounded-md" />
-                     <Skeleton className="h-9 w-36 rounded-md" /> {/* Filter Select Skeleton */}
+                 <div className="md:hidden">
+                     <Skeleton className="h-10 w-10 rounded-full" />
+                 </div>
+                 <div className="hidden md:flex">
+                     <Skeleton className="h-12 w-96 rounded-full" />
                  </div>
              </div>
              {/* Map Card Skeleton */}
@@ -117,7 +116,7 @@ const DangerZonesPage: FC = () => {
                      <Skeleton className="h-6 w-1/2 mb-1" />
                      <Skeleton className="h-4 w-3/4" />
                  </CardHeader>
-                 <CardContent className="p-0 sm:p-0 h-[50vh] sm:h-[60vh] flex items-center justify-center"> {/* Adjusted height */}
+                 <CardContent className="p-0 sm:p-0 h-[50vh] sm:h-[60vh] flex items-center justify-center">
                      <Skeleton className="h-full w-full" />
                  </CardContent>
              </Card>
@@ -139,62 +138,116 @@ const DangerZonesPage: FC = () => {
     );
   }
 
-  return (
-    <main className="flex flex-col items-center p-4 sm:p-6 bg-secondary min-h-screen">
-        <div className="w-full max-w-4xl space-y-6">
+  const mapCardTitle = `Mapa de ${mapViewMode === 'heatmap' ? 'Densidad' : 'Reportes Individuales'} ${reportTypeFilter !== 'Todos' ? `(${reportTypeFilter}s)` : ''}`;
+  const mapCardDescription = `${mapViewMode === 'heatmap'
+                           ? 'Visualización de densidad. Zonas más cálidas indican mayor concentración.'
+                           : 'Ubicación de cada reporte individual.'}
+                         ${reportTypeFilter !== 'Todos' ? ` Filtrado por: ${reportTypeFilter}.` : ''}`;
 
-             {/* Header with Toggle Buttons and Filter */}
-             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4 gap-4">
-                 <div className="flex items-center">
-                     <AlertTriangle className="h-6 w-6 mr-2 text-destructive flex-shrink-0" />
-                     <h1 className="text-xl font-semibold text-foreground">
-                         Zonas de Riesgo y Reportes
-                     </h1>
+  return (
+    <main className="flex flex-col p-4 sm:p-6 bg-secondary min-h-screen">
+        <div className="w-full max-w-5xl mx-auto space-y-6"> {/* Increased max-width */}
+
+             {/* Header with Title and Unified Filters */}
+             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4">
+                 <h1 className="text-2xl md:text-3xl font-semibold text-foreground flex items-center">
+                     <AlertTriangle className="h-7 w-7 mr-2 text-destructive flex-shrink-0" />
+                     Zonas de Riesgo <span className="text-primary font-bold md:ml-1.5">+SEGURO</span>
+                 </h1>
+                
+                 {/* Mobile: Filter Button */}
+                 <div className="md:hidden flex items-center justify-end w-full sm:w-auto">
+                    <Button
+                        variant="outline"
+                        size="icon"
+                        className="rounded-full p-3 shadow-sm border border-border"
+                        onClick={() => setFilterModalOpen(true)}
+                        aria-label="Filtrar Zonas"
+                    >
+                        <SlidersHorizontal className="h-5 w-5" />
+                    </Button>
                  </div>
-                 {/* View Toggle Buttons & Filter */}
-                 <div className="flex flex-wrap justify-end items-center gap-2">
-                     {/* View Toggle Buttons */}
-                     <div className="flex items-center gap-2 bg-muted p-1 rounded-lg order-1 sm:order-none">
+
+                 {/* Desktop: Inline Filters */}
+                 <div className="hidden md:flex flex-row items-center gap-3 p-2 bg-card rounded-full shadow-md border border-border">
+                    <Filter className="h-4 w-4 text-muted-foreground ml-2" />
+                    <span className="text-sm font-medium text-muted-foreground hidden md:inline">Filtrar:</span>
+                    <Select
+                        value={reportTypeFilter}
+                        onValueChange={(value: ReportTypeFilter) => setReportTypeFilter(value)}
+                    >
+                        <SelectTrigger className="w-auto h-9 rounded-full border-none bg-background shadow-sm px-4">
+                            <SelectValue placeholder="Tipo de Reporte" />
+                        </SelectTrigger>
+                        <SelectContent>
+                            <SelectItem value="Todos">Todos los Tipos</SelectItem>
+                            <SelectItem value="Funcionario">Funcionarios</SelectItem>
+                            <SelectItem value="Incidente">Incidentes</SelectItem>
+                        </SelectContent>
+                    </Select>
+                    {/* View Mode Toggle Buttons */}
+                     <div className="flex items-center gap-1 bg-background p-0.5 rounded-full shadow-sm">
                          <Button
                              variant={mapViewMode === 'heatmap' ? 'default' : 'ghost'}
                              size="sm"
                              onClick={() => setMapViewMode('heatmap')}
-                             className={cn("flex-1 justify-center gap-1.5 h-8 px-4", mapViewMode === 'heatmap' && "shadow")}
+                             className="h-8 px-3 rounded-full text-xs flex items-center gap-1.5"
                              aria-pressed={mapViewMode === 'heatmap'}
                          >
-                             <Waves size={16} />
-                             <span>Densidad</span>
+                             <Waves size={14} /> Densidad
                          </Button>
                          <Button
                              variant={mapViewMode === 'markers' ? 'default' : 'ghost'}
                              size="sm"
                              onClick={() => setMapViewMode('markers')}
-                             className={cn("flex-1 justify-center gap-1.5 h-8 px-4", mapViewMode === 'markers' && "shadow")}
+                             className="h-8 px-3 rounded-full text-xs flex items-center gap-1.5"
                              aria-pressed={mapViewMode === 'markers'}
                          >
-                             <MapPin size={16} />
-                             <span>Marcadores</span>
+                             <MapPin size={14} /> Marcadores
                          </Button>
                      </div>
-                      {/* Report Type Select Filter */}
-                    <div className="flex items-center gap-1.5 order-2 sm:order-none">
-                        <Filter className="h-4 w-4 text-muted-foreground" />
-                        <Select
-                            value={reportTypeFilter}
-                            onValueChange={(value: ReportTypeFilter) => setReportTypeFilter(value)}
-                        >
-                            <SelectTrigger className="h-9 w-[150px] text-sm bg-card border-border">
-                                <SelectValue placeholder="Filtrar por tipo" />
-                            </SelectTrigger>
-                            <SelectContent>
-                                <SelectItem value="Todos">Todos</SelectItem>
-                                <SelectItem value="Funcionario">Funcionarios</SelectItem>
-                                <SelectItem value="Incidente">Incidentes</SelectItem>
-                            </SelectContent>
-                        </Select>
-                    </div>
                  </div>
              </div>
+            
+            {/* Mobile: Filter Modal */}
+            <Dialog open={filterModalOpen} onOpenChange={setFilterModalOpen}>
+                <DialogContent className="p-0 max-w-sm w-full rounded-2xl">
+                    <DialogHeader className="flex flex-row items-center justify-between px-4 pt-4 pb-2">
+                        <DialogTitle className="text-lg font-semibold">Filtrar Zonas</DialogTitle>
+                    </DialogHeader>
+                    <div className="px-4 pb-4 space-y-4">
+                        <div>
+                            <label className="block text-xs font-medium mb-1">Tipo de Reporte</label>
+                            <Select
+                                value={reportTypeFilter}
+                                onValueChange={(value: ReportTypeFilter) => setReportTypeFilter(value)}
+                            >
+                                <SelectTrigger className="h-10 rounded-full border-none bg-background shadow-sm px-4">
+                                    <SelectValue placeholder="Tipo de Reporte" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    <SelectItem value="Todos">Todos los Tipos</SelectItem>
+                                    <SelectItem value="Funcionario">Funcionarios</SelectItem>
+                                    <SelectItem value="Incidente">Incidentes</SelectItem>
+                                </SelectContent>
+                            </Select>
+                        </div>
+                        <div>
+                            <label className="block text-xs font-medium mb-1">Vista del Mapa</label>
+                            <div className="flex items-center gap-2 bg-muted p-1 rounded-lg">
+                                 <Button variant={mapViewMode === 'heatmap' ? 'default' : 'ghost'} size="sm" onClick={() => setMapViewMode('heatmap')} className="flex-1 h-10 rounded-md flex items-center gap-1.5"><Waves size={16}/>Densidad</Button>
+                                 <Button variant={mapViewMode === 'markers' ? 'default' : 'ghost'} size="sm" onClick={() => setMapViewMode('markers')} className="flex-1 h-10 rounded-md flex items-center gap-1.5"><MapPin size={16}/>Marcadores</Button>
+                            </div>
+                        </div>
+                    </div>
+                    <DialogFooter className="px-4 pb-4">
+                        <Button className="w-full rounded-full" onClick={() => setFilterModalOpen(false)}>
+                        Aplicar y Cerrar
+                        </Button>
+                    </DialogFooter>
+                </DialogContent>
+            </Dialog>
+
 
              {/* Map Card */}
              <Card className="w-full shadow-sm rounded-lg overflow-hidden border border-border bg-card">
@@ -205,19 +258,16 @@ const DangerZonesPage: FC = () => {
                          ) : (
                             <Map className="h-5 w-5 mr-2 text-primary"/>
                          )}
-                        Mapa de {mapViewMode === 'heatmap' ? 'Densidad' : 'Reportes Individuales'} {reportTypeFilter !== 'Todos' ? `(${reportTypeFilter}s)` : ''}
+                        {mapCardTitle}
                     </CardTitle>
                      <CardDescription className="text-sm text-muted-foreground">
-                          {mapViewMode === 'heatmap'
-                           ? 'Visualización de densidad. Zonas más cálidas indican mayor concentración.'
-                           : 'Ubicación de cada reporte individual.'}
-                         {reportTypeFilter !== 'Todos' && ` Filtrado por: ${reportTypeFilter}.`}
+                          {mapCardDescription}
                      </CardDescription>
                 </CardHeader>
-                <CardContent className="p-0 sm:p-0 h-[50vh] sm:h-[60vh]"> {/* Adjusted height */}
+                <CardContent className="p-0 sm:p-0 h-[50vh] sm:h-[60vh]">
                      {isClient && (
                         <ReportsMap
-                            reports={filteredReports} // Pass filtered reports to the map
+                            reports={filteredReports}
                             viewMode={mapViewMode}
                             defaultZoom={13}
                          />
@@ -234,9 +284,9 @@ const DangerZonesPage: FC = () => {
                      <CardDescription>Detalles de los últimos reportes recibidos {reportTypeFilter !== 'Todos' ? `filtrados por tipo "${reportTypeFilter}"` : ''}.</CardDescription>
                  </CardHeader>
                  <CardContent>
-                     {filteredReports.length > 0 ? ( // Use filteredReports for the list
+                     {filteredReports.length > 0 ? (
                          <ul className="space-y-4 max-h-[40vh] overflow-y-auto pr-2">
-                             {filteredReports.map(report => ( // Iterate over filteredReports
+                             {filteredReports.map(report => (
                                 <Link key={report.id} href={`/reports/${report.id}`} className="block hover:bg-muted/50 p-3 rounded-lg transition-colors duration-150 border-b last:border-b-0">
                                  <li >
                                      <div className="flex justify-between items-center mb-1">
@@ -248,7 +298,7 @@ const DangerZonesPage: FC = () => {
                                      <p className="text-sm text-muted-foreground line-clamp-2">{report.description}</p>
                                      <p className="text-xs text-muted-foreground/70 mt-1 flex items-center">
                                          <MapPin size={12} className="mr-1" />
-                                         {formatLocation(report.location)} {/* Apply formatting here */}
+                                         {formatLocation(report.location)}
                                      </p>
                                  </li>
                                 </Link>
@@ -262,10 +312,13 @@ const DangerZonesPage: FC = () => {
                  </CardContent>
               </Card>
         </div>
+         {/* Footer */}
+        <footer className="mt-12 text-center text-xs text-muted-foreground">
+            © {new Date().getFullYear()} +SEGURO - Plataforma de reportes ciudadanos para la seguridad pública
+        </footer>
     </main>
   );
 };
 
 export default DangerZonesPage;
     
-
