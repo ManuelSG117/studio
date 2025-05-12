@@ -2,6 +2,7 @@
 "use client";
 
 import type { FC, ReactElement } from 'react';
+import React from 'react'; // Import React
 import { useState } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
