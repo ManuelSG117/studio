@@ -1,3 +1,4 @@
+
 "use client";
 
 import type { FC } from 'react';
@@ -432,14 +433,14 @@ const StatisticsPage: FC = () => {
              </div>
 
              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-                 <Card className="p-3 flex flex-col justify-between bg-primary/5 border-primary/20 rounded-lg shadow-sm hover:shadow-md transition-shadow">
+                 <Card className="p-3 flex flex-col justify-between bg-accent/5 border-accent/20 rounded-lg shadow-sm hover:shadow-md transition-shadow">
                      <div>
-                         <p className="text-xs text-primary font-medium flex items-center">
+                         <p className="text-xs text-accent font-medium flex items-center">
                             <List className="h-3.5 w-3.5 mr-1.5"/>Total Reportes ({reportTypeFilter})
                          </p>
-                         <AnimatedNumber value={totalReports} className="text-2xl font-bold text-primary block mt-0.5"/>
+                         <AnimatedNumber value={totalReports} className="text-2xl font-bold text-accent block mt-0.5"/>
                      </div>
-                     <p className="text-xs text-primary/80 mt-1 flex items-center">
+                     <p className="text-xs text-accent/80 mt-1 flex items-center">
                          <TrendingUp className="h-3 w-3 mr-0.5"/> {averageReports.toFixed(1)} {averageLabel}
                      </p>
                  </Card>
@@ -468,15 +469,15 @@ const StatisticsPage: FC = () => {
                      </p>
                  </Card>
                 
-                 <Card className="p-3 flex flex-col justify-between bg-destructive/5 border-destructive/20 rounded-lg shadow-sm hover:shadow-md transition-shadow">
+                 <Card className="p-3 flex flex-col justify-between bg-warning/5 border-warning/20 rounded-lg shadow-sm hover:shadow-md transition-shadow">
                     <div>
-                        <p className="text-xs text-destructive font-medium flex items-center">
+                        <p className="text-xs text-warning font-medium flex items-center">
                            <AlertTriangle className="h-3.5 w-3.5 mr-1.5"/>Zona Más Peligrosa
                         </p>
-                        <div className="text-2xl font-bold text-destructive block mt-0.5 truncate">Col. Centro</div> {/* Placeholder */}
+                        <div className="text-2xl font-bold text-warning block mt-0.5 truncate">Col. Centro</div> {/* Placeholder */}
                     </div>
-                    <p className="text-xs text-destructive/80 mt-1 flex items-center">
-                       <AlertTriangle className="h-3 w-3 mr-0.5"/> Riesgo Elevado {/* Changed text */}
+                    <p className="text-xs text-warning/80 mt-1 flex items-center">
+                       <AlertTriangle className="h-3 w-3 mr-0.5"/> Riesgo Elevado
                     </p>
                 </Card>
              </div>
@@ -576,3 +577,4 @@ const StatisticsPage: FC = () => {
 };
 
 export default StatisticsPage;
+
