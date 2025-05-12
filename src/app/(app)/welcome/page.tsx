@@ -1,4 +1,3 @@
-
 "use client";
 
 import type { FC } from 'react';
@@ -7,23 +6,23 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { useAuth } from '@/context/AuthContext';
 import { auth, db } from '@/lib/firebase/client';
-import { collection, query, where, getDocs, orderBy, Timestamp, limit, startAfter, doc, getDoc, runTransaction } from 'firebase/firestore';
+import { collection, query, where, getDocs, orderBy, Timestamp, limit, startAfter, doc, getDoc, runTransaction, endBefore, limitToLast, type DocumentSnapshot } from 'firebase/firestore';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle  } from '@/components/ui/card';
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
-import { FileText, MapPin, CalendarDays, Loader2, UserCog, TriangleAlert, Plus, Ellipsis, Image as ImageIcon, Video, ArrowUp, ArrowDown } from 'lucide-react'; // Updated icons, ArrowUp, ArrowDown
-import { format, formatDistanceToNow } from 'date-fns'; // Added formatDistanceToNow
+import { FileText, MapPin, CalendarDays, Loader2, UserCog, TriangleAlert, Plus, Ellipsis, Image as ImageIcon, Video, ArrowUp, ArrowDown } from 'lucide-react';
+import { format, formatDistanceToNow } from 'date-fns';
 import { es } from 'date-fns/locale';
 import { useToast } from "@/hooks/use-toast";
-import Image from 'next/image'; // Keep Image import
-import { cn, formatLocation } from "@/lib/utils"; // Import formatLocation
-import { Badge } from "@/components/ui/badge"; // Import Badge
+import Image from 'next/image';
+import { cn, formatLocation } from "@/lib/utils";
+import { Badge } from "@/components/ui/badge";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu"; // Import DropdownMenu components
+} from "@/components/ui/dropdown-menu";
 import {
   Pagination,
   PaginationContent,
@@ -32,8 +31,8 @@ import {
   PaginationLink,
   PaginationNext,
   PaginationPrevious,
-} from "@/components/ui/pagination" // Import Pagination
-import { VotesModal } from "@/components/votes-modal"; // Import VotesModal component
+} from "@/components/ui/pagination"
+import { VotesModal } from "@/components/votes-modal";
 
 export type Report = {
     id: string;
@@ -54,300 +53,240 @@ export type Report = {
 
 const WelcomePage: FC = () => {
   const router = useRouter();
-  const { user, isAuthenticated, loading: authLoading } = useAuth(); // Use authLoading from context
+  const { user, isAuthenticated, loading: authLoading } = useAuth();
   const { toast } = useToast();
   const [reports, setReports] = useState<Report[]>([]);
-  const [isLoading, setIsLoading] = useState(true); // Combined data loading state
-  const [isFetchingMore, setIsFetchingMore] = useState(false);
-  const [lastDoc, setLastDoc] = useState<any>(null); // Type any as it's a Firestore DocumentSnapshot
+  const [isLoading, setIsLoading] = useState(true);
+  const [lastVisibleDoc, setLastVisibleDoc] = useState<DocumentSnapshot | null>(null);
+  const [firstVisibleDoc, setFirstVisibleDoc] = useState<DocumentSnapshot | null>(null);
   const [hasMore, setHasMore] = useState(true);
   const [votingState, setVotingState] = useState<{ [reportId: string]: boolean }>({});
   const [votesModalOpen, setVotesModalOpen] = useState(false);
   const [selectedReport, setSelectedReport] = useState<Report | null>(null);
-  const [currentPage, setCurrentPage] = useState(1); // For display purposes primarily
+  const [currentPage, setCurrentPage] = useState(1);
 
-  const ITEMS_PER_PAGE = 6; // Define items per page, changed from 5 to 6
+  const ITEMS_PER_PAGE = 6;
 
-  // Function to fetch user's vote for this specific report (remains the same)
   const fetchUserVote = useCallback(async (userId: string, reportId: string) => {
       try {
           const voteDocRef = doc(db, `reports/${reportId}/votes/${userId}`);
           const voteDocSnap = await getDoc(voteDocRef);
-
           if (voteDocSnap.exists()) {
               return voteDocSnap.data().type as 'up' | 'down';
           }
       } catch (error) {
           console.error("Error fetching user vote: ", error);
       }
-      return null; // Indicate no vote or an error
+      return null;
   }, []);
 
-  // Fetch reports logic
-  const fetchReports = useCallback(async (loadMore: boolean = false) => {
+  const fetchReports = useCallback(async (direction: 'initial' | 'next' | 'previous') => {
     if (!user) {
       console.error("fetchReports called without a valid user.");
       setIsLoading(false);
       return;
     }
-    console.log("Fetching reports for user:", user.uid, "Load More:", loadMore);
-
-    if (!loadMore) { // Initial fetch or filter change
-        setIsLoading(true);
-        setReports([]); 
-        setLastDoc(null); 
-        setHasMore(true); 
-        setCurrentPage(1);
-    } else { // Fetching next page
-        setIsFetchingMore(true);
-    }
-    
+    console.log("Fetching reports for user:", user.uid, "Direction:", direction, "Current Page:", currentPage);
+    setIsLoading(true);
 
     try {
-      let q = query(
-        collection(db, "reports"),
-        where("userId", "==", user.uid),
-        orderBy("createdAt", "desc"),
-        limit(ITEMS_PER_PAGE)
-      );
+      const reportsCollectionRef = collection(db, "reports");
+      let q;
 
-      if (loadMore && lastDoc) {
-         console.log("Fetching more reports starting after:", lastDoc.id);
+      if (direction === 'initial') {
         q = query(
-          collection(db, "reports"),
+          reportsCollectionRef,
           where("userId", "==", user.uid),
           orderBy("createdAt", "desc"),
-          startAfter(lastDoc),
           limit(ITEMS_PER_PAGE)
         );
+      } else if (direction === 'next' && lastVisibleDoc) {
+        q = query(
+          reportsCollectionRef,
+          where("userId", "==", user.uid),
+          orderBy("createdAt", "desc"),
+          startAfter(lastVisibleDoc),
+          limit(ITEMS_PER_PAGE)
+        );
+      } else if (direction === 'previous' && firstVisibleDoc) {
+        q = query(
+          reportsCollectionRef,
+          where("userId", "==", user.uid),
+          orderBy("createdAt", "desc"),
+          endBefore(firstVisibleDoc),
+          limitToLast(ITEMS_PER_PAGE)
+        );
+      } else {
+        // Fallback or handle invalid state
+        setIsLoading(false);
+        return;
       }
 
       const querySnapshot = await getDocs(q);
       const fetchedReports: Report[] = [];
-      console.log(`Found ${querySnapshot.docs.length} reports in this batch.`);
+      console.log(`Found ${querySnapshot.docs.length} reports in this batch for WelcomePage.`);
 
       for (const reportDoc of querySnapshot.docs) {
         const data = reportDoc.data();
         const userVote = await fetchUserVote(user.uid, reportDoc.id);
-
-        const createdAtDate = data.createdAt instanceof Timestamp
-          ? data.createdAt.toDate()
-          : new Date();
-
-
+        const createdAtDate = data.createdAt instanceof Timestamp ? data.createdAt.toDate() : new Date();
         fetchedReports.push({
-            id: reportDoc.id,
-            userId: data.userId,
-            userEmail: data.userEmail || null,
-            reportType: data.reportType,
-            title: data.title,
-            description: data.description,
-            location: data.location,
-            mediaUrl: data.mediaUrl || null,
-            latitude: data.latitude || null,
-            longitude: data.longitude || null,
-            createdAt: createdAtDate,
-            upvotes: data.upvotes || 0,
-            downvotes: data.downvotes || 0,
+            id: reportDoc.id, userId: data.userId, userEmail: data.userEmail || null,
+            reportType: data.reportType, title: data.title, description: data.description,
+            location: data.location, mediaUrl: data.mediaUrl || null,
+            latitude: data.latitude || null, longitude: data.longitude || null,
+            createdAt: createdAtDate, upvotes: data.upvotes || 0, downvotes: data.downvotes || 0,
             userVote: userVote,
-
         });
       }
       
-      setReports(fetchedReports); // Always replace current reports to show only the current page's items
+      setReports(fetchedReports);
 
-      const newLastDoc = querySnapshot.docs[querySnapshot.docs.length - 1] || null;
-      setLastDoc(newLastDoc);
-      setHasMore(fetchedReports.length === ITEMS_PER_PAGE);
-      
-      if (loadMore && fetchedReports.length > 0) {
-        setCurrentPage(prev => prev + 1);
-      } else if (!loadMore) {
-        setCurrentPage(1); // Ensure currentPage is 1 for initial load
+      if (querySnapshot.docs.length > 0) {
+        setFirstVisibleDoc(querySnapshot.docs[0]);
+        setLastVisibleDoc(querySnapshot.docs[querySnapshot.docs.length - 1]);
+      } else {
+        if (direction === 'next') setHasMore(false);
       }
-
-      console.log("Fetch complete. Has More:", fetchedReports.length === ITEMS_PER_PAGE, "New Last Doc:", newLastDoc?.id, "Current Page:", currentPage);
+      
+      if (direction === 'initial') {
+        setCurrentPage(1);
+        setHasMore(fetchedReports.length === ITEMS_PER_PAGE);
+      } else if (direction === 'next') {
+        if (fetchedReports.length > 0) setCurrentPage(prev => prev + 1);
+        setHasMore(fetchedReports.length === ITEMS_PER_PAGE);
+      } else if (direction === 'previous') {
+        if (fetchedReports.length > 0) setCurrentPage(prev => prev - 1);
+        setHasMore(true); // After going previous, there's likely more next
+      }
+      
     } catch (error) {
       console.error("Error fetching reports: ", error);
       toast({ variant: "destructive", title: "Error", description: "Failed to fetch reports." });
     } finally {
-      console.log("Setting isLoading/isFetchingMore to false in finally block.");
       setIsLoading(false);
-      setIsFetchingMore(false);
     }
-  }, [user, toast, fetchUserVote, lastDoc, currentPage]); // Added currentPage to dep array as it's used in logging
+  }, [user, toast, fetchUserVote, lastVisibleDoc, firstVisibleDoc, currentPage]); // Ensure currentPage is a dependency if logic depends on it directly
 
-  // useEffect for initial load and auth check (remains the same)
   useEffect(() => {
-    console.log("WelcomePage useEffect triggered. AuthLoading:", authLoading, "IsAuthenticated:", isAuthenticated, "User:", !!user);
     if (!authLoading) {
         if (isAuthenticated && user) {
-            // Fetch initial reports only if reports array is empty AND not currently loading
-            // AND currentPage is 1 (to avoid re-fetching if navigating back via browser history potentially)
-            if (reports.length === 0 && !isLoading && !isFetchingMore && currentPage === 1) {
-                 console.log("Auth confirmed, user available. Fetching initial reports for WelcomePage.");
-                 fetchReports(false); // Pass false for initial load
-            } else {
-                 console.log("Auth confirmed, user available, but not fetching (reports not empty or loading or not on page 1). Reports length:", reports.length, "isLoading:", isLoading, "isFetchingMore:", isFetchingMore, "currentPage:", currentPage);
+            if (reports.length === 0 && currentPage === 1) { // Only fetch initial if reports are empty and on page 1
+                 console.log("Auth confirmed, fetching initial reports for WelcomePage.");
+                 fetchReports('initial');
             }
         } else {
             console.log("Not authenticated or user not ready, redirecting to login.");
-            setIsLoading(false); // Ensure loading is false if redirecting
+            setIsLoading(false);
             router.replace("/login");
         }
     } else {
         console.log("Auth state still loading...");
-         setIsLoading(true); // Keep loading true while auth is resolving
+         setIsLoading(true);
     }
-  }, [authLoading, isAuthenticated, user, router, reports.length, isLoading, isFetchingMore, fetchReports, currentPage]);
+  }, [authLoading, isAuthenticated, user, router, fetchReports, reports.length, currentPage]);
 
 
-  const loadMoreReports = () => {
-    if (hasMore && !isFetchingMore) { // Removed lastDoc check here as fetchReports handles it
-        console.log("Load more reports triggered for WelcomePage.");
-        fetchReports(true); // Pass true to indicate loading more
-    } else {
-        console.log("Load more reports skipped for WelcomePage. HasMore:", hasMore, "isFetchingMore:", isFetchingMore);
+  const handleNextPage = () => {
+    if (hasMore && !isLoading) {
+        fetchReports('next');
     }
   };
 
-  // Handle Voting Logic (remains the same)
+  const handlePreviousPage = () => {
+    if (currentPage > 1 && !isLoading) {
+        fetchReports('previous');
+    }
+  };
+
   const handleVote = async (reportId: string, voteType: 'up' | 'down') => {
     if (!user) {
         toast({ variant: "destructive", title: "Error", description: "Debes iniciar sesión para votar." });
         return;
     }
-
     const currentReport = reports.find(report => report.id === reportId);
     if (!currentReport) {
         toast({ variant: "destructive", title: "Error", description: "Reporte no encontrado." });
-        setVotingState(prev => ({ ...prev, [reportId]: false }));
         return;
     }
-
-    // Prevent voting on own reports
-     if (user.uid === currentReport.userId) {
-         // Do nothing, or show a disabled state / tooltip
+    if (user.uid === currentReport.userId) {
          toast({ variant: "destructive", title: "Error", description: "No puedes votar en tus propios reportes." });
          return;
      }
-
     if (votingState[reportId]) return;
-
     setVotingState(prev => ({ ...prev, [reportId]: true }));
-
-
-        const currentVote = currentReport.userVote;
-        const originalReport = { ...currentReport };
-
-        // Optimistic UI Update (same as community page)
-        let optimisticUpvotes = currentReport.upvotes;
-        let optimisticDownvotes = currentReport.downvotes;
-        let optimisticUserVote: 'up' | 'down' | null = null;
-
-        if (currentVote === voteType) {
-            optimisticUserVote = null;
-            if (voteType === 'up') optimisticUpvotes--; else optimisticDownvotes--;
+    const originalReport = { ...currentReport };
+    let optimisticUpvotes = currentReport.upvotes;
+    let optimisticDownvotes = currentReport.downvotes;
+    let optimisticUserVote: 'up' | 'down' | null = null;
+    if (currentReport.userVote === voteType) {
+        optimisticUserVote = null;
+        if (voteType === 'up') optimisticUpvotes--; else optimisticDownvotes--;
+    } else {
+        optimisticUserVote = voteType;
+        if (voteType === 'up') {
+            optimisticUpvotes++;
+            if (currentReport.userVote === 'down') optimisticDownvotes--;
         } else {
-            optimisticUserVote = voteType;
-            if (voteType === 'up') {
-                optimisticUpvotes++;
-                if (currentVote === 'down') optimisticDownvotes--;
+            optimisticDownvotes++;
+            if (currentReport.userVote === 'up') optimisticUpvotes--;
+        }
+    }
+    setReports(reports.map(rep => rep.id === reportId ? {
+        ...rep, upvotes: optimisticUpvotes, downvotes: optimisticDownvotes, userVote: optimisticUserVote,
+    } : rep));
+    try {
+        const reportRef = doc(db, "reports", reportId);
+        const voteRef = doc(db, `reports/${reportId}/votes/${user.uid}`);
+        const userVoteRef = doc(db, 'userVotes', `${user.uid}_${reportId}`);
+        await runTransaction(db, async (transaction) => {
+            const reportSnap = await transaction.get(reportRef);
+            if (!reportSnap.exists()) throw new Error("El reporte ya no existe.");
+            const voteDocSnap = await transaction.get(voteRef);
+            const existingVote = voteDocSnap.exists() ? voteDocSnap.data().type : null;
+            const reportData = reportSnap.data();
+            let newUpvotes = reportData.upvotes || 0;
+            let newDownvotes = reportData.downvotes || 0;
+            const reportTitle = reportData.title || 'Reporte sin título';
+            if (existingVote === voteType) {
+                if (voteType === 'up') newUpvotes = Math.max(0, newUpvotes - 1);
+                else newDownvotes = Math.max(0, newDownvotes - 1);
+                transaction.delete(voteRef);
+                transaction.delete(userVoteRef);
             } else {
-                optimisticDownvotes++;
-                if (currentVote === 'up') optimisticUpvotes--;
-            }
-        }
-
-        const optimisticReports = reports.map(rep => rep.id === reportId ? {
-            ...rep,
-            upvotes: optimisticUpvotes,
-            downvotes: optimisticDownvotes,
-            userVote: optimisticUserVote,
-        } : rep);
-        setReports(optimisticReports);
-
-        // Firestore Update (same as community page)
-        try {
-            const reportRef = doc(db, "reports", reportId);
-            const voteRef = doc(db, `reports/${reportId}/votes/${user.uid}`);
-            const userVoteRef = doc(db, 'userVotes', `${user.uid}_${reportId}`);
-
-            await runTransaction(db, async (transaction) => {
-                const reportSnap = await transaction.get(reportRef);
-                if (!reportSnap.exists()) throw new Error("El reporte ya no existe.");
-
-                const voteDocSnap = await transaction.get(voteRef);
-                const existingVote = voteDocSnap.exists() ? voteDocSnap.data().type : null;
-
-                const reportData = reportSnap.data();
-                let newUpvotes = reportData.upvotes || 0;
-                let newDownvotes = reportData.downvotes || 0;
-                const reportTitle = reportData.title || 'Reporte sin título';
-
-                if (existingVote === voteType) {
-                    if (voteType === 'up') newUpvotes = Math.max(0, newUpvotes - 1);
-                    else newDownvotes = Math.max(0, newDownvotes - 1);
-                    transaction.delete(voteRef);
-                    transaction.delete(userVoteRef);
+                if (voteType === 'up') {
+                    newUpvotes++;
+                    if (existingVote === 'down') newDownvotes = Math.max(0, newDownvotes - 1);
+                    transaction.set(voteRef, { type: 'up' });
+                    transaction.set(userVoteRef, { userId: user.uid, reportId: reportId, reportTitle: reportTitle, type: 'up', timestamp: Timestamp.now() });
                 } else {
-                    if (voteType === 'up') {
-                        newUpvotes++;
-                        if (existingVote === 'down') newDownvotes = Math.max(0, newDownvotes - 1);
-                        transaction.set(voteRef, { type: 'up' });
-                        transaction.set(userVoteRef, { userId: user.uid, reportId: reportId, reportTitle: reportTitle, type: 'up', timestamp: Timestamp.now() });
-                    } else {
-                        newDownvotes++;
-                        if (existingVote === 'up') newUpvotes = Math.max(0, newUpvotes - 1);
-                        transaction.set(voteRef, { type: 'down' });
-                        transaction.set(userVoteRef, { userId: user.uid, reportId: reportId, reportTitle: reportTitle, type: 'down', timestamp: Timestamp.now() });
-                    }
+                    newDownvotes++;
+                    if (existingVote === 'up') newUpvotes = Math.max(0, newUpvotes - 1);
+                    transaction.set(voteRef, { type: 'down' });
+                    transaction.set(userVoteRef, { userId: user.uid, reportId: reportId, reportTitle: reportTitle, type: 'down', timestamp: Timestamp.now() });
                 }
-                transaction.update(reportRef, { upvotes: newUpvotes, downvotes: newDownvotes });
-            });
-            console.log("Vote transaction committed successfully for report:", reportId);
+            }
+            transaction.update(reportRef, { upvotes: newUpvotes, downvotes: newDownvotes });
+        });
+    } catch (error: any) {
+        console.error("Error updating vote:", error);
+        toast({ variant: "destructive", title: "Error", description: `No se pudo registrar el voto: ${error.message}` });
+        setReports(prevReports => prevReports.map(rep => rep.id === reportId ? originalReport : rep));
+    } finally {
+        setVotingState(prev => ({ ...prev, [reportId]: false }));
+    }
+  };
 
-        } catch (error: any) {
-            console.error("Error updating vote:", error);
-            toast({ variant: "destructive", title: "Error", description: `No se pudo registrar el voto: ${error.message}` });
-            setReports(prevReports => prevReports.map(rep => rep.id === reportId ? originalReport : rep));
-        } finally {
-            setVotingState(prev => ({ ...prev, [reportId]: false }));
-        }
-    };
-
-
-
-    // Helper function to determine badge color for report type (same as community)
-    const getTypeBadgeVariant = (type: 'incidente' | 'funcionario'): 'destructive' | 'default' => {
-        return type === 'incidente' ? 'destructive' : 'default';
-    };
-    const getTypeBadgeText = (type: 'incidente' | 'funcionario'): string => {
-        return type === 'incidente' ? 'Incidente' : 'Funcionario';
-    };
-
-    const handlePreviousPage = (e: React.MouseEvent<HTMLAnchorElement>) => {
-        e.preventDefault();
-        toast({ title: "Info", description: "Función 'Anterior' no implementada aún para paginación real." });
-        // To implement:
-        // if (currentPage > 1) {
-        //   setCurrentPage(prev => prev - 1);
-        //   // Need logic to fetch previous page using cursors or by page number
-        // }
-    };
-
-    const handleNextPageClick = (e: React.MouseEvent<HTMLAnchorElement>) => {
-        e.preventDefault();
-        if (hasMore && !isFetchingMore) {
-            loadMoreReports(); // This loads the next set of items
-        }
-    };
-
+  const getTypeBadgeVariant = (type: 'incidente' | 'funcionario'): 'destructive' | 'default' => {
+      return type === 'incidente' ? 'destructive' : 'default';
+  };
+  const getTypeBadgeText = (type: 'incidente' | 'funcionario'): string => {
+      return type === 'incidente' ? 'Incidente' : 'Funcionario';
+  };
 
   return (
     <main className="flex flex-col p-4 sm:p-6 md:p-8 bg-secondary min-h-screen">
-      <div className="w-full max-w-4xl mx-auto space-y-6"> {/* Adjusted max-width */}
-        {/* Modal de votos */}
+      <div className="w-full max-w-4xl mx-auto space-y-6">
         {selectedReport && (
           <VotesModal 
             open={votesModalOpen} 
@@ -370,8 +309,8 @@ const WelcomePage: FC = () => {
             </Button>
         </div>
 
-        {isLoading ? ( // Use isLoading for initial load skeleton
-          [...Array(3)].map((_, i) => (
+        {isLoading && reports.length === 0 ? (
+          [...Array(ITEMS_PER_PAGE)].map((_, i) => (
             <Card key={i} className="shadow-sm bg-card rounded-lg overflow-hidden">
               <CardHeader className="p-4 flex flex-row items-center justify-between">
                 <Skeleton className="h-4 w-1/4" />
@@ -392,7 +331,6 @@ const WelcomePage: FC = () => {
         ) : reports.length > 0 ? (
           reports.map((report) => (
              <Card key={report.id} className="shadow-md bg-card rounded-lg overflow-hidden hover:shadow-xl transition-shadow duration-300 flex flex-col">
-                 {/* Media Preview Area */}
                  <div className="relative h-40 w-full bg-muted flex items-center justify-center text-muted-foreground overflow-hidden group">
                     {report.mediaUrl ? (
                         <>
@@ -411,14 +349,11 @@ const WelcomePage: FC = () => {
                            <span className="text-xs">Sin imagen adjunta</span>
                         </div>
                     )}
-
-                   {/* Badges Overlay */}
                    <div className="absolute top-2 left-2 z-10">
                       <Badge variant={getTypeBadgeVariant(report.reportType)} className="text-xs capitalize shadow">
                         {getTypeBadgeText(report.reportType)}
                       </Badge>
                    </div>
-                    {/* Dropdown Menu */}
                     <div className="absolute top-2 right-2 z-10">
                         <DropdownMenu>
                             <DropdownMenuTrigger asChild>
@@ -443,8 +378,6 @@ const WelcomePage: FC = () => {
                             </DropdownMenuContent>
                         </DropdownMenu>
                     </div>
-
-                   {/* Media Type Icon */}
                    {report.mediaUrl && (
                     <div className="absolute bottom-2 right-2 bg-black/60 text-white p-1.5 rounded-full backdrop-blur-sm z-10">
                         {report.mediaUrl.includes('.mp4') || report.mediaUrl.includes('.webm') ? (
@@ -455,7 +388,6 @@ const WelcomePage: FC = () => {
                     </div>
                    )}
                  </div>
-
                  <CardContent className="p-4 flex-1 space-y-2">
                    <CardTitle className="text-base font-semibold leading-snug line-clamp-2">
                      <Link href={`/reports/${report.id}`} className="hover:text-primary transition-colors">
@@ -474,17 +406,10 @@ const WelcomePage: FC = () => {
                          <CalendarDays size={12} className="flex-shrink-0" />
                          <span>{formatDistanceToNow(report.createdAt, { addSuffix: true, locale: es })}</span>
                       </div>
-                      {/* Voting Section */}
                       <div className="flex items-center space-x-1 bg-muted p-1 rounded-full">
                            <Button
-                               variant="ghost"
-                               size="icon"
-                               className={cn(
-                                   "h-6 w-6 rounded-full text-muted-foreground hover:bg-blue-500/10 hover:text-blue-500",
-                                   report.userVote === 'down' && "bg-blue-600/20 text-blue-600",
-                                   votingState[report.id] && "opacity-50 cursor-not-allowed",
-                                   user?.uid === report.userId && "cursor-not-allowed opacity-60"
-                               )}
+                               variant="ghost" size="icon"
+                               className={cn("h-6 w-6 rounded-full text-muted-foreground hover:bg-blue-500/10 hover:text-blue-500", report.userVote === 'down' && "bg-blue-600/20 text-blue-600", votingState[report.id] && "opacity-50 cursor-not-allowed", user?.uid === report.userId && "cursor-not-allowed opacity-60")}
                               onClick={() => handleVote(report.id, 'down')}
                               disabled={votingState[report.id] || user?.uid === report.userId}
                               aria-pressed={report.userVote === 'down'}
@@ -495,23 +420,14 @@ const WelcomePage: FC = () => {
                            <Button 
                                variant="ghost" 
                                className="text-sm font-medium text-foreground tabular-nums w-6 text-center p-0 h-auto hover:bg-transparent hover:text-primary"
-                               onClick={() => {
-                                   setSelectedReport(report);
-                                   setVotesModalOpen(true);
-                               }}
+                               onClick={() => { setSelectedReport(report); setVotesModalOpen(true); }}
                                title="Ver detalles de votos"
                            >
                                {report.upvotes - report.downvotes}
                            </Button>
                            <Button
-                              variant="ghost"
-                              size="icon"
-                              className={cn(
-                                  "h-6 w-6 rounded-full text-muted-foreground hover:bg-red-500/10 hover:text-red-500",
-                                  report.userVote === 'up' && "bg-red-600/20 text-red-600",
-                                  votingState[report.id] && "opacity-50 cursor-not-allowed",
-                                  user?.uid === report.userId && "cursor-not-allowed opacity-60"
-                              )}
+                              variant="ghost" size="icon"
+                              className={cn("h-6 w-6 rounded-full text-muted-foreground hover:bg-red-500/10 hover:text-red-500", report.userVote === 'up' && "bg-red-600/20 text-red-600", votingState[report.id] && "opacity-50 cursor-not-allowed", user?.uid === report.userId && "cursor-not-allowed opacity-60")}
                               onClick={() => handleVote(report.id, 'up')}
                               disabled={votingState[report.id] || user?.uid === report.userId}
                               aria-pressed={report.userVote === 'up'}
@@ -539,32 +455,32 @@ const WelcomePage: FC = () => {
           </Card>
         )}
 
-        {/* Pagination: Show if not loading, there are reports, AND (there are more pages OR we are not on the first page) */}
         {!isLoading && reports.length > 0 && (hasMore || currentPage > 1) && (
-          <div className="text-center mt-4">
+          <div className="mt-8 flex justify-center">
             <Pagination>
              <PaginationContent>
                <PaginationItem>
                  <PaginationPrevious
                     onClick={handlePreviousPage}
                     className={cn(currentPage === 1 && "pointer-events-none opacity-50")}
+                    href="#" // Added href to make it a valid link for styling
                   />
                </PaginationItem>
-               {/* Page numbers are for display; actual navigation is cursor-based for next */}
                <PaginationItem>
-                 <PaginationLink href="#" isActive={currentPage === 1}>1</PaginationLink>
+                 <PaginationLink href="#" isActive>
+                   {currentPage}
+                 </PaginationLink>
                </PaginationItem>
-               {currentPage > 2 && reports.length >= ITEMS_PER_PAGE && <PaginationItem><PaginationEllipsis /></PaginationItem>}
-               {currentPage > 1 && currentPage < (reports.length / ITEMS_PER_PAGE + (reports.length % ITEMS_PER_PAGE > 0 ? 1 : 0)) && ( // A more dynamic way to show current page if not 1
-                   <PaginationItem>
-                       <PaginationLink href="#" isActive>{currentPage}</PaginationLink>
-                   </PaginationItem>
+               {hasMore && (
+                 <PaginationItem>
+                   <PaginationEllipsis />
+                 </PaginationItem>
                )}
-                {/* Add more page numbers if needed, but true navigation is complex */}
                <PaginationItem>
                   <PaginationNext
-                    onClick={handleNextPageClick}
+                    onClick={handleNextPage}
                     className={cn(!hasMore && "pointer-events-none opacity-50")}
+                    href="#" // Added href to make it a valid link for styling
                   />
                </PaginationItem>
              </PaginationContent>
@@ -573,7 +489,6 @@ const WelcomePage: FC = () => {
         )}
         
       </div>
-       {/* Footer */}
       <footer className="mt-12 text-center text-xs text-muted-foreground">
         © {new Date().getFullYear()} +SEGURO - Plataforma de reportes ciudadanos para la seguridad pública
       </footer>
@@ -582,4 +497,3 @@ const WelcomePage: FC = () => {
 };
 
 export default WelcomePage;
-

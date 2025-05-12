@@ -1,33 +1,32 @@
-
 "use client";
 
 import type { FC } from 'react';
 import { useEffect, useState, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { useAuth } from '@/context/AuthContext'; // Import useAuth
+import { useAuth } from '@/context/AuthContext'; 
 import { auth, db } from '@/lib/firebase/client';
-import { collection, query, where, getDocs, orderBy, Timestamp, limit, startAfter, doc, getDoc, runTransaction } from 'firebase/firestore';
+import { collection, query, where, getDocs, orderBy, Timestamp, limit, startAfter, doc, getDoc, runTransaction, endBefore, limitToLast, type DocumentSnapshot } from 'firebase/firestore';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Input } from "@/components/ui/input"; // Import Input
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"; // Import Select
-import { Badge } from "@/components/ui/badge"; // Import Badge
-import { FileText, MapPin, CalendarDays, Loader2, UserCog, TriangleAlert, Video, Image as ImageIcon, Search, Ellipsis, ChevronLeft, ChevronRight, Plus, ArrowUp, ArrowDown, X, SlidersHorizontal } from 'lucide-react'; // Added necessary icons, ArrowUp, ArrowDown, X, SlidersHorizontal
-import { VotesModal } from "@/components/votes-modal"; // Import VotesModal component
-import { format, formatDistanceToNow } from 'date-fns'; // Import formatDistanceToNow
+import { Input } from "@/components/ui/input"; 
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"; 
+import { Badge } from "@/components/ui/badge"; 
+import { FileText, MapPin, CalendarDays, Loader2, UserCog, TriangleAlert, Video, Image as ImageIcon, Search, Ellipsis, ChevronLeft, ChevronRight, Plus, ArrowUp, ArrowDown, X, SlidersHorizontal } from 'lucide-react'; 
+import { VotesModal } from "@/components/votes-modal"; 
+import { format, formatDistanceToNow } from 'date-fns'; 
 import { es } from 'date-fns/locale';
 import { useToast } from "@/hooks/use-toast";
 import Image from 'next/image';
-import { cn, formatLocation } from "@/lib/utils"; // Import formatLocation
-import type { Report } from '@/app/(app)/welcome/page'; // Assuming Report type is exported from welcome
+import { cn, formatLocation } from "@/lib/utils"; 
+import type { Report } from '@/app/(app)/welcome/page';
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu"; // Import DropdownMenu components
+} from "@/components/ui/dropdown-menu"; 
 import {
   Pagination,
   PaginationContent,
@@ -36,36 +35,33 @@ import {
   PaginationLink,
   PaginationNext,
   PaginationPrevious,
-} from "@/components/ui/pagination" // Import Pagination
+} from "@/components/ui/pagination"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 
 const CommunityReportsPage: FC = () => {
   const router = useRouter();
-  const { user, isAuthenticated, loading: authLoading } = useAuth(); // Use the auth context and loading state
+  const { user, isAuthenticated, loading: authLoading } = useAuth();
   const { toast } = useToast();
   const [reports, setReports] = useState<Report[]>([]);
-  const [isLoading, setIsLoading] = useState(true); // Combined data loading state
-  const [isFetchingMore, setIsFetchingMore] = useState(false);
-  const [lastDoc, setLastDoc] = useState<any>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [lastVisibleDoc, setLastVisibleDoc] = useState<DocumentSnapshot | null>(null);
+  const [firstVisibleDoc, setFirstVisibleDoc] = useState<DocumentSnapshot | null>(null);
   const [hasMore, setHasMore] = useState(true);
   const [votingState, setVotingState] = useState<{ [reportId: string]: boolean }>({});
   const [votesModalOpen, setVotesModalOpen] = useState(false);
   const [selectedReport, setSelectedReport] = useState<Report | null>(null);
-  const isMobile = typeof window !== 'undefined' && window.innerWidth < 768; // crude mobile check
   const [filterModalOpen, setFilterModalOpen] = useState(false);
   const [currentFilterType, setCurrentFilterType] = useState<'todos' | 'incidente' | 'funcionario'>('todos');
   const [currentSortBy, setCurrentSortBy] = useState<'recientes' | 'antiguos' | 'populares'>('recientes');
-  const [currentPage, setCurrentPage] = useState(1); // For display purposes
+  const [currentPage, setCurrentPage] = useState(1);
 
 
-  const ITEMS_PER_PAGE = 6; // Changed from 9 to 6
+  const ITEMS_PER_PAGE = 6;
 
-    // Function to fetch user's vote for a specific report (remains the same)
     const fetchUserVote = useCallback(async (userId: string, reportId: string) => {
       try {
           const voteDocRef = doc(db, `reports/${reportId}/votes/${userId}`);
           const voteDocSnap = await getDoc(voteDocRef);
-
           if (voteDocSnap.exists()) {
               return voteDocSnap.data().type as 'up' | 'down';
           }
@@ -75,225 +71,183 @@ const CommunityReportsPage: FC = () => {
       return null;
     }, []);
 
-  // Function to fetch reports
-  const fetchReports = useCallback(async (loadMore: boolean = false, filterType = currentFilterType, sortBy = currentSortBy) => {
+  const fetchReports = useCallback(async (
+    direction: 'initial' | 'next' | 'previous' | 'filterOrSort',
+    filterType = currentFilterType, 
+    sortBy = currentSortBy
+  ) => {
     if (!user) {
         console.error("fetchReports (Community) called without a valid user.");
         setIsLoading(false);
         return;
     }
-    console.log("Fetching community reports. Load More:", loadMore, "Filter Type:", filterType, "Sort By:", sortBy);
-
-    if (!loadMore) { // Initial fetch or filter/sort change
-        setIsLoading(true);
-        setReports([]); 
-        setLastDoc(null); 
-        setHasMore(true); 
-        setCurrentPage(1);
-    } else { // Fetching next page
-        setIsFetchingMore(true);
-    }
-    
+    console.log("Fetching community reports. Direction:", direction, "Filter Type:", filterType, "Sort By:", sortBy, "Current Page:", currentPage);
+    setIsLoading(true);
 
     try {
-      let baseQuery = collection(db, "reports");
-      let conditions: any[] = [];
+      const reportsCollectionRef = collection(db, "reports");
+      let queryConstraints: any[] = [];
 
       if (filterType !== 'todos') {
-        conditions.push(where("reportType", "==", filterType));
+        queryConstraints.push(where("reportType", "==", filterType));
       }
 
       let orderByField = "createdAt";
-      let orderByDirection: "desc" | "asc" = "desc";
+      let firestoreOrderByDirection: "desc" | "asc" = "desc";
 
       if (sortBy === 'antiguos') {
-        orderByDirection = "asc";
+        firestoreOrderByDirection = "asc";
       } else if (sortBy === 'populares') {
         orderByField = "upvotes"; 
-        orderByDirection = "desc";
+        firestoreOrderByDirection = "desc"; // Assuming most popular means highest upvotes first
+      }
+      queryConstraints.push(orderBy(orderByField, firestoreOrderByDirection));
+      
+      if (direction === 'next' && lastVisibleDoc) {
+        queryConstraints.push(startAfter(lastVisibleDoc));
+      } else if (direction === 'previous' && firstVisibleDoc) {
+        // When going previous with limitToLast, the orderBy needs to be the same as the main order
+        // Firestore fetches the last N items *before* the cursor, respecting the order.
+        queryConstraints.push(endBefore(firstVisibleDoc));
+        queryConstraints.push(limitToLast(ITEMS_PER_PAGE));
+      } else {
+         // For 'initial' or 'filterOrSort'
+        queryConstraints.push(limit(ITEMS_PER_PAGE));
       }
       
-      conditions.push(orderBy(orderByField, orderByDirection));
-      
-      if (loadMore && lastDoc) {
-        conditions.push(startAfter(lastDoc));
+      if (direction !== 'previous') { // limitToLast is exclusive with limit
+          queryConstraints.push(limit(ITEMS_PER_PAGE));
       }
-      conditions.push(limit(ITEMS_PER_PAGE));
-      
-      const q = query(baseQuery, ...conditions);
 
-
+      const q = query(reportsCollectionRef, ...queryConstraints);
       const querySnapshot = await getDocs(q);
       const fetchedReports: Report[] = [];
       console.log(`Found ${querySnapshot.docs.length} community reports in this batch.`);
 
-
        for (const reportDoc of querySnapshot.docs) {
          const data = reportDoc.data();
          const userVote = await fetchUserVote(user.uid, reportDoc.id);
-
           const createdAtDate = data.createdAt instanceof Timestamp
             ? data.createdAt.toDate()
             : new Date();
-
-
-
           fetchedReports.push({
-              id: reportDoc.id,
-              userId: data.userId,
-              userEmail: data.userEmail || null,
-              reportType: data.reportType,
-              title: data.title,
-              description: data.description,
-              location: data.location,
-              mediaUrl: data.mediaUrl || null,
-              latitude: data.latitude || null,
-              longitude: data.longitude || null,
-              createdAt: createdAtDate,
-              upvotes: data.upvotes || 0,
-              downvotes: data.downvotes || 0,
+              id: reportDoc.id, userId: data.userId, userEmail: data.userEmail || null,
+              reportType: data.reportType, title: data.title, description: data.description,
+              location: data.location, mediaUrl: data.mediaUrl || null,
+              latitude: data.latitude || null, longitude: data.longitude || null,
+              createdAt: createdAtDate, upvotes: data.upvotes || 0, downvotes: data.downvotes || 0,
               userVote: userVote,
-
-
           });
        }
 
-      setReports(fetchedReports); // Always replace current reports
+      setReports(fetchedReports);
       
-      const newLastDoc = querySnapshot.docs[querySnapshot.docs.length - 1] || null;
-      setLastDoc(newLastDoc);
-      setHasMore(fetchedReports.length === ITEMS_PER_PAGE);
-
-      if (loadMore && fetchedReports.length > 0) {
-        setCurrentPage(prev => prev + 1);
-      } else if (!loadMore) {
-        setCurrentPage(1); // Ensure currentPage is 1 for initial load/filter
+      if (querySnapshot.docs.length > 0) {
+        setFirstVisibleDoc(querySnapshot.docs[0]);
+        setLastVisibleDoc(querySnapshot.docs[querySnapshot.docs.length - 1]);
+      } else {
+         if(direction === 'next') setHasMore(false);
+         // if direction is 'previous' and no docs, it means we are at the actual first page
+         if(direction === 'previous') setCurrentPage(1); // Should not happen if button is disabled
       }
-      console.log("Community fetch complete. Has More:", fetchedReports.length === ITEMS_PER_PAGE, "New Last Doc:", newLastDoc?.id, "Current Page:", currentPage);
+
+      if (direction === 'initial' || direction === 'filterOrSort') {
+        setCurrentPage(1);
+        setHasMore(fetchedReports.length === ITEMS_PER_PAGE);
+      } else if (direction === 'next') {
+        if (fetchedReports.length > 0) setCurrentPage(prev => prev + 1);
+        setHasMore(fetchedReports.length === ITEMS_PER_PAGE);
+      } else if (direction === 'previous') {
+        if (fetchedReports.length > 0) setCurrentPage(prev => prev - 1);
+        setHasMore(true); 
+      }
+      console.log("Community fetch complete. Has More:", hasMore, "New First Doc:", firstVisibleDoc?.id, "New Last Doc:", lastVisibleDoc?.id, "Current Page:", currentPage);
 
     } catch (error) {
       console.error("Error fetching community reports: ", error);
       toast({ variant: "destructive", title: "Error", description: "Failed to fetch community reports." });
     } finally {
-      console.log("Setting isLoading/isFetchingMore to false in community finally block.");
       setIsLoading(false);
-      setIsFetchingMore(false);
     }
-  }, [user, toast, fetchUserVote, lastDoc, currentFilterType, currentSortBy, currentPage]); // Added currentPage
+  }, [user, toast, fetchUserVote, lastVisibleDoc, firstVisibleDoc, currentFilterType, currentSortBy, currentPage, hasMore]);
 
 
-    // useEffect for initial load and auth check
     useEffect(() => {
-        console.log("CommunityReports useEffect triggered. AuthLoading:", authLoading, "IsAuthenticated:", isAuthenticated, "User:", !!user);
         if (!authLoading) {
             if (isAuthenticated && user) {
-                // Fetch initial reports only if reports array is empty AND not currently loading AND on page 1
-                if (reports.length === 0 && !isLoading && !isFetchingMore && currentPage === 1) {
-                    console.log("Auth confirmed, user available. Fetching initial community reports with current filters.");
-                    fetchReports(false, currentFilterType, currentSortBy);
-                } else {
-                     console.log("Auth confirmed, user available, but not fetching community (reports not empty or loading or not page 1).");
+                if (reports.length === 0 && currentPage === 1) {
+                    console.log("Auth confirmed, fetching initial community reports.");
+                    fetchReports('initial', currentFilterType, currentSortBy);
                 }
             } else {
-                console.log("Not authenticated or user not ready, redirecting to login.");
-                setIsLoading(false); // Ensure loading is false if redirecting
+                setIsLoading(false);
                 router.replace("/login");
             }
         } else {
-            console.log("Auth state still loading...");
-             setIsLoading(true); // Keep loading true while auth is resolving
+             setIsLoading(true);
         }
-    }, [authLoading, isAuthenticated, user, router, reports.length, isLoading, isFetchingMore, fetchReports, currentFilterType, currentSortBy, currentPage]);
+    }, [authLoading, isAuthenticated, user, router, reports.length, fetchReports, currentFilterType, currentSortBy, currentPage]);
 
 
-  const loadMoreReports = () => {
-     if (hasMore && !isFetchingMore) { // Removed lastDoc check here
-         console.log("Load more community reports triggered.");
-         fetchReports(true, currentFilterType, currentSortBy);
-     } else {
-         console.log("Load more community reports skipped. HasMore:", hasMore, "isFetchingMore:", isFetchingMore);
-     }
-  };
-
- const handleFilterChange = (newFilterType: 'todos' | 'incidente' | 'funcionario') => {
+  const handleFilterChange = (newFilterType: 'todos' | 'incidente' | 'funcionario') => {
     setCurrentFilterType(newFilterType);
-    fetchReports(false, newFilterType, currentSortBy); // This will reset to page 1
+    fetchReports('filterOrSort', newFilterType, currentSortBy);
   };
 
   const handleSortChange = (newSortBy: 'recientes' | 'antiguos' | 'populares') => {
     setCurrentSortBy(newSortBy);
-    fetchReports(false, currentFilterType, newSortBy); // This will reset to page 1
+    fetchReports('filterOrSort', currentFilterType, newSortBy);
   };
 
- // Handle Voting Logic
  const handleVote = async (reportId: string, voteType: 'up' | 'down') => {
     if (!user) {
         toast({ variant: "destructive", title: "Error", description: "Debes iniciar sesión para votar." });
         return;
     }
-
      const currentReport = reports.find(report => report.id === reportId);
     if (!currentReport) {
         toast({ variant: "destructive", title: "Error", description: "Reporte no encontrado." });
-        setVotingState(prev => ({ ...prev, [reportId]: false }));
         return;
     }
-
     if (user.uid === currentReport.userId) {
         toast({ variant: "destructive", title: "Error", description: "No puedes votar en tus propios reportes." });
         return;
     }
-
     if (votingState[reportId]) return;
-
     setVotingState(prev => ({ ...prev, [reportId]: true }));
-
-    const currentVote = currentReport.userVote;
     const originalReport = { ...currentReport };
-
     let optimisticUpvotes = currentReport.upvotes;
     let optimisticDownvotes = currentReport.downvotes;
     let optimisticUserVote: 'up' | 'down' | null = null;
-
-    if (currentVote === voteType) {
+    if (currentReport.userVote === voteType) {
         optimisticUserVote = null;
         if (voteType === 'up') optimisticUpvotes--; else optimisticDownvotes--;
     } else {
         optimisticUserVote = voteType;
         if (voteType === 'up') {
             optimisticUpvotes++;
-            if (currentVote === 'down') optimisticDownvotes--;
+            if (currentReport.userVote === 'down') optimisticDownvotes--;
         } else {
             optimisticDownvotes++;
-            if (currentVote === 'up') optimisticUpvotes--;
+            if (currentReport.userVote === 'up') optimisticUpvotes--;
         }
     }
-
-    const optimisticReports = reports.map(rep => rep.id === reportId ? {
-        ...rep,
-        upvotes: optimisticUpvotes,
-        downvotes: optimisticDownvotes,
-        userVote: optimisticUserVote,
-    } : rep);
-    setReports(optimisticReports);
-
+    setReports(reports.map(rep => rep.id === reportId ? {
+        ...rep, upvotes: optimisticUpvotes, downvotes: optimisticDownvotes, userVote: optimisticUserVote,
+    } : rep));
     try {
         const reportRef = doc(db, "reports", reportId);
         const voteRef = doc(db, `reports/${reportId}/votes/${user.uid}`);
         const userVoteRef = doc(db, 'userVotes', `${user.uid}_${reportId}`);
-
         await runTransaction(db, async (transaction) => {
             const reportSnap = await transaction.get(reportRef);
             if (!reportSnap.exists()) throw new Error("El reporte ya no existe.");
-
             const voteDocSnap = await transaction.get(voteRef);
             const existingVote = voteDocSnap.exists() ? voteDocSnap.data().type : null;
-
             const reportData = reportSnap.data();
             let newUpvotes = reportData.upvotes || 0;
             let newDownvotes = reportData.downvotes || 0;
             const reportTitle = reportData.title || 'Reporte sin título';
-
             if (existingVote === voteType) {
                 if (voteType === 'up') newUpvotes = Math.max(0, newUpvotes - 1);
                 else newDownvotes = Math.max(0, newDownvotes - 1);
@@ -314,7 +268,6 @@ const CommunityReportsPage: FC = () => {
             }
             transaction.update(reportRef, { upvotes: newUpvotes, downvotes: newDownvotes });
         });
-        console.log("Vote updated successfully for report:", reportId);
     } catch (error: any) {
         console.error("Error updating vote:", error);
         toast({ variant: "destructive", title: "Error", description: `No se pudo registrar el voto: ${error.message}` });
@@ -324,36 +277,30 @@ const CommunityReportsPage: FC = () => {
     }
 };
 
-
-  // Helper function to determine badge color for report type
   const getTypeBadgeVariant = (type: 'incidente' | 'funcionario'): 'destructive' | 'default' => {
-     return type === 'incidente' ? 'destructive' : 'default'; // Destructive for incident, primary for funcionario
+     return type === 'incidente' ? 'destructive' : 'default';
   };
    const getTypeBadgeText = (type: 'incidente' | 'funcionario'): string => {
      return type === 'incidente' ? 'Incidente' : 'Funcionario';
    };
 
-    const handlePreviousPage = (e: React.MouseEvent<HTMLAnchorElement>) => {
+    const handlePreviousPageClick = (e: React.MouseEvent<HTMLAnchorElement>) => {
         e.preventDefault();
-        toast({ title: "Info", description: "Función 'Anterior' no implementada aún para paginación real." });
-        // To implement:
-        // if (currentPage > 1) {
-        //   setCurrentPage(prev => prev - 1);
-        //   // Need logic to fetch previous page using cursors or by page number
-        // }
+        if (currentPage > 1 && !isLoading) {
+            fetchReports('previous', currentFilterType, currentSortBy);
+        }
     };
 
     const handleNextPageClick = (e: React.MouseEvent<HTMLAnchorElement>) => {
         e.preventDefault();
-        if (hasMore && !isFetchingMore) {
-            loadMoreReports(); // This loads the next set of items
+        if (hasMore && !isLoading) {
+            fetchReports('next', currentFilterType, currentSortBy);
         }
     };
 
   return (
     <main className="flex flex-col p-4 sm:p-6 md:p-8 bg-secondary min-h-screen">
-      <div className="w-full max-w-7xl mx-auto space-y-6"> {/* Use wider max-width */}
-        {/* Modal de votos */}
+      <div className="w-full max-w-7xl mx-auto space-y-6">
         {selectedReport && (
           <VotesModal 
             open={votesModalOpen} 
@@ -364,16 +311,11 @@ const CommunityReportsPage: FC = () => {
             downvotes={selectedReport.downvotes}
           />
         )}
-
-        {/* Header Section */}
         <div className="mb-6">
           <h1 className="text-3xl font-semibold text-foreground mb-1">Reportes Comunitarios <span className="text-primary">+SEGURO</span></h1>
           <p className="text-muted-foreground">Visualización de reportes y denuncias ciudadanas para promover la seguridad en nuestra comunidad</p>
         </div>
-
-        {/* Search and Filters Bar - Responsive */}
         <div className="mb-8">
-          {/* Mobile: Minimal button */}
           <div className="md:hidden flex items-center gap-2">
             <Button
               variant="outline"
@@ -384,14 +326,12 @@ const CommunityReportsPage: FC = () => {
             >
               <SlidersHorizontal className="h-5 w-5" />
             </Button>
-            {/* Only show search input if modal is not open */}
             {!filterModalOpen && (
               <div className="flex-1">
                 <Input placeholder="Buscar..." className="h-10 rounded-full border-none focus-visible:ring-0 bg-card" />
               </div>
             )}
           </div>
-          {/* Desktop: Inline filters */}
           <div className="hidden md:flex flex-row items-center gap-4 p-4 bg-card rounded-full shadow-md border border-border">
             <div className="relative w-full md:flex-1">
               <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
@@ -429,7 +369,6 @@ const CommunityReportsPage: FC = () => {
               </Select>
             </div>
           </div>
-          {/* Mobile: Modal for filters */}
           <Dialog open={filterModalOpen} onOpenChange={setFilterModalOpen}>
             <DialogContent className="p-0 max-w-sm w-full rounded-2xl">
               <DialogHeader className="flex flex-row items-center justify-between px-4 pt-4 pb-2">
@@ -476,7 +415,7 @@ const CommunityReportsPage: FC = () => {
               </div>
               <DialogFooter className="px-4 pb-4">
                 <Button className="w-full rounded-full" onClick={() => {
-                    fetchReports(false, currentFilterType, currentSortBy);
+                    fetchReports('filterOrSort', currentFilterType, currentSortBy);
                     setFilterModalOpen(false);
                 }}>
                   Aplicar filtros
@@ -486,12 +425,11 @@ const CommunityReportsPage: FC = () => {
           </Dialog>
         </div>
 
-        {/* Reports Grid */}
-        {isLoading ? (
+        {isLoading && reports.length === 0 ? (
            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
             {[...Array(ITEMS_PER_PAGE)].map((_, i) => (
-              <Card key={i} className="shadow-sm bg-card rounded-lg overflow-hidden"> {/* Applied rounded-lg */}
-                  <Skeleton className="h-40 w-full bg-muted" /> {/* Image Placeholder */}
+              <Card key={i} className="shadow-sm bg-card rounded-lg overflow-hidden">
+                  <Skeleton className="h-40 w-full bg-muted" />
                   <CardContent className="p-4">
                     <Skeleton className="h-4 w-3/4 mb-2" />
                     <Skeleton className="h-3 w-full mb-1" />
@@ -499,15 +437,13 @@ const CommunityReportsPage: FC = () => {
                     <Skeleton className="h-3 w-1/2 mb-3" />
                     <Skeleton className="h-3 w-1/3" />
                   </CardContent>
-
               </Card>
             ))}
            </div>
         ) : reports.length > 0 ? (
            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
              {reports.map((report) => (
-               <Card key={report.id} className="shadow-md bg-card rounded-lg overflow-hidden hover:shadow-xl transition-shadow duration-300 flex flex-col"> {/* Applied rounded-lg */}
-                 {/* Media Preview Area */}
+               <Card key={report.id} className="shadow-md bg-card rounded-lg overflow-hidden hover:shadow-xl transition-shadow duration-300 flex flex-col">
                  <div className="relative h-40 w-full bg-muted flex items-center justify-center text-muted-foreground overflow-hidden group">
                     {report.mediaUrl ? (
                         <>
@@ -526,14 +462,11 @@ const CommunityReportsPage: FC = () => {
                            <span className="text-xs">Sin imagen adjunta</span>
                         </div>
                     )}
-
-                   {/* Badges Overlay */}
                    <div className="absolute top-2 left-2 z-10">
                       <Badge variant={getTypeBadgeVariant(report.reportType)} className="text-xs capitalize shadow">
                         {getTypeBadgeText(report.reportType)}
                       </Badge>
                    </div>
-                    {/* Dropdown Menu */}
                     <div className="absolute top-2 right-2 z-10">
                         <DropdownMenu>
                             <DropdownMenuTrigger asChild>
@@ -554,9 +487,6 @@ const CommunityReportsPage: FC = () => {
                             </DropdownMenuContent>
                         </DropdownMenu>
                     </div>
-
-
-                   {/* Media Type Icon */}
                    {report.mediaUrl && (
                     <div className="absolute bottom-2 right-2 bg-black/60 text-white p-1.5 rounded-full backdrop-blur-sm z-10">
                         {report.mediaUrl.includes('.mp4') || report.mediaUrl.includes('.webm') ? (
@@ -567,7 +497,6 @@ const CommunityReportsPage: FC = () => {
                     </div>
                    )}
                  </div>
-
                  <CardContent className="p-4 flex-1 space-y-2">
                    <CardTitle className="text-base font-semibold leading-snug line-clamp-2">
                      <Link href={`/reports/${report.id}`} className="hover:text-primary transition-colors">
@@ -581,22 +510,15 @@ const CommunityReportsPage: FC = () => {
                      <MapPin size={12} className="flex-shrink-0" />
                      <span className="truncate">{formatLocation(report.location)}</span>
                    </div>
-                   <div className="flex items-center justify-between pt-1"> {/* Adjusted padding */}
+                   <div className="flex items-center justify-between pt-1">
                       <div className="flex items-center text-xs text-muted-foreground gap-1.5">
                          <CalendarDays size={12} className="flex-shrink-0" />
                          <span>{formatDistanceToNow(report.createdAt, { addSuffix: true, locale: es })}</span>
                       </div>
-                      {/* Voting Section */}
                       <div className="flex items-center space-x-1 bg-muted p-1 rounded-full">
                            <Button
-                               variant="ghost"
-                               size="icon"
-                               className={cn(
-                                   "h-6 w-6 rounded-full text-muted-foreground hover:bg-blue-500/10 hover:text-blue-500",
-                                   report.userVote === 'down' && "bg-blue-600/20 text-blue-600",
-                                   votingState[report.id] && "opacity-50 cursor-not-allowed",
-                                   user?.uid === report.userId && "cursor-not-allowed opacity-60"
-                               )}
+                               variant="ghost" size="icon"
+                               className={cn("h-6 w-6 rounded-full text-muted-foreground hover:bg-blue-500/10 hover:text-blue-500", report.userVote === 'down' && "bg-blue-600/20 text-blue-600", votingState[report.id] && "opacity-50 cursor-not-allowed", user?.uid === report.userId && "cursor-not-allowed opacity-60")}
                               onClick={() => handleVote(report.id, 'down')}
                               disabled={votingState[report.id] || user?.uid === report.userId}
                               aria-pressed={report.userVote === 'down'}
@@ -607,23 +529,14 @@ const CommunityReportsPage: FC = () => {
                            <Button 
                                variant="ghost" 
                                className="text-sm font-medium text-foreground tabular-nums w-6 text-center p-0 h-auto hover:bg-transparent hover:text-primary"
-                               onClick={() => {
-                                   setSelectedReport(report);
-                                   setVotesModalOpen(true);
-                               }}
+                               onClick={() => { setSelectedReport(report); setVotesModalOpen(true);}}
                                title="Ver detalles de votos"
                            >
                                {report.upvotes - report.downvotes}
                            </Button>
                            <Button
-                              variant="ghost"
-                              size="icon"
-                              className={cn(
-                                  "h-6 w-6 rounded-full text-muted-foreground hover:bg-red-500/10 hover:text-red-500",
-                                  report.userVote === 'up' && "bg-red-600/20 text-red-600",
-                                  votingState[report.id] && "opacity-50 cursor-not-allowed",
-                                  user?.uid === report.userId && "cursor-not-allowed opacity-60"
-                              )}
+                              variant="ghost" size="icon"
+                              className={cn("h-6 w-6 rounded-full text-muted-foreground hover:bg-red-500/10 hover:text-red-500", report.userVote === 'up' && "bg-red-600/20 text-red-600", votingState[report.id] && "opacity-50 cursor-not-allowed", user?.uid === report.userId && "cursor-not-allowed opacity-60")}
                               onClick={() => handleVote(report.id, 'up')}
                               disabled={votingState[report.id] || user?.uid === report.userId}
                               aria-pressed={report.userVote === 'up'}
@@ -634,13 +547,11 @@ const CommunityReportsPage: FC = () => {
                        </div>
                    </div>
                  </CardContent>
-
-
                </Card>
              ))}
            </div>
         ) : (
-           <Card className="shadow-sm bg-card col-span-full rounded-lg"> {/* Applied rounded-lg */}
+           <Card className="shadow-sm bg-card col-span-full rounded-lg">
              <CardContent className="p-6 text-center">
                <FileText className="mx-auto h-12 w-12 text-muted-foreground mb-4" />
                <CardTitle className="text-xl font-semibold mb-2">No hay reportes de la comunidad</CardTitle>
@@ -656,40 +567,38 @@ const CommunityReportsPage: FC = () => {
            </Card>
         )}
 
-         {/* Pagination */}
         {!isLoading && reports.length > 0 && (hasMore || currentPage > 1) && (
          <div className="mt-8 flex justify-center">
            <Pagination>
              <PaginationContent>
                <PaginationItem>
                  <PaginationPrevious
-                    onClick={handlePreviousPage}
+                    onClick={handlePreviousPageClick}
                     className={cn(currentPage === 1 && "pointer-events-none opacity-50")}
+                    href="#" // Added href
                   />
                </PaginationItem>
-               {/* Static page numbers for now, real functionality needs more complex state */}
                <PaginationItem>
-                 <PaginationLink href="#" isActive={currentPage ===1}>1</PaginationLink>
+                 <PaginationLink href="#" isActive>
+                    {currentPage}
+                 </PaginationLink>
                </PaginationItem>
-               {currentPage > 2 && reports.length >= ITEMS_PER_PAGE && <PaginationItem><PaginationEllipsis /></PaginationItem>}
-               {currentPage > 1 && currentPage < (reports.length / ITEMS_PER_PAGE + (reports.length % ITEMS_PER_PAGE > 0 ? 1:0) ) && (
-                  <PaginationItem>
-                    <PaginationLink href="#" isActive>{currentPage}</PaginationLink>
-                  </PaginationItem>
+               {hasMore && (
+                 <PaginationItem>
+                   <PaginationEllipsis />
+                 </PaginationItem>
                )}
-               {/* Consider adding more page links or a more dynamic approach if full pagination is built */}
                <PaginationItem>
                   <PaginationNext
                     onClick={handleNextPageClick}
                     className={cn(!hasMore && "pointer-events-none opacity-50")}
+                    href="#" // Added href
                   />
                </PaginationItem>
              </PaginationContent>
            </Pagination>
          </div>
         )}
-
-         {/* Report Incident Button */}
         <div className="mt-8 text-center">
           <Button size="lg" asChild className="rounded-full shadow-md hover:shadow-lg transition-shadow">
             <Link href="/reports/new">
@@ -697,9 +606,7 @@ const CommunityReportsPage: FC = () => {
             </Link>
           </Button>
         </div>
-
       </div>
-      {/* Footer */}
       <footer className="mt-12 text-center text-xs text-muted-foreground">
         © {new Date().getFullYear()} +SEGURO - Plataforma de reportes ciudadanos para la seguridad pública
       </footer>
@@ -708,4 +615,3 @@ const CommunityReportsPage: FC = () => {
 };
 
 export default CommunityReportsPage;
-
