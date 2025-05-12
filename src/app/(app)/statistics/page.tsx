@@ -432,62 +432,53 @@ const StatisticsPage: FC = () => {
                     </div>
              </div>
 
-             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-                 <Card className="bg-card shadow-md border-border hover:shadow-lg transition-shadow group rounded-lg border-l-4 border-l-primary">
-                     <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 pt-4 px-4">
-                         <CardTitle className="text-sm font-medium text-muted-foreground">Total Reportes ({reportTypeFilter})</CardTitle>
-                         <List className="h-5 w-5 text-primary opacity-70 group-hover:opacity-100 transition-opacity" />
-                     </CardHeader>
-                     <CardContent className="pt-1 pb-4 px-4">
-                         <div className="text-3xl font-bold text-primary">
-                           <AnimatedNumber value={totalReports} formatOptions={{ maximumFractionDigits: 0 }} className="block"/>
-                         </div>
-                          <p className="text-xs text-muted-foreground mt-1 flex items-center gap-1 text-green-600">
-                                <TrendingUp className="h-3.5 w-3.5"/> {averageReports.toFixed(1)} {averageLabel}
-                          </p>
-                     </CardContent>
-                 </Card>
-                 <Card className="bg-card shadow-md border-border hover:shadow-lg transition-shadow group rounded-lg border-l-4 border-l-blue-500"> 
-                     <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 pt-4 px-4">
-                         <CardTitle className="text-sm font-medium text-muted-foreground">Incidentes Reportados</CardTitle>
-                         <AlertTriangle className="h-5 w-5 text-blue-500 opacity-70 group-hover:opacity-100 transition-opacity" />
-                     </CardHeader>
-                     <CardContent className="pt-1 pb-4 px-4">
-                          <div className="text-3xl font-bold text-blue-500">
-                             <AnimatedNumber value={incidentReportsCount} formatOptions={{ maximumFractionDigits: 0 }} className="block"/>
-                          </div>
-                           <p className="text-xs text-muted-foreground mt-1 flex items-center gap-1 text-blue-600"> 
-                             <TrendingDown className="h-3.5 w-3.5"/> {mostActiveDay} día más común
+             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                 <Card className="p-3 flex flex-col justify-between bg-primary/5 border-primary/20 rounded-lg shadow-sm hover:shadow-md transition-shadow">
+                     <div>
+                         <p className="text-xs text-primary font-medium flex items-center">
+                            <List className="h-3.5 w-3.5 mr-1.5"/>Total Reportes ({reportTypeFilter})
                          </p>
-                     </CardContent>
+                         <AnimatedNumber value={totalReports} className="text-2xl font-bold text-primary block mt-0.5"/>
+                     </div>
+                     <p className="text-xs text-primary/80 mt-1 flex items-center">
+                         <TrendingUp className="h-3 w-3 mr-0.5"/> {averageReports.toFixed(1)} {averageLabel}
+                     </p>
                  </Card>
-                 <Card className="bg-card shadow-md border-border hover:shadow-lg transition-shadow group rounded-lg border-l-4 border-l-red-500"> 
-                     <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 pt-4 px-4">
-                         <CardTitle className="text-sm font-medium text-muted-foreground">Reportes Funcionarios</CardTitle>
-                         <UserCog className="h-5 w-5 text-red-500 opacity-70 group-hover:opacity-100 transition-opacity" />
-                     </CardHeader>
-                     <CardContent className="pt-1 pb-4 px-4">
-                         <div className="text-3xl font-bold text-red-500">
-                            <AnimatedNumber value={officerReportsCount} formatOptions={{ maximumFractionDigits: 0 }} className="block"/>
-                         </div>
-                          <p className="text-xs text-muted-foreground mt-1 flex items-center gap-1 text-red-600"> 
-                             <TrendingUp className="h-3.5 w-3.5"/> +2% este mes
-                          </p>
-                     </CardContent>
+
+                 <Card className="p-3 flex flex-col justify-between bg-blue-500/5 border-blue-500/20 rounded-lg shadow-sm hover:shadow-md transition-shadow">
+                     <div>
+                         <p className="text-xs text-blue-600 font-medium flex items-center">
+                            <AlertTriangle className="h-3.5 w-3.5 mr-1.5"/>Incidentes Reportados
+                         </p>
+                         <AnimatedNumber value={incidentReportsCount} className="text-2xl font-bold text-blue-700 block mt-0.5"/>
+                     </div>
+                     <p className="text-xs text-blue-500 mt-1 flex items-center">
+                         <TrendingDown className="h-3 w-3 mr-0.5"/> {mostActiveDay} día más común
+                     </p>
                  </Card>
-                  <Card className="bg-card shadow-md border-border hover:shadow-lg transition-shadow group rounded-lg border-l-4 border-l-green-500">
-                     <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 pt-4 px-4">
-                         <CardTitle className="text-sm font-medium text-muted-foreground">Zona Más Activa</CardTitle>
-                          <MapPin className="h-5 w-5 text-green-600 opacity-70 group-hover:opacity-100 transition-opacity" />
-                     </CardHeader>
-                     <CardContent className="pt-1 pb-4 px-4">
-                          <div className="text-3xl font-bold text-green-600 truncate">
-                            Col. Centro
-                          </div>
-                           <p className="text-xs text-muted-foreground mt-1 flex items-center gap-1 text-green-600">
-                             <CheckCircle className="h-3.5 w-3.5"/> Tendencia estable
-                          </p>
-                     </CardContent>
+
+                 <Card className="p-3 flex flex-col justify-between bg-red-500/5 border-red-500/20 rounded-lg shadow-sm hover:shadow-md transition-shadow">
+                     <div>
+                         <p className="text-xs text-red-600 font-medium flex items-center">
+                            <UserCog className="h-3.5 w-3.5 mr-1.5"/>Reportes Funcionarios
+                         </p>
+                         <AnimatedNumber value={officerReportsCount} className="text-2xl font-bold text-red-700 block mt-0.5"/>
+                     </div>
+                     <p className="text-xs text-red-500 mt-1 flex items-center">
+                        <TrendingUp className="h-3 w-3 mr-0.5"/> +2% este mes
+                     </p>
+                 </Card>
+
+                 <Card className="p-3 flex flex-col justify-between bg-green-500/5 border-green-500/20 rounded-lg shadow-sm hover:shadow-md transition-shadow">
+                     <div>
+                         <p className="text-xs text-green-600 font-medium flex items-center">
+                            <MapPin className="h-3.5 w-3.5 mr-1.5"/>Zona Más Activa
+                         </p>
+                         <div className="text-2xl font-bold text-green-700 block mt-0.5 truncate">Col. Centro</div>
+                     </div>
+                     <p className="text-xs text-green-500 mt-1 flex items-center">
+                        <CheckCircle className="h-3 w-3 mr-0.5"/> Tendencia estable
+                     </p>
                  </Card>
              </div>
 
