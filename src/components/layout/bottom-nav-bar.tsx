@@ -1,15 +1,20 @@
-
 "use client";
 
 import type { FC, ReactElement } from 'react';
 import React from 'react'; // Import React
-import { useState } from 'react';
+import { useState, useEffect } from 'react'; // Added useEffect
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Home, User, FileText, ShieldAlert, Globe, BarChart3, Menu, X } from 'lucide-react';
+import { Home, User, FileText, ShieldAlert, Globe, BarChart3, Menu, X, LogOut, Settings } from 'lucide-react'; // Added LogOut, Settings
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger, SheetClose } from '@/components/ui/sheet';
+import { useAuth } from '@/context/AuthContext'; // Import useAuth
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'; // Import Avatar components
+import { signOut } from 'firebase/auth'; // Import signOut
+import { auth } from '@/lib/firebase/client'; // Import auth
+import { useToast } from '@/hooks/use-toast'; // Import useToast
+import { useRouter } from 'next/navigation'; // Import useRouter
 
 interface NavLinkItem {
   href: string;
@@ -46,7 +51,54 @@ const DesktopNavItem: FC<NavLinkItem> = ({ href, label, icon }) => {
 
 export const TopNavBar: FC = () => {
   const pathname = usePathname();
+  const router = useRouter(); // Initialize router
+  const { toast } = useToast(); // Initialize toast
   const [isSheetOpen, setIsSheetOpen] = useState(false);
+  const { user, isAuthenticated, loading: authLoading } = useAuth(); // Get user from AuthContext
+  const [userName, setUserName] = useState<string | null>(null);
+  const [userEmail, setUserEmail] = useState<string | null>(null);
+  const [userPhotoURL, setUserPhotoURL] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (isAuthenticated && user) {
+      setUserName(user.displayName || 'Usuario +Seguro');
+      setUserEmail(user.email);
+      setUserPhotoURL(user.photoURL);
+    } else if (!authLoading) {
+      // If not authenticated and not loading, clear user info
+      setUserName(null);
+      setUserEmail(null);
+      setUserPhotoURL(null);
+    }
+  }, [user, isAuthenticated, authLoading]);
+
+
+  const getInitials = (name?: string | null): string => {
+    if (!name) return "?";
+    const names = name.trim().split(' ');
+    if (names.length === 1) return names[0][0]?.toUpperCase() || "?";
+    return (names[0][0]?.toUpperCase() || "") + (names[names.length - 1][0]?.toUpperCase() || "");
+  };
+  
+  const handleLogout = async () => {
+    try {
+      await signOut(auth);
+      toast({
+        title: "Sesión Cerrada",
+        description: "Has cerrado sesión exitosamente.",
+      });
+      setIsSheetOpen(false); // Close sheet after logout
+      router.push("/"); // Redirect to home or login page
+    } catch (error) {
+      console.error("Error signing out: ", error);
+      toast({
+        variant: "destructive",
+        title: "Error al Cerrar Sesión",
+        description: "No se pudo cerrar la sesión. Inténtalo de nuevo.",
+      });
+    }
+  };
+
 
   return (
     <nav className="sticky top-0 left-0 right-0 h-16 bg-card border-b border-border shadow-sm flex items-center z-50">
@@ -63,13 +115,29 @@ export const TopNavBar: FC = () => {
               <span className="sr-only">Abrir menú</span>
             </Button>
           </SheetTrigger>
-          <SheetContent side="right" className="w-[280px] p-0">
-            <SheetHeader className="p-4 border-b">
-              <SheetTitle className="flex items-center gap-2 text-primary">
-                <ShieldAlert className="h-5 w-5" /> +Seguro Menú
-              </SheetTitle>
-            </SheetHeader>
-            <nav className="mt-4 flex flex-col gap-1 px-2">
+          <SheetContent side="right" className="w-[300px] p-0 flex flex-col bg-background text-foreground">
+            {/* User Profile Section */}
+            {isAuthenticated && user && (
+              <div className="p-4 border-b border-border">
+                <Link href="/profile" onClick={() => setIsSheetOpen(false)} className="flex items-center gap-3">
+                  <Avatar className="h-12 w-12 border-2 border-primary">
+                    <AvatarImage src={userPhotoURL || undefined} alt="Foto de perfil" data-ai-hint="user profile avatar"/>
+                    <AvatarFallback className="text-lg bg-muted text-muted-foreground">
+                      {getInitials(userName)}
+                    </AvatarFallback>
+                  </Avatar>
+                  <div>
+                    <p className="text-base font-semibold text-foreground">{userName}</p>
+                    <p className="text-xs text-muted-foreground">{userEmail}</p>
+                  </div>
+                </Link>
+                 <p className="text-xs text-muted-foreground mt-2">
+                  Miembro activo de la comunidad +Seguro.
+                </p>
+              </div>
+            )}
+
+            <nav className="flex-1 mt-4 flex flex-col gap-1 px-2 overflow-y-auto">
               {navLinks.map(({ href, label, icon }) => {
                 const isActive = href === '/' ? pathname === href : pathname?.startsWith(href);
                 return (
@@ -91,6 +159,23 @@ export const TopNavBar: FC = () => {
                 );
               })}
             </nav>
+            {/* Footer with Settings and Logout */}
+             {isAuthenticated && (
+                <div className="mt-auto p-3 border-t border-border">
+                    <SheetClose asChild>
+                        <Button variant="ghost" className="w-full justify-start text-muted-foreground hover:text-foreground mb-1" onClick={() => { router.push('/profile/edit'); setIsSheetOpen(false); }}>
+                            <Settings className="h-5 w-5 mr-3" />
+                            Configuración
+                        </Button>
+                    </SheetClose>
+                    <SheetClose asChild>
+                        <Button variant="ghost" className="w-full justify-start text-destructive hover:text-destructive hover:bg-destructive/10" onClick={handleLogout}>
+                            <LogOut className="h-5 w-5 mr-3" />
+                            Cerrar Sesión
+                        </Button>
+                    </SheetClose>
+                </div>
+             )}
           </SheetContent>
         </Sheet>
       </div>
