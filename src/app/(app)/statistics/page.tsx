@@ -1,3 +1,4 @@
+
 "use client";
 
 import type { FC } from 'react';
@@ -302,7 +303,7 @@ const StatisticsPage: FC = () => {
             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-2 gap-2">
                 <div className="space-y-1"> 
                     <Skeleton className="h-8 w-64" />
-                    <Skeleton className="h-4 w-80" />
+                    <Skeleton className="h-4 w-80 md:hidden" /> {/* Skeleton for mobile description */}
                 </div>
                  <div className="flex flex-wrap justify-center sm:justify-end gap-2 w-full md:w-auto"> 
                      <Skeleton className="h-9 w-full md:w-36 rounded-md" /> 
@@ -344,7 +345,7 @@ const StatisticsPage: FC = () => {
                      <h1 className="text-2xl md:text-3xl font-semibold text-foreground flex items-center">
                          Dashboard de Estadísticas <span className="text-primary font-bold ml-1.5">+SEGURO</span>
                      </h1>
-                     <p className="text-muted-foreground text-sm md:text-base">
+                     <p className="text-muted-foreground text-sm block md:hidden">
                         Visualización de datos de reportes ciudadanos para promover la seguridad pública
                      </p>
                  </div>
@@ -482,7 +483,9 @@ const StatisticsPage: FC = () => {
                          <CardTitle className="text-lg font-semibold flex items-center gap-2 text-foreground">
                             <CalendarRange className="h-5 w-5 text-primary" /> Tendencia de Reportes {reportTypeFilter !== 'Todos' ? `(${reportTypeFilter}s)` : ''} por {filterPeriod === 'day' ? 'Día' : filterPeriod === 'week' ? 'Semana' : 'Mes'}
                          </CardTitle>
-                         <CardDescription className="text-sm mt-1 text-muted-foreground">Número de reportes registrados en el periodo seleccionado.</CardDescription>
+                         <CardDescription className="text-sm mt-1 text-muted-foreground hidden md:block"> {/* Hide on mobile */}
+                           Número de reportes registrados en el periodo seleccionado.
+                         </CardDescription>
                      </div>
                  </CardHeader>
                   <CardContent className="p-2 sm:p-4 md:p-6">
@@ -571,3 +574,4 @@ const StatisticsPage: FC = () => {
 };
 
 export default StatisticsPage;
+
