@@ -1,4 +1,3 @@
-
 "use client";
 
 import type { FC } from 'react';
@@ -235,11 +234,11 @@ const StatisticsPage: FC = () => {
   const chartConfig = {
     incidentCount: { 
       label: "Incidentes",
-      color: "hsl(var(--primary))", // Blue for incidentes (theme's primary)
+      color: "hsl(var(--primary))", 
     },
     officerCount: { 
       label: "Funcionarios",
-      color: "hsl(var(--destructive))", // Red for funcionarios (theme's destructive)
+      color: "hsl(var(--destructive))", 
     },
   } satisfies ChartConfig;
 
@@ -301,12 +300,12 @@ const StatisticsPage: FC = () => {
       <main className="flex flex-col items-center p-4 sm:p-6 bg-secondary min-h-screen">
          <div className="w-full max-w-7xl mx-auto space-y-6">
             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-2 gap-2">
-                <div className="space-y-1 hidden md:block"> {/* Hide on mobile */}
+                <div className="space-y-1"> 
                     <Skeleton className="h-8 w-64" />
                     <Skeleton className="h-4 w-80" />
                 </div>
-                 <div className="flex flex-wrap justify-center sm:justify-end gap-2 w-full md:w-auto"> {/* Full width on mobile */}
-                     <Skeleton className="h-9 w-full md:w-36 rounded-md" /> {/* Full width on mobile */}
+                 <div className="flex flex-wrap justify-center sm:justify-end gap-2 w-full md:w-auto"> 
+                     <Skeleton className="h-9 w-full md:w-36 rounded-md" /> 
                  </div>
             </div>
              <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 mb-4">
@@ -341,7 +340,7 @@ const StatisticsPage: FC = () => {
     <main className="flex flex-col items-center p-4 sm:p-6 bg-secondary min-h-screen">
          <div className="w-full max-w-7xl mx-auto space-y-8">
               <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4">
-                 <div className="space-y-1 hidden md:block"> {/* Hide on mobile */}
+                 <div className="space-y-1"> 
                      <h1 className="text-2xl md:text-3xl font-semibold text-foreground flex items-center">
                          Dashboard de Estadísticas <span className="text-primary font-bold ml-1.5">+SEGURO</span>
                      </h1>
@@ -427,7 +426,7 @@ const StatisticsPage: FC = () => {
                     </div>
              </div>
 
-             <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+             <div className="grid grid-cols-1 xs:grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
                  <Card className="p-3 flex flex-col justify-between bg-green-50 border-green-200 rounded-lg shadow-sm hover:shadow-md transition-shadow">
                      <div>
                          <p className="text-xs text-green-700 font-medium flex items-center">
@@ -464,12 +463,12 @@ const StatisticsPage: FC = () => {
                      </p>
                  </Card>
                 
-                 <Card className="p-3 flex flex-col justify-between bg-orange-50 border-orange-200 rounded-lg shadow-sm hover:shadow-md transition-shadow">
+                 <Card className="p-3 flex flex-col justify-between bg-orange-50 border-orange-300 rounded-lg shadow-sm hover:shadow-md transition-shadow">
                     <div>
                         <p className="text-xs text-orange-700 font-medium flex items-center">
                            <MapPin className="h-3.5 w-3.5 mr-1.5"/>Zona Más Peligrosa
                         </p>
-                        <div className="text-2xl sm:text-3xl font-bold text-orange-700 block mt-0.5 truncate">Col. Centro</div> {/* Placeholder */}
+                        <div className="text-xl sm:text-2xl font-bold text-orange-800 block mt-0.5 truncate">Col. Centro</div> {/* Placeholder */}
                     </div>
                     <p className="text-xs text-orange-600 mt-1 flex items-center">
                        <AlertTriangle className="h-3 w-3 mr-0.5"/> Riesgo Elevado
@@ -572,5 +571,3 @@ const StatisticsPage: FC = () => {
 };
 
 export default StatisticsPage;
-
-
