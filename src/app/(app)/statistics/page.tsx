@@ -310,16 +310,16 @@ const StatisticsPage: FC = () => {
                      <Skeleton className="h-9 w-36 rounded-md" />
                  </div>
             </div>
-             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-4">
+             <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 mb-4">
                  {[...Array(4)].map((_, i) => (
                      <Card key={i} className="bg-card rounded-lg">
-                         <CardHeader className="pb-2 pt-4 px-4 flex flex-row items-center justify-between space-y-0">
-                              <Skeleton className="h-4 w-24" />
+                         <CardHeader className="pb-2 pt-3 sm:pt-4 px-3 sm:px-4 flex flex-row items-center justify-between space-y-0">
+                              <Skeleton className="h-4 w-20 sm:w-24" />
                               <Skeleton className="h-5 w-5" />
                          </CardHeader>
-                         <CardContent className="pt-1 pb-4 px-4">
-                             <Skeleton className="h-8 w-16 mb-1" />
-                             <Skeleton className="h-3 w-20 mt-1" />
+                         <CardContent className="pt-1 pb-3 sm:pb-4 px-3 sm:px-4">
+                             <Skeleton className="h-7 sm:h-8 w-12 sm:w-16 mb-1" />
+                             <Skeleton className="h-3 w-16 sm:w-20 mt-1" />
                          </CardContent>
                      </Card>
                  ))}
@@ -350,13 +350,11 @@ const StatisticsPage: FC = () => {
                         Visualización de datos de reportes ciudadanos para promover la seguridad pública
                      </p>
                  </div>
-                 {/* New Filter UI - Consistent with Community Reports */}
                   <div className="w-full md:w-auto">
-                      {/* Mobile: Minimal button */}
                         <div className="md:hidden flex items-center justify-end gap-2">
                             <Button
                                 variant="outline"
-                                size="icon" // Changed to icon for consistency
+                                size="icon"
                                 className="rounded-full p-3 shadow-sm border border-border"
                                 onClick={() => setFilterModalOpen(true)}
                                 aria-label="Filtrar Estadísticas"
@@ -364,7 +362,6 @@ const StatisticsPage: FC = () => {
                                 <SlidersHorizontal className="h-5 w-5" />
                             </Button>
                         </div>
-                        {/* Desktop: Inline filters */}
                         <div className="hidden md:flex flex-row items-center gap-3 p-2 bg-card rounded-full shadow-md border border-border">
                             <span className="text-sm font-medium text-muted-foreground pl-2 pr-1 hidden md:inline">Filtrar por:</span>
                             <Select value={reportTypeFilter} onValueChange={(value) => setReportTypeFilter(value as ReportTypeFilter)}>
@@ -388,7 +385,6 @@ const StatisticsPage: FC = () => {
                                 </SelectContent>
                             </Select>
                         </div>
-                        {/* Mobile: Modal for filters */}
                         <Dialog open={filterModalOpen} onOpenChange={setFilterModalOpen}>
                             <DialogContent className="p-0 max-w-sm w-full rounded-2xl">
                             <DialogHeader className="flex flex-row items-center justify-between px-4 pt-4 pb-2">
@@ -432,49 +428,49 @@ const StatisticsPage: FC = () => {
                     </div>
              </div>
 
-             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-                 <Card className="p-3 flex flex-col justify-between bg-green-50 border-green-200 rounded-lg shadow-sm hover:shadow-md transition-shadow">
+             <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+                 <Card className="p-2 sm:p-3 flex flex-col justify-between bg-green-50 border-green-200 rounded-lg shadow-sm hover:shadow-md transition-shadow">
                      <div>
                          <p className="text-xs text-green-700 font-medium flex items-center">
                             <List className="h-3.5 w-3.5 mr-1.5"/>Total Reportes ({reportTypeFilter})
                          </p>
-                         <AnimatedNumber value={totalReports} className="text-2xl font-bold text-green-700 block mt-0.5"/>
+                         <AnimatedNumber value={totalReports} className="text-xl sm:text-2xl font-bold text-green-700 block mt-0.5"/>
                      </div>
                      <p className="text-xs text-green-500 mt-1 flex items-center">
                          <TrendingUp className="h-3 w-3 mr-0.5"/> {averageReports.toFixed(1)} {averageLabel}
                      </p>
                  </Card>
                 
-                 <Card className="p-3 flex flex-col justify-between bg-red-50 border-red-200 rounded-lg shadow-sm hover:shadow-md transition-shadow">
+                 <Card className="p-2 sm:p-3 flex flex-col justify-between bg-red-50 border-red-200 rounded-lg shadow-sm hover:shadow-md transition-shadow">
                      <div>
                          <p className="text-xs text-red-600 font-medium flex items-center">
                             <UserCog className="h-3.5 w-3.5 mr-1.5"/>Reportes Funcionarios
                          </p>
-                         <AnimatedNumber value={officerReportsCount} className="text-2xl font-bold text-red-700 block mt-0.5"/>
+                         <AnimatedNumber value={officerReportsCount} className="text-xl sm:text-2xl font-bold text-red-700 block mt-0.5"/>
                      </div>
                      <p className="text-xs text-red-500 mt-1 flex items-center">
                         <TrendingUp className="h-3 w-3 mr-0.5"/> +2% este mes
                      </p>
                  </Card>
 
-                 <Card className="p-3 flex flex-col justify-between bg-blue-50 border-blue-200 rounded-lg shadow-sm hover:shadow-md transition-shadow">
+                 <Card className="p-2 sm:p-3 flex flex-col justify-between bg-blue-50 border-blue-200 rounded-lg shadow-sm hover:shadow-md transition-shadow">
                      <div>
                          <p className="text-xs text-blue-600 font-medium flex items-center">
                             <AlertTriangle className="h-3.5 w-3.5 mr-1.5"/>Incidentes Reportados
                          </p>
-                         <AnimatedNumber value={incidentReportsCount} className="text-2xl font-bold text-blue-700 block mt-0.5"/>
+                         <AnimatedNumber value={incidentReportsCount} className="text-xl sm:text-2xl font-bold text-blue-700 block mt-0.5"/>
                      </div>
                      <p className="text-xs text-blue-500 mt-1 flex items-center">
                          <TrendingDown className="h-3 w-3 mr-0.5"/> {mostActiveDay} día más común
                      </p>
                  </Card>
                 
-                 <Card className="p-3 flex flex-col justify-between bg-orange-50 border-orange-200 rounded-lg shadow-sm hover:shadow-md transition-shadow">
+                 <Card className="p-2 sm:p-3 flex flex-col justify-between bg-orange-50 border-orange-200 rounded-lg shadow-sm hover:shadow-md transition-shadow">
                     <div>
                         <p className="text-xs text-orange-700 font-medium flex items-center">
                            <MapPin className="h-3.5 w-3.5 mr-1.5"/>Zona Más Peligrosa
                         </p>
-                        <div className="text-2xl font-bold text-orange-700 block mt-0.5 truncate">Col. Centro</div> {/* Placeholder */}
+                        <div className="text-xl sm:text-2xl font-bold text-orange-700 block mt-0.5 truncate">Col. Centro</div> {/* Placeholder */}
                     </div>
                     <p className="text-xs text-orange-600 mt-1 flex items-center">
                        <AlertTriangle className="h-3 w-3 mr-0.5"/> Riesgo Elevado
