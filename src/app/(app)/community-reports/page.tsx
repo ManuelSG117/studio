@@ -1,4 +1,3 @@
-
 "use client";
 
 import type { FC } from 'react';
@@ -51,9 +50,13 @@ const CommunityReportsPage: FC = () => {
   const [votingState, setVotingState] = useState<{ [reportId: string]: boolean }>({});
   const [votesModalOpen, setVotesModalOpen] = useState(false);
   const [selectedReport, setSelectedReport] = useState<Report | null>(null);
+  
   const [filterModalOpen, setFilterModalOpen] = useState(false);
   const [currentFilterType, setCurrentFilterType] = useState<'todos' | 'incidente' | 'funcionario'>('todos');
   const [currentSortBy, setCurrentSortBy] = useState<'recientes' | 'antiguos' | 'populares'>('recientes');
+  const [searchTerm, setSearchTerm] = useState(''); // State for search term
+  const [displayedSearchTerm, setDisplayedSearchTerm] = useState(''); // For desktop search input
+
   const [currentPage, setCurrentPage] = useState(1);
 
 
@@ -75,14 +78,15 @@ const CommunityReportsPage: FC = () => {
   const fetchReports = useCallback(async (
     direction: 'initial' | 'next' | 'previous' | 'filterOrSort',
     filterType = currentFilterType, 
-    sortBy = currentSortBy
+    sortBy = currentSortBy,
+    currentSearchTerm = displayedSearchTerm // Use displayedSearchTerm for actual fetching
   ) => {
     if (!user) {
         console.error("fetchReports (Community) called without a valid user.");
         setIsLoading(false);
         return;
     }
-    console.log("Fetching community reports. Direction:", direction, "Filter Type:", filterType, "Sort By:", sortBy, "Current Page:", currentPage);
+    console.log("Fetching community reports. Direction:", direction, "Filter Type:", filterType, "Sort By:", sortBy, "Search:", currentSearchTerm, "Current Page:", currentPage);
     setIsLoading(true);
 
     try {
@@ -93,6 +97,18 @@ const CommunityReportsPage: FC = () => {
         queryConstraints.push(where("reportType", "==", filterType));
       }
 
+      // Search term filtering (basic example - consider more robust search for production)
+      // Note: Firestore does not support case-insensitive search or partial string matches directly on fields without third-party solutions or more complex data structuring.
+      // This example assumes you might have a 'keywords' array field in your reports for searching.
+      if (currentSearchTerm.trim() !== '') {
+        // Example: If you have a 'title_lowercase' field for searching
+        // queryConstraints.push(where("title_lowercase", ">=", currentSearchTerm.toLowerCase()));
+        // queryConstraints.push(where("title_lowercase", "<=", currentSearchTerm.toLowerCase() + '\uf8ff'));
+        // For now, this part of the query is commented out as it depends on your Firestore data structure.
+        // You'd typically filter client-side after fetching if full-text search isn't set up in Firestore.
+      }
+
+
       let orderByField = "createdAt";
       let firestoreOrderByDirection: "desc" | "asc" = "desc";
 
@@ -100,29 +116,27 @@ const CommunityReportsPage: FC = () => {
         firestoreOrderByDirection = "asc";
       } else if (sortBy === 'populares') {
         orderByField = "upvotes"; 
-        firestoreOrderByDirection = "desc"; // Assuming most popular means highest upvotes first
+        firestoreOrderByDirection = "desc";
       }
+      // Apply orderBy after all where filters for non-equality/range filters if any were added for search
       queryConstraints.push(orderBy(orderByField, firestoreOrderByDirection));
       
       if (direction === 'next' && lastVisibleDoc) {
         queryConstraints.push(startAfter(lastVisibleDoc));
       } else if (direction === 'previous' && firstVisibleDoc) {
-        // When going previous with limitToLast, the orderBy needs to be the same as the main order
-        // Firestore fetches the last N items *before* the cursor, respecting the order.
         queryConstraints.push(endBefore(firstVisibleDoc));
         queryConstraints.push(limitToLast(ITEMS_PER_PAGE));
       } else {
-         // For 'initial' or 'filterOrSort'
         queryConstraints.push(limit(ITEMS_PER_PAGE));
       }
       
-      if (direction !== 'previous') { // limitToLast is exclusive with limit
+      if (direction !== 'previous') {
           queryConstraints.push(limit(ITEMS_PER_PAGE));
       }
 
       const q = query(reportsCollectionRef, ...queryConstraints);
       const querySnapshot = await getDocs(q);
-      const fetchedReports: Report[] = [];
+      let fetchedReports: Report[] = [];
       console.log(`Found ${querySnapshot.docs.length} community reports in this batch.`);
 
        for (const reportDoc of querySnapshot.docs) {
@@ -141,6 +155,15 @@ const CommunityReportsPage: FC = () => {
           });
        }
 
+      // Client-side search filtering if Firestore query for search is not sufficient
+      if (currentSearchTerm.trim() !== '') {
+        fetchedReports = fetchedReports.filter(report => 
+            report.title.toLowerCase().includes(currentSearchTerm.toLowerCase()) ||
+            report.description.toLowerCase().includes(currentSearchTerm.toLowerCase()) ||
+            report.location.toLowerCase().includes(currentSearchTerm.toLowerCase())
+        );
+      }
+
       setReports(fetchedReports);
       
       if (querySnapshot.docs.length > 0) {
@@ -148,16 +171,15 @@ const CommunityReportsPage: FC = () => {
         setLastVisibleDoc(querySnapshot.docs[querySnapshot.docs.length - 1]);
       } else {
          if(direction === 'next') setHasMore(false);
-         // if direction is 'previous' and no docs, it means we are at the actual first page
-         if(direction === 'previous') setCurrentPage(1); // Should not happen if button is disabled
+         if(direction === 'previous') setCurrentPage(1);
       }
 
       if (direction === 'initial' || direction === 'filterOrSort') {
         setCurrentPage(1);
-        setHasMore(fetchedReports.length === ITEMS_PER_PAGE);
+        setHasMore(querySnapshot.docs.length === ITEMS_PER_PAGE && fetchedReports.length > 0); // Adjust hasMore based on filtered results too
       } else if (direction === 'next') {
         if (fetchedReports.length > 0) setCurrentPage(prev => prev + 1);
-        setHasMore(fetchedReports.length === ITEMS_PER_PAGE);
+        setHasMore(querySnapshot.docs.length === ITEMS_PER_PAGE && fetchedReports.length > 0);
       } else if (direction === 'previous') {
         if (fetchedReports.length > 0) setCurrentPage(prev => prev - 1);
         setHasMore(true); 
@@ -170,7 +192,7 @@ const CommunityReportsPage: FC = () => {
     } finally {
       setIsLoading(false);
     }
-  }, [user, toast, fetchUserVote, lastVisibleDoc, firstVisibleDoc, currentFilterType, currentSortBy, currentPage, hasMore]);
+  }, [user, toast, fetchUserVote, lastVisibleDoc, firstVisibleDoc, currentFilterType, currentSortBy, displayedSearchTerm, currentPage, hasMore]);
 
 
     useEffect(() => {
@@ -178,7 +200,7 @@ const CommunityReportsPage: FC = () => {
             if (isAuthenticated && user) {
                 if (reports.length === 0 && currentPage === 1) {
                     console.log("Auth confirmed, fetching initial community reports.");
-                    fetchReports('initial', currentFilterType, currentSortBy);
+                    fetchReports('initial', currentFilterType, currentSortBy, displayedSearchTerm);
                 }
             } else {
                 setIsLoading(false);
@@ -187,17 +209,33 @@ const CommunityReportsPage: FC = () => {
         } else {
              setIsLoading(true);
         }
-    }, [authLoading, isAuthenticated, user, router, reports.length, fetchReports, currentFilterType, currentSortBy, currentPage]);
+    }, [authLoading, isAuthenticated, user, router, reports.length, fetchReports, currentFilterType, currentSortBy, displayedSearchTerm, currentPage]);
 
 
   const handleFilterChange = (newFilterType: 'todos' | 'incidente' | 'funcionario') => {
     setCurrentFilterType(newFilterType);
-    fetchReports('filterOrSort', newFilterType, currentSortBy);
+    fetchReports('filterOrSort', newFilterType, currentSortBy, displayedSearchTerm);
   };
 
   const handleSortChange = (newSortBy: 'recientes' | 'antiguos' | 'populares') => {
     setCurrentSortBy(newSortBy);
-    fetchReports('filterOrSort', currentFilterType, newSortBy);
+    fetchReports('filterOrSort', currentFilterType, newSortBy, displayedSearchTerm);
+  };
+  
+  const handleSearchInputChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    setDisplayedSearchTerm(event.target.value);
+  };
+
+  const handleSearchSubmit = (event?: React.FormEvent<HTMLFormElement>) => {
+    event?.preventDefault(); // Prevent form submission if used in a form
+    // `displayedSearchTerm` is already used in `fetchReports`
+    fetchReports('filterOrSort', currentFilterType, currentSortBy, displayedSearchTerm);
+  };
+
+  const handleApplyMobileFilters = () => {
+    setDisplayedSearchTerm(searchTerm); // Apply search term from modal state
+    fetchReports('filterOrSort', currentFilterType, currentSortBy, searchTerm);
+    setFilterModalOpen(false);
   };
 
  const handleVote = async (reportId: string, voteType: 'up' | 'down') => {
@@ -288,16 +326,19 @@ const CommunityReportsPage: FC = () => {
     const handlePreviousPageClick = (e: React.MouseEvent<HTMLAnchorElement>) => {
         e.preventDefault();
         if (currentPage > 1 && !isLoading) {
-            fetchReports('previous', currentFilterType, currentSortBy);
+            fetchReports('previous', currentFilterType, currentSortBy, displayedSearchTerm);
         }
     };
 
     const handleNextPageClick = (e: React.MouseEvent<HTMLAnchorElement>) => {
         e.preventDefault();
         if (hasMore && !isLoading) {
-            fetchReports('next', currentFilterType, currentSortBy);
+            fetchReports('next', currentFilterType, currentSortBy, displayedSearchTerm);
         }
     };
+
+    const isAnyFilterActive = displayedSearchTerm !== '' || currentFilterType !== 'todos' || currentSortBy !== 'recientes';
+
 
   return (
     <main className="flex flex-col p-4 sm:p-6 md:p-8 bg-secondary min-h-screen">
@@ -328,27 +369,43 @@ const CommunityReportsPage: FC = () => {
             <Button
               variant="outline"
               size="icon"
-              className="rounded-full p-3 shadow-sm border border-border"
+              className={cn("rounded-full p-3 shadow-sm border border-border", isAnyFilterActive && "border-primary text-primary bg-primary/5")}
               onClick={() => setFilterModalOpen(true)}
               aria-label="Filtrar"
             >
-              <SlidersHorizontal className="h-5 w-5" />
+              <SlidersHorizontal className={cn("h-5 w-5", isAnyFilterActive && "text-primary")} />
             </Button>
-            {!filterModalOpen && (
-              <div className="flex-1">
-                <Input placeholder="Buscar..." className="h-10 rounded-full border-none focus-visible:ring-0 bg-card" />
-              </div>
-            )}
+            <form onSubmit={handleSearchSubmit} className="flex-1">
+                <Input 
+                    placeholder="Buscar..." 
+                    className="h-10 rounded-full border-none focus-visible:ring-0 bg-card"
+                    value={searchTerm} // Use temporary searchTerm for modal input
+                    onChange={(e) => setSearchTerm(e.target.value)} 
+                />
+            </form>
           </div>
           <div className="hidden md:flex flex-row items-center gap-4 p-4 bg-card rounded-full shadow-md border border-border">
-            <div className="relative w-full md:flex-1">
-              <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
-              <Input placeholder="Buscar reportes..." className="pl-11 h-11 rounded-full border-none focus-visible:ring-0 bg-transparent" />
-            </div>
+             <form onSubmit={handleSearchSubmit} className="relative w-full md:flex-1">
+                <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
+                <Input 
+                    placeholder="Buscar reportes..." 
+                    className={cn(
+                        "pl-11 h-11 rounded-full border-none focus-visible:ring-0 bg-transparent",
+                        displayedSearchTerm && "border-primary/50 ring-1 ring-primary/30" // Active search style
+                    )}
+                    value={displayedSearchTerm}
+                    onChange={handleSearchInputChange}
+                />
+            </form>
             <div className="flex items-center gap-2 bg-muted p-1 rounded-full">
               <span className="text-sm font-medium text-muted-foreground hidden md:inline pl-2">Filtrar por:</span>
               <Select value={currentFilterType} onValueChange={(value) => handleFilterChange(value as 'todos' | 'incidente' | 'funcionario')}>
-                <SelectTrigger className="w-full md:w-auto h-9 rounded-full border-none bg-background shadow-sm px-4">
+                <SelectTrigger 
+                    className={cn(
+                        "w-full md:w-auto h-9 rounded-full border-none bg-background shadow-sm px-4",
+                        currentFilterType !== 'todos' && "bg-primary/10 text-primary border border-primary/30"
+                    )}
+                >
                   <SelectValue placeholder="Todos los tipos" />
                 </SelectTrigger>
                 <SelectContent>
@@ -366,7 +423,12 @@ const CommunityReportsPage: FC = () => {
                 </SelectContent>
               </Select>
               <Select value={currentSortBy} onValueChange={(value) => handleSortChange(value as 'recientes' | 'antiguos' | 'populares')}>
-                <SelectTrigger className="w-full md:w-auto h-9 rounded-full border-none bg-background shadow-sm px-4">
+                <SelectTrigger 
+                    className={cn(
+                        "w-full md:w-auto h-9 rounded-full border-none bg-background shadow-sm px-4",
+                        currentSortBy !== 'recientes' && "bg-primary/10 text-primary border border-primary/30"
+                    )}
+                >
                   <SelectValue placeholder="Más recientes" />
                 </SelectTrigger>
                 <SelectContent>
@@ -383,6 +445,15 @@ const CommunityReportsPage: FC = () => {
                 <DialogTitle className="text-lg font-semibold">Filtrar</DialogTitle>
               </DialogHeader>
               <div className="px-4 pb-4 space-y-4">
+                <div>
+                  <label className="block text-xs font-medium mb-1">Buscar</label>
+                  <Input 
+                    placeholder="Título, descripción, ubicación..." 
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    className="h-10 rounded-full border-none bg-background shadow-sm px-4"
+                  />
+                </div>
                 <div>
                   <label className="block text-xs font-medium mb-1">Tipo</label>
                    <Select value={currentFilterType} onValueChange={(value) => setCurrentFilterType(value as 'todos' | 'incidente' | 'funcionario')}>
@@ -422,10 +493,7 @@ const CommunityReportsPage: FC = () => {
                 </div>
               </div>
               <DialogFooter className="px-4 pb-4">
-                <Button className="w-full rounded-full" onClick={() => {
-                    fetchReports('filterOrSort', currentFilterType, currentSortBy);
-                    setFilterModalOpen(false);
-                }}>
+                <Button className="w-full rounded-full" onClick={handleApplyMobileFilters}>
                   Aplicar filtros
                 </Button>
               </DialogFooter>
@@ -583,7 +651,7 @@ const CommunityReportsPage: FC = () => {
                  <PaginationPrevious
                     onClick={handlePreviousPageClick}
                     className={cn(currentPage === 1 && "pointer-events-none opacity-50", isLoading && "pointer-events-none opacity-50")}
-                    href="#" // Added href
+                    href="#" 
                     aria-disabled={currentPage === 1 || isLoading}
                   />
                </PaginationItem>
@@ -601,7 +669,7 @@ const CommunityReportsPage: FC = () => {
                   <PaginationNext
                     onClick={handleNextPageClick}
                     className={cn(!hasMore && "pointer-events-none opacity-50", isLoading && "pointer-events-none opacity-50")}
-                    href="#" // Added href
+                    href="#" 
                     aria-disabled={!hasMore || isLoading}
                   />
                </PaginationItem>
