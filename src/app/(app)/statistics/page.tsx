@@ -468,18 +468,18 @@ const StatisticsPage: FC = () => {
                         <TrendingUp className="h-3 w-3 mr-0.5"/> +2% este mes
                      </p>
                  </Card>
-
-                 <Card className="p-3 flex flex-col justify-between bg-green-500/5 border-green-500/20 rounded-lg shadow-sm hover:shadow-md transition-shadow">
-                     <div>
-                         <p className="text-xs text-green-600 font-medium flex items-center">
-                            <MapPin className="h-3.5 w-3.5 mr-1.5"/>Zona Más Activa
-                         </p>
-                         <div className="text-2xl font-bold text-green-700 block mt-0.5 truncate">Col. Centro</div>
-                     </div>
-                     <p className="text-xs text-green-500 mt-1 flex items-center">
-                        <CheckCircle className="h-3 w-3 mr-0.5"/> Tendencia estable
-                     </p>
-                 </Card>
+                
+                 <Card className="p-3 flex flex-col justify-between bg-destructive/5 border-destructive/20 rounded-lg shadow-sm hover:shadow-md transition-shadow">
+                    <div>
+                        <p className="text-xs text-destructive font-medium flex items-center">
+                           <AlertTriangle className="h-3.5 w-3.5 mr-1.5"/>Zona Más Peligrosa
+                        </p>
+                        <div className="text-2xl font-bold text-destructive block mt-0.5 truncate">Col. Centro</div> {/* Placeholder */}
+                    </div>
+                    <p className="text-xs text-destructive/80 mt-1 flex items-center">
+                       <AlertTriangle className="h-3 w-3 mr-0.5"/> Riesgo Elevado {/* Changed text */}
+                    </p>
+                </Card>
              </div>
 
              <Card className="w-full shadow-lg rounded-xl border border-border bg-card overflow-hidden">
