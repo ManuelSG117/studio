@@ -64,7 +64,7 @@ const StatisticsPage: FC = () => {
   const [user, setUser] = useState<User | null>(null);
   const [reports, setReports] = useState<Report[]>([]);
   const [chartData, setChartData] = useState<ChartDataPoint[]>([]);
-  const [filterPeriod, setFilterPeriod] = useState<FilterPeriod>('month');
+  const [filterPeriod, setFilterPeriod] = useState<FilterPeriod>('day'); // Default to 'day'
   const [reportTypeFilter, setReportTypeFilter] = useState<ReportTypeFilter>('Todos');
   const [totalReports, setTotalReports] = useState<number>(0);
   const [averageReports, setAverageReports] = useState<number>(0);
@@ -297,11 +297,11 @@ const StatisticsPage: FC = () => {
         }
     };
   
-  const isAnyFilterActive = reportTypeFilter !== 'Todos' || filterPeriod !== 'month';
+  const isAnyFilterActive = reportTypeFilter !== 'Todos' || filterPeriod !== 'day'; // Updated default period
 
   const handleClearMobileFilters = () => {
     setReportTypeFilter('Todos');
-    setFilterPeriod('month');
+    setFilterPeriod('day'); // Reset to day
     setFilterModalOpen(false);
     // processReportsForChart will be called by useEffect
   };
@@ -311,11 +311,15 @@ const StatisticsPage: FC = () => {
     return (
       <main className="flex flex-col p-4 sm:p-6 bg-secondary min-h-screen">
          <div className="w-full max-w-7xl mx-auto space-y-6">
-            <div className="flex flex-row justify-between items-center mb-2 gap-2"> {/* Changed to flex-row and items-center */}
-                <div className="space-y-1"> 
-                    <Skeleton className="h-8 w-64" />
+            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-2 gap-2"> 
+                <div className="flex-1">
+                    <Skeleton className="h-8 w-48 sm:w-64" />
+                    <Skeleton className="h-4 w-64 sm:w-80 mt-2 md:hidden" />
                 </div>
-                 <div className="flex flex-wrap justify-end gap-2 w-auto">  {/* Removed w-full for desktop */}
+                 <div className="md:hidden flex self-end">
+                     <Skeleton className="h-10 w-10 rounded-full" />
+                 </div>
+                 <div className="hidden md:flex flex-wrap justify-end gap-2 w-auto">
                      <Skeleton className="h-9 w-36 rounded-md" /> 
                  </div>
             </div>
@@ -350,17 +354,22 @@ const StatisticsPage: FC = () => {
   return (
     <main className="flex flex-col p-4 sm:p-6 bg-secondary min-h-screen">
          <div className="w-full max-w-7xl mx-auto space-y-8">
-              <div className="flex flex-row justify-between items-center mb-6 gap-4"> {/* Main header row */}
+              <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4"> {/* Main header row */}
                  
                   {/* Title Section */}
-                  <h1 className="text-2xl md:text-3xl font-semibold text-foreground flex items-center">
-                      <span className="hidden md:inline">Dashboard de Estadísticas </span> {/* Hidden on mobile */}
-                      <span className="text-primary font-bold md:ml-1.5">+SEGURO</span>
-                  </h1>
+                  <div className="flex-1">
+                      <h1 className="text-2xl md:text-3xl font-semibold text-foreground flex items-center">
+                          <span className="text-primary font-bold md:mr-1.5">+SEGURO</span>
+                          <span className="hidden md:inline">Dashboard de Estadísticas</span>
+                      </h1>
+                       <CardDescription className="text-sm mt-1 text-muted-foreground md:hidden"> {/* Show on mobile */}
+                           Visualización de datos de reportes ciudadanos para promover la seguridad pública
+                       </CardDescription>
+                  </div>
                  
                   {/* Filter Section */}
-                  <div className="w-auto"> {/* Ensure filter section doesn't take full width on mobile */}
-                        <div className="md:hidden flex items-center justify-end gap-2">
+                  <div className="w-full sm:w-auto"> {/* Ensure filter section doesn't take full width on mobile */}
+                        <div className="md:hidden flex items-center justify-end gap-2 w-full">
                             <Button
                                 variant="outline"
                                 size="icon"
@@ -395,7 +404,7 @@ const StatisticsPage: FC = () => {
                                 <SelectTrigger 
                                     className={cn(
                                         "w-full md:w-[140px] h-9 rounded-full border-none bg-background shadow-sm px-4",
-                                        filterPeriod !== 'month' && "bg-primary/10 text-primary border border-primary/30"
+                                        filterPeriod !== 'day' && "bg-primary/10 text-primary border border-primary/30" // Updated default active state
                                     )}
                                 >
                                 <SelectValue placeholder="Periodo" />
@@ -434,7 +443,7 @@ const StatisticsPage: FC = () => {
                                 <Select value={filterPeriod} onValueChange={(value) => setFilterPeriod(value as FilterPeriod)}>
                                     <SelectTrigger className={cn(
                                         "h-10 rounded-full border-none bg-background shadow-sm px-4",
-                                         filterPeriod !== 'month' && "bg-primary/10 text-primary border border-primary/30"
+                                         filterPeriod !== 'day' && "bg-primary/10 text-primary border border-primary/30" // Updated default active state
                                     )}>
                                     <SelectValue placeholder="Periodo" />
                                     </SelectTrigger>
