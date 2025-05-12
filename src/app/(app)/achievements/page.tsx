@@ -1,9 +1,8 @@
-
 "use client";
 
 import type { FC, ReactNode } from 'react';
 import { useRouter } from 'next/navigation';
-import { Award, FilePlus, CheckSquare, TrendingUp, Star, Users, ThumbsUp, ShieldCheck, Target, CalendarClock, Sparkles, HelpCircle, ArrowLeft } from 'lucide-react';
+import { Award, FilePlus, CheckSquare, TrendingUp, Star, Users, ThumbsUp, ShieldCheck, Target, CalendarClock, Sparkles, HelpCircle, ArrowLeft, Plus } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
 import { Badge } from '@/components/ui/badge';
@@ -16,6 +15,7 @@ import { collection, query, where, getDocs, Timestamp } from 'firebase/firestore
 import type { Report as WelcomeReportType } from '@/app/(app)/welcome/page'; // Use a different alias if Report is defined locally
 import { differenceInDays, isAfter, subDays, format } from 'date-fns';
 import { Skeleton } from '@/components/ui/skeleton'; // Import Skeleton
+import Link from 'next/link'; // Import Link
 
 // Define Report type locally or ensure it matches the imported one including necessary fields
 interface Report extends WelcomeReportType {
@@ -385,13 +385,25 @@ const AchievementsPage: FC = () => {
           </div>
         </TooltipProvider>
 
-        <div className="mt-12 text-center p-6 bg-card rounded-lg shadow-md border border-border">
-            <h3 className="text-xl font-semibold text-primary mb-2">¡Sigue Participando!</h3>
-            <p className="text-muted-foreground">
-                Cada reporte y cada voto cuenta. Juntos podemos hacer de Uruapan un lugar más seguro para todos.
-                ¡Explora la comunidad, reporta incidentes y desbloquea más logros!
-            </p>
-        </div>
+        <Card className="mt-12 text-center p-6 sm:p-8 bg-card rounded-xl shadow-lg border border-border">
+            <CardHeader className="p-0 mb-4">
+                <div className="inline-block p-3 bg-primary/10 rounded-full mb-3">
+                    <Star className="h-8 w-8 text-primary" />
+                </div>
+                <CardTitle className="text-2xl font-bold text-primary">¡Sigue Participando!</CardTitle>
+            </CardHeader>
+            <CardContent className="p-0">
+                <p className="text-muted-foreground text-base mb-6 max-w-xl mx-auto">
+                    Cada reporte y cada voto cuenta. Juntos podemos hacer de Uruapan un lugar más seguro para todos.
+                    ¡Explora la comunidad, reporta incidentes y desbloquea más logros!
+                </p>
+                <Button asChild size="lg" className="rounded-full shadow-md hover:shadow-lg transition-shadow">
+                    <Link href="/reports/new">
+                        <Plus className="mr-2 h-5 w-5" /> Crear Nuevo Reporte
+                    </Link>
+                </Button>
+            </CardContent>
+        </Card>
       </div>
       <footer className="mt-16 text-center text-xs text-muted-foreground">
         © {new Date().getFullYear()} +SEGURO - Plataforma de reportes ciudadanos para la seguridad pública
@@ -401,5 +413,3 @@ const AchievementsPage: FC = () => {
 };
 
 export default AchievementsPage;
-
-    
