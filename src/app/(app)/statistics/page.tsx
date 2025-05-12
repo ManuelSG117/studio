@@ -9,7 +9,7 @@ import { auth, db } from '@/lib/firebase/client';
 import { collection, getDocs, query, orderBy, Timestamp, where } from "firebase/firestore";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
-import { LineChart as LineChartIcon, Loader2, CalendarRange, Hash, TrendingUp, AlertTriangle, UserCog, Filter, MapPin, TrendingDown, CalendarCheck, List, ThumbsDown, AtSign, CheckCircle, SlidersHorizontal, Search } from 'lucide-react'; // Added SlidersHorizontal, Search
+import { LineChart as LineChartIcon, Loader2, CalendarRange, Hash, TrendingUp, AlertTriangle, UserCog, Filter, MapPin, TrendingDown, CalendarCheck, List, ThumbsDown, AtSign, CheckCircle, SlidersHorizontal, Search } from 'lucide-react';
 import { Button } from "@/components/ui/button";
 import type { Report } from '@/app/(app)/welcome/page';
 import {
@@ -43,8 +43,8 @@ import { cn } from '@/lib/utils';
 import { AnimatedNumber } from '@/components/ui/animated-number';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from '@/components/ui/badge';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog'; // Import Dialog components
-import { Input } from '@/components/ui/input'; // Import Input
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
+import { Input } from '@/components/ui/input';
 
 type FilterPeriod = 'day' | 'week' | 'month';
 type ReportTypeFilter = 'Todos' | 'Funcionario' | 'Incidente';
@@ -69,7 +69,8 @@ const StatisticsPage: FC = () => {
   const [averageReports, setAverageReports] = useState<number>(0);
   const [mostActiveDay, setMostActiveDay] = useState<string | null>(null);
   const [officerReportsCount, setOfficerReportsCount] = useState<number>(0);
-  const [filterModalOpen, setFilterModalOpen] = useState(false); // State for mobile filter modal
+  const [incidentReportsCount, setIncidentReportsCount] = useState<number>(0); // Added for incident count
+  const [filterModalOpen, setFilterModalOpen] = useState(false);
 
   useEffect(() => {
     setIsLoading(true);
@@ -81,7 +82,7 @@ const StatisticsPage: FC = () => {
         try {
           console.log("Fetching all reports for statistics...");
           const reportsCollectionRef = collection(db, "reports");
-          const q = query(reportsCollectionRef, orderBy("createdAt", "asc"));
+          const q = query(reportsCollectionRef, orderBy("createdAt", "asc")); // Order by asc for correct period calculation
           const querySnapshot = await getDocs(q);
 
           const fetchedReports: Report[] = querySnapshot.docs.map(doc => {
@@ -120,14 +121,19 @@ const StatisticsPage: FC = () => {
   }, [router]);
 
   const processReportsForChart = useCallback((period: FilterPeriod, typeFilter: ReportTypeFilter) => {
-    const filteredReportsByType = reports.filter(report =>
+    // This filtering is for the overall stats cards, not directly for the chart which plots both types
+    const filteredReportsForCards = reports.filter(report =>
         typeFilter === 'Todos' ||
         (typeFilter === 'Funcionario' && report.reportType === 'funcionario') ||
         (typeFilter === 'Incidente' && report.reportType === 'incidente')
     );
 
-    setTotalReports(filteredReportsByType.length);
-    setOfficerReportsCount(reports.filter(r => r.reportType === 'funcionario').length);
+    setTotalReports(filteredReportsForCards.length);
+    const currentOfficerReports = reports.filter(r => r.reportType === 'funcionario').length;
+    const currentIncidentReports = reports.filter(r => r.reportType === 'incidente').length;
+    setOfficerReportsCount(currentOfficerReports);
+    setIncidentReportsCount(currentIncidentReports);
+
 
     if (reports.length === 0) {
       setChartData([]);
@@ -156,7 +162,7 @@ const StatisticsPage: FC = () => {
       case 'week':
         interval = { start: startOfWeek(firstReportDate, { locale: es }), end: endOfWeek(lastReportDate, { locale: es }) };
         allPeriodsInInterval = eachWeekOfInterval(interval, { locale: es });
-        formatKey = (date) => format(date, 'RRRR-II', { locale: es });
+        formatKey = (date) => format(date, 'RRRR-II', { locale: es }); // RRRR for ISO week-numbering year, II for ISO week number
         numberOfPeriods = differenceInWeeks(interval.end, interval.start, { locale: es }) + 1;
         break;
       case 'month':
@@ -173,16 +179,18 @@ const StatisticsPage: FC = () => {
         reportsByPeriod[periodKey] = { total: 0, incident: 0, officer: 0 };
     });
 
+    // Iterate over ALL reports for chart data, regardless of typeFilter
     reports.forEach(report => {
        const periodKey = formatKey(report.createdAt);
        if (reportsByPeriod[periodKey]) {
-          reportsByPeriod[periodKey].total++;
+          reportsByPeriod[periodKey].total++; // This total is for all types in the period
             if (report.reportType === 'incidente') {
               reportsByPeriod[periodKey].incident++;
             } else if (report.reportType === 'funcionario') {
               reportsByPeriod[periodKey].officer++;
             }
        }
+       // Day of week counter uses all reports
        const dayName = format(report.createdAt, 'EEEE', { locale: es });
        dayOfWeekCounter[dayName] = (dayOfWeekCounter[dayName] || 0) + 1;
     });
@@ -200,16 +208,17 @@ const StatisticsPage: FC = () => {
     const formattedChartData: ChartDataPoint[] = Object.entries(reportsByPeriod)
        .map(([period, counts]) => ({
             period,
-            count: counts.total,
+            count: counts.total, // This will be total for tooltip if needed, but areas use specific counts
             incidentCount: counts.incident,
             officerCount: counts.officer
         }))
-       .sort((a, b) => a.period.localeCompare(b.period));
+       .sort((a, b) => a.period.localeCompare(b.period)); // Ensure chronological order
 
     setChartData(formattedChartData);
 
-    const totalFiltered = filteredReportsByType.length;
-    const avg = numberOfPeriods > 0 ? totalFiltered / numberOfPeriods : 0;
+    // Average reports considers the typeFilter for the card display
+    const totalForAverage = filteredReportsForCards.length;
+    const avg = numberOfPeriods > 0 ? totalForAverage / numberOfPeriods : 0;
     setAverageReports(avg);
 
   }, [reports]);
@@ -228,53 +237,70 @@ const StatisticsPage: FC = () => {
   }, [filterPeriod]);
 
   const chartConfig = {
-    incident: {
+    incident: { // Incidentes will be blue (primary)
       label: "Incidentes",
-      color: "hsl(var(--destructive))",
+      color: "hsl(var(--primary))",
     },
-    officer: {
+    officer: { // Funcionarios will be red (destructive)
       label: "Funcionarios",
-      color: "hsl(var(--warning))",
+      color: "hsl(var(--destructive))",
     },
   } satisfies ChartConfig;
 
   const formatXAxisTick = (value: string) => {
     try {
+        // Ensure value is a string before parsing
+        if (typeof value !== 'string') return String(value);
+
         switch (filterPeriod) {
           case 'day':
             return format(parseISO(value), 'dd MMM', { locale: es });
           case 'week':
-            const [yearW, weekW] = value.split('-W');
-            return `Sem ${weekW}, ${yearW.substring(2)}`;
+            // Expects format like '2023-W34' or '2023-34'
+            const partsW = value.split(/-W?/)
+            if (partsW.length === 2) {
+                return `Sem ${partsW[1]}, '${partsW[0].substring(2)}`;
+            }
+            return value; // Fallback
           case 'month':
           default:
-            const [yearM, monthM] = value.split('-');
-            const dateM = new Date(parseInt(yearM), parseInt(monthM) - 1);
+            // Expects format 'YYYY-MM'
+             const dateM = parseISO(value + '-01'); // Add day for parsing
             return format(dateM, 'MMM yy', { locale: es });
         }
     } catch (e) {
-        console.error("Error formatting tick:", value, e);
-        return value;
+        console.warn("Error formatting X-axis tick:", value, e);
+        return value; // Fallback to original value on error
     }
   };
 
     const formatTooltipLabel = (label: string) => {
         try {
+            if (typeof label !== 'string') return String(label);
             switch (filterPeriod) {
                 case 'day':
                     return format(parseISO(label), 'PPP', { locale: es });
                  case 'week':
-                    const [yearW, weekNum] = label.split('-W');
-                    const approxWeekStart = new Date(parseInt(yearW), 0, 1 + (parseInt(weekNum) - 1) * 7);
-                    const weekStartDate = startOfWeek(approxWeekStart, { locale: es });
-                    const weekEndDate = endOfWeek(approxWeekStart, { locale: es });
-                    return `Semana ${weekNum} (${format(weekStartDate, 'd MMM', { locale: es })} - ${format(weekEndDate, 'd MMM yyyy', { locale: es })})`;
+                    const partsW = label.split(/-W?/);
+                    if (partsW.length === 2) {
+                        const yearW = parseInt(partsW[0]);
+                        const weekNum = parseInt(partsW[1]);
+                        // Create a date at the start of the year, then add weeks.
+                        // Note: getISOWeek assumes weeks start on Monday.
+                        const firstDayOfYear = new Date(yearW, 0, 1);
+                        const daysOffset = (weekNum - 1) * 7;
+                        const approxWeekStart = new Date(firstDayOfYear.setDate(firstDayOfYear.getDate() + daysOffset));
+                        const weekStartDate = startOfWeek(approxWeekStart, { locale: es, weekStartsOn: 1 }); // Monday
+                        const weekEndDate = endOfWeek(approxWeekStart, { locale: es, weekStartsOn: 1 });
+                        return `Semana ${weekNum} (${format(weekStartDate, 'd MMM', { locale: es })} - ${format(weekEndDate, 'd MMM yyyy', { locale: es })})`;
+                    }
+                    return label;
                 case 'month':
                 default:
                     return format(parseISO(label + '-01'), 'MMMM yyyy', { locale: es });
             }
         } catch (e) {
-            console.error("Error formatting tooltip label:", label, e);
+            console.warn("Error formatting tooltip label:", label, e);
             return label;
         }
     };
@@ -289,8 +315,8 @@ const StatisticsPage: FC = () => {
                     <Skeleton className="h-4 w-80" />
                 </div>
                  <div className="flex flex-wrap justify-center sm:justify-end gap-2">
-                     <Skeleton className="h-9 w-36 rounded-md" /> {/* Filter Select Skeleton */}
-                     <Skeleton className="h-9 w-36 rounded-md" /> {/* Filter Select Skeleton */}
+                     <Skeleton className="h-9 w-36 rounded-md" />
+                     <Skeleton className="h-9 w-36 rounded-md" />
                  </div>
             </div>
              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-4">
@@ -333,21 +359,18 @@ const StatisticsPage: FC = () => {
                         Visualización de datos de reportes ciudadanos para promover la seguridad pública
                      </p>
                  </div>
-                  {/* Filters - Styled like community-reports */}
                   <div className="w-full md:w-auto">
-                      {/* Mobile: Minimal button */}
                       <div className="md:hidden flex items-center gap-2">
                         <Button
                           variant="outline"
-                          size="lg" // Make button larger on mobile
-                          className="rounded-full p-3 shadow-sm border border-border flex-1" // flex-1 to take available width
+                          size="lg"
+                          className="rounded-full p-3 shadow-sm border border-border flex-1"
                           onClick={() => setFilterModalOpen(true)}
                           aria-label="Filtrar Estadísticas"
                         >
                           <SlidersHorizontal className="h-5 w-5 mr-2" /> Filtrar Estadísticas
                         </Button>
                       </div>
-                      {/* Desktop: Inline filters */}
                       <div className="hidden md:flex flex-row items-center gap-3 p-2 bg-card rounded-full shadow-md border border-border">
                          <span className="text-sm font-medium text-muted-foreground pl-2 pr-1">Filtrar por:</span>
                          <Select value={reportTypeFilter} onValueChange={(value) => setReportTypeFilter(value as ReportTypeFilter)}>
@@ -371,7 +394,6 @@ const StatisticsPage: FC = () => {
                             </SelectContent>
                           </Select>
                       </div>
-                      {/* Mobile: Modal for filters */}
                       <Dialog open={filterModalOpen} onOpenChange={setFilterModalOpen}>
                         <DialogContent className="p-0 max-w-sm w-full rounded-2xl">
                           <DialogHeader className="flex flex-row items-center justify-between px-4 pt-4 pb-2">
@@ -415,11 +437,10 @@ const StatisticsPage: FC = () => {
                   </div>
              </div>
 
-             {/* Key Metrics Section */}
              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
                  <Card className="bg-card shadow-md border-border hover:shadow-lg transition-shadow group rounded-lg border-l-4 border-l-primary">
                      <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 pt-4 px-4">
-                         <CardTitle className="text-sm font-medium text-muted-foreground">Total Reportes</CardTitle>
+                         <CardTitle className="text-sm font-medium text-muted-foreground">Total Reportes ({reportTypeFilter})</CardTitle>
                          <List className="h-5 w-5 text-primary opacity-70 group-hover:opacity-100 transition-opacity" />
                      </CardHeader>
                      <CardContent className="pt-1 pb-4 px-4">
@@ -431,31 +452,31 @@ const StatisticsPage: FC = () => {
                           </p>
                      </CardContent>
                  </Card>
-                 <Card className="bg-card shadow-md border-border hover:shadow-lg transition-shadow group rounded-lg border-l-4 border-l-destructive">
+                 <Card className="bg-card shadow-md border-border hover:shadow-lg transition-shadow group rounded-lg border-l-4 border-l-blue-500"> {/* Changed to blue for incidents */}
                      <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 pt-4 px-4">
                          <CardTitle className="text-sm font-medium text-muted-foreground">Incidentes Reportados</CardTitle>
-                         <AlertTriangle className="h-5 w-5 text-destructive opacity-70 group-hover:opacity-100 transition-opacity" />
+                         <AlertTriangle className="h-5 w-5 text-blue-500 opacity-70 group-hover:opacity-100 transition-opacity" />
                      </CardHeader>
                      <CardContent className="pt-1 pb-4 px-4">
-                          <div className="text-3xl font-bold text-destructive">
-                             <AnimatedNumber value={reports.filter(r => r.reportType === 'incidente').length} formatOptions={{ maximumFractionDigits: 0 }} className="block"/>
+                          <div className="text-3xl font-bold text-blue-500">
+                             <AnimatedNumber value={incidentReportsCount} formatOptions={{ maximumFractionDigits: 0 }} className="block"/>
                           </div>
-                           <p className="text-xs text-muted-foreground mt-1 flex items-center gap-1 text-red-600">
+                           <p className="text-xs text-muted-foreground mt-1 flex items-center gap-1 text-blue-600"> {/* Changed to blue */}
                              <TrendingDown className="h-3.5 w-3.5"/> {mostActiveDay} día más común
                          </p>
                      </CardContent>
                  </Card>
-                 <Card className="bg-card shadow-md border-border hover:shadow-lg transition-shadow group rounded-lg border-l-4 border-l-warning">
+                 <Card className="bg-card shadow-md border-border hover:shadow-lg transition-shadow group rounded-lg border-l-4 border-l-red-500"> {/* Changed to red for funcionarios */}
                      <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 pt-4 px-4">
                          <CardTitle className="text-sm font-medium text-muted-foreground">Reportes Funcionarios</CardTitle>
-                         <UserCog className="h-5 w-5 text-warning opacity-70 group-hover:opacity-100 transition-opacity" />
+                         <UserCog className="h-5 w-5 text-red-500 opacity-70 group-hover:opacity-100 transition-opacity" />
                      </CardHeader>
                      <CardContent className="pt-1 pb-4 px-4">
-                         <div className="text-3xl font-bold text-warning">
+                         <div className="text-3xl font-bold text-red-500">
                             <AnimatedNumber value={officerReportsCount} formatOptions={{ maximumFractionDigits: 0 }} className="block"/>
                          </div>
-                          <p className="text-xs text-muted-foreground mt-1 flex items-center gap-1 text-yellow-600">
-                             <TrendingUp className="h-3.5 w-3.5"/> +2% este mes {/* Placeholder */}
+                          <p className="text-xs text-muted-foreground mt-1 flex items-center gap-1 text-red-600"> {/* Changed to red */}
+                             <TrendingUp className="h-3.5 w-3.5"/> +2% este mes
                           </p>
                      </CardContent>
                  </Card>
@@ -466,16 +487,15 @@ const StatisticsPage: FC = () => {
                      </CardHeader>
                      <CardContent className="pt-1 pb-4 px-4">
                           <div className="text-3xl font-bold text-green-600 truncate">
-                            Col. Centro {/* Placeholder */}
+                            Col. Centro
                           </div>
                            <p className="text-xs text-muted-foreground mt-1 flex items-center gap-1 text-green-600">
-                             <CheckCircle className="h-3.5 w-3.5"/> Tendencia estable {/* Placeholder */}
+                             <CheckCircle className="h-3.5 w-3.5"/> Tendencia estable
                           </p>
                      </CardContent>
                  </Card>
              </div>
 
-             {/* Report Trend Chart */}
              <Card className="w-full shadow-lg rounded-xl border border-border bg-card overflow-hidden">
                 <CardHeader className="bg-muted/30 p-4 sm:p-5 border-b border-border/50 flex flex-row items-center justify-between">
                      <div>
@@ -484,23 +504,6 @@ const StatisticsPage: FC = () => {
                          </CardTitle>
                          <CardDescription className="text-sm mt-1 text-muted-foreground">Número de reportes registrados en el periodo seleccionado.</CardDescription>
                      </div>
-                      <div className="flex flex-wrap items-center justify-end gap-2 bg-background/70 border border-border p-1 rounded-lg shadow-sm">
-                          {(['month', 'year', 'Todos'] as const).map((p) => (
-                              <Button
-                                  key={p}
-                                  variant={'ghost'}
-                                  size="sm"
-                                  onClick={() => { /* TODO: Implement filter logic if needed here */ }}
-                                  className={cn(
-                                      "capitalize px-3 h-8 text-xs transition-all duration-200 text-muted-foreground hover:bg-muted/80",
-                                      p === 'month' && "bg-primary/10 text-primary"
-                                  )}
-                                  aria-pressed={p === 'month'}
-                              >
-                                  {p === 'month' ? '6 Meses' : p === 'year' ? '1 Año' : p}
-                              </Button>
-                          ))}
-                      </div>
                  </CardHeader>
                   <CardContent className="p-2 sm:p-4 md:p-6">
                      {chartData.length > 1 ? (
@@ -516,12 +519,12 @@ const StatisticsPage: FC = () => {
                             >
                                 <defs>
                                      <linearGradient id="fillIncident" x1="0" y1="0" x2="0" y2="1">
-                                         <stop offset="5%" stopColor="hsl(var(--destructive))" stopOpacity={0.8}/>
-                                         <stop offset="95%" stopColor="hsl(var(--destructive))" stopOpacity={0.1}/>
+                                         <stop offset="5%" stopColor="hsl(var(--primary))" stopOpacity={0.8}/>
+                                         <stop offset="95%" stopColor="hsl(var(--primary))" stopOpacity={0.1}/>
                                      </linearGradient>
                                      <linearGradient id="fillOfficer" x1="0" y1="0" x2="0" y2="1">
-                                         <stop offset="5%" stopColor="hsl(var(--warning))" stopOpacity={0.7}/>
-                                         <stop offset="95%" stopColor="hsl(var(--warning))" stopOpacity={0.1}/>
+                                         <stop offset="5%" stopColor="hsl(var(--destructive))" stopOpacity={0.7}/>
+                                         <stop offset="95%" stopColor="hsl(var(--destructive))" stopOpacity={0.1}/>
                                      </linearGradient>
                                 </defs>
                                 <CartesianGrid vertical={false} strokeDasharray="3 3" stroke="hsl(var(--border) / 0.6)"/>
@@ -553,8 +556,8 @@ const StatisticsPage: FC = () => {
                                    dataKey="incidentCount"
                                    type="monotone"
                                    fill="url(#fillIncident)"
-                                   stroke="hsl(var(--destructive))"
-                                   stackId="a"
+                                   stroke="hsl(var(--primary))" // Blue for incidents
+                                   stackId="a" // Ensure different stackIds if not stacked, or same if stacked
                                    name={chartConfig.incident.label}
                                    strokeWidth={2}
                                    dot={chartData.length < 30}
@@ -563,8 +566,8 @@ const StatisticsPage: FC = () => {
                                    dataKey="officerCount"
                                    type="monotone"
                                    fill="url(#fillOfficer)"
-                                   stroke="hsl(var(--warning))"
-                                   stackId="b"
+                                   stroke="hsl(var(--destructive))" // Red for officers
+                                   stackId="b" // Ensure different stackIds if not stacked, or same if stacked
                                    name={chartConfig.officer.label}
                                    strokeWidth={2}
                                    dot={chartData.length < 30}
