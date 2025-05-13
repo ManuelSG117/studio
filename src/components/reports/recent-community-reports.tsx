@@ -1,3 +1,4 @@
+
 "use client";
 
 import type { FC } from 'react';
@@ -15,7 +16,7 @@ import { cn, formatLocation } from '@/lib/utils';
 import { Badge } from '@/components/ui/badge';
 import type { Report } from '@/app/(app)/welcome/page'; // Using existing Report type
 
-const RecentCommunityReports: FC = () => {
+export const RecentCommunityReports: FC = () => {
   const [reports, setReports] = useState<Report[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
