@@ -120,15 +120,12 @@ const AboutCreatorPage: FC = () => {
                   <AvatarFallback className="text-4xl bg-primary text-primary-foreground">MS</AvatarFallback>
                 </Avatar>
                 {/* Using h2 for semantic structure, styled like CardTitle */}
-                <h2 className="text-3xl font-bold text-primary mb-1">Manuel Sandoval</h2>
+                <h2 className="text-3xl font-bold text-primary mb-1">Manuel Sandoval</h2>                  <Badge variant="secondary">25 años</Badge>
                 {/* Using p for semantic structure, styled like CardDescription */}
                 <p className="text-base text-muted-foreground mt-1">
                   Ingeniero en Sistemas Computacionales | Desarrollador
                 </p>
-                <div className="mt-3 flex gap-2">
-                  <Badge variant="secondary">Uruapan, Michoacán</Badge>
-                  <Badge variant="secondary">25 años</Badge>
-                </div>
+             
               </div>
               
               {/* Original "Sobre Mí" paragraph */}
