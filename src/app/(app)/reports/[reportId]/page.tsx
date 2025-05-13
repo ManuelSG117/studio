@@ -1,4 +1,5 @@
 
+
 "use client";
 
 import type { FC } from 'react';
@@ -342,7 +343,7 @@ const ReportDetailPage: FC = () => {
                             <div className="flex items-center space-x-2 text-sm text-muted-foreground">
                                 {reporterProfile && (
                                     <Avatar className="h-6 w-6">
-                                        <AvatarImage src={reporterProfile.photoURL || undefined} alt={reporterProfile.displayName} data-ai-hint="reporter avatar"/>
+                                        <AvatarImage src={reporterProfile.photoURL || undefined} alt={reporterProfile.displayName || "Avatar del reportante"} data-ai-hint="reporter avatar"/>
                                         <AvatarFallback className="text-xs">{getInitials(reporterProfile.displayName)}</AvatarFallback>
                                     </Avatar>
                                 )}
@@ -380,16 +381,35 @@ const ReportDetailPage: FC = () => {
                             <Separator />
 
                             <div className="flex items-center justify-between">
-                                <div className="flex items-center space-x-1">
-                                     <Button variant="ghost" size="icon" className={cn("h-9 w-9 rounded-full", report.userVote === 'up' && "bg-primary/10 text-primary", votingState && "opacity-50", isOwnReport && "cursor-not-allowed opacity-60")} onClick={() => handleVote('up')} disabled={votingState || isOwnReport} aria-pressed={report.userVote === 'up'}>
-                                         {votingState && report.userVote !== 'up' && !isOwnReport ? <Loader2 className="h-4 w-4 animate-spin"/> : <ThumbsUp className="h-4 w-4"/>}
-                                     </Button>
-                                     <span className="text-sm font-medium text-foreground min-w-[24px] text-center" onClick={() => report.upvotes > 0 && setVotesModalOpen(true)} role={report.upvotes > 0 ? "button" : undefined } tabIndex={report.upvotes > 0 ? 0 : undefined}>{report.upvotes}</span>
-                                     
-                                     <Button variant="ghost" size="icon" className={cn("h-9 w-9 rounded-full", report.userVote === 'down' && "bg-destructive/10 text-destructive", votingState && "opacity-50", isOwnReport && "cursor-not-allowed opacity-60")} onClick={() => handleVote('down')} disabled={votingState || isOwnReport} aria-pressed={report.userVote === 'down'}>
-                                         {votingState && report.userVote !== 'down' && !isOwnReport ? <Loader2 className="h-4 w-4 animate-spin"/> : <ThumbsDown className="h-4 w-4"/>}
-                                     </Button>
-                                     <span className="text-sm font-medium text-foreground min-w-[24px] text-center" onClick={() => report.downvotes > 0 && setVotesModalOpen(true)} role={report.downvotes > 0 ? "button" : undefined } tabIndex={report.downvotes > 0 ? 0 : undefined}>{report.downvotes}</span>
+                                <div className="flex items-center space-x-1 bg-muted p-1 rounded-full">
+                                    <Button
+                                        variant="ghost" size="icon"
+                                        className={cn("h-8 w-8 rounded-full", report.userVote === 'down' && "bg-destructive/20 text-destructive", votingState && "opacity-50", isOwnReport && "cursor-not-allowed opacity-60")}
+                                        onClick={() => handleVote('down')}
+                                        disabled={votingState || isOwnReport}
+                                        aria-pressed={report.userVote === 'down'}
+                                        title={isOwnReport ? "No puedes votar en tus propios reportes" : "Votar negativamente"}
+                                    >
+                                        {votingState && report.userVote !== 'down' && !isOwnReport ? <Loader2 className="h-4 w-4 animate-spin"/> : <ThumbsDown className="h-4 w-4"/>}
+                                    </Button>
+                                    <Button 
+                                        variant="ghost" 
+                                        className="text-sm font-medium text-foreground tabular-nums w-10 text-center p-0 h-auto hover:bg-transparent hover:text-primary"
+                                        onClick={() => setVotesModalOpen(true)}
+                                        title="Ver detalles de votos"
+                                    >
+                                        {report.upvotes - report.downvotes}
+                                    </Button>
+                                    <Button
+                                        variant="ghost" size="icon"
+                                        className={cn("h-8 w-8 rounded-full", report.userVote === 'up' && "bg-primary/20 text-primary", votingState && "opacity-50", isOwnReport && "cursor-not-allowed opacity-60")}
+                                        onClick={() => handleVote('up')}
+                                        disabled={votingState || isOwnReport}
+                                        aria-pressed={report.userVote === 'up'}
+                                        title={isOwnReport ? "No puedes votar en tus propios reportes" : "Votar positivamente"}
+                                    >
+                                        {votingState && report.userVote !== 'up' && !isOwnReport ? <Loader2 className="h-4 w-4 animate-spin"/> : <ThumbsUp className="h-4 w-4"/>}
+                                    </Button>
                                 </div>
                                 <div className="flex items-center space-x-2">
                                     <Button variant="outline" size="sm" className="rounded-full">
@@ -457,7 +477,7 @@ const ReportDetailPage: FC = () => {
                                 <>
                                     <div className="flex items-center space-x-3">
                                         <Avatar className="h-12 w-12">
-                                            <AvatarImage src={reporterProfile.photoURL || undefined} alt={reporterProfile.displayName} data-ai-hint="reporter avatar profile"/>
+                                            <AvatarImage src={reporterProfile.photoURL || undefined} alt={reporterProfile.displayName || "Avatar del reportante"} data-ai-hint="reporter avatar profile"/>
                                             <AvatarFallback>{getInitials(reporterProfile.displayName)}</AvatarFallback>
                                         </Avatar>
                                         <div>
@@ -515,3 +535,4 @@ const ReportDetailPage: FC = () => {
 };
 
 export default ReportDetailPage;
+
