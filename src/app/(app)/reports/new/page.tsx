@@ -1,4 +1,3 @@
-
 "use client";
 
 import type { FC, ChangeEvent } from "react";
@@ -23,7 +22,7 @@ import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
 import Image from "next/image"; 
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog"; 
-
+import { ReportsMap } from '@/components/reports-map'; // Import ReportsMap
 
 type ReportType = 'incidente' | 'funcionario';
 
@@ -50,6 +49,7 @@ const NewReportPage: FC = () => {
   const [selectedFile, setSelectedFile] = useState<File | null>(null); 
   const [previewUrl, setPreviewUrl] = useState<string | null>(null); 
   const [selectedReportType, setSelectedReportType] = useState<ReportType | null>(null); 
+  const [fetchedCoordinates, setFetchedCoordinates] = useState<{ lat: number; lng: number } | null>(null); // State for fetched coordinates
 
   const form = useForm<ReportFormData>({
     resolver: zodResolver(reportFormSchema),
@@ -159,6 +159,7 @@ const NewReportPage: FC = () => {
 
     const fetchAndSetLocation = () => {
         setIsFetchingLocation(true);
+        setFetchedCoordinates(null); // Reset map preview
         navigator.geolocation.getCurrentPosition(
              (position) => {
                 const { latitude, longitude } = position.coords;
@@ -184,6 +185,7 @@ const NewReportPage: FC = () => {
                     .finally(() => {
                          form.setValue("latitude", latitude);
                          form.setValue("longitude", longitude);
+                         setFetchedCoordinates({ lat: latitude, lng: longitude }); // Update coordinates for map
                          setIsFetchingLocation(false);
                     });
             },
@@ -195,6 +197,7 @@ const NewReportPage: FC = () => {
                  else if (error.code === error.TIMEOUT) description = "Se agotó el tiempo de espera para obtener la ubicación.";
                  toast({ variant: "destructive", title: "Error de Ubicación", description: description });
                  setIsFetchingLocation(false);
+                 setFetchedCoordinates(null);
             },
             { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
          );
@@ -406,10 +409,34 @@ const NewReportPage: FC = () => {
                   </FormItem>
                 )}
               />
-              {/* Placeholder for Map Preview */}
-              <div className="h-48 bg-muted rounded-md flex items-center justify-center text-muted-foreground border">
-                <ImageIcon className="h-12 w-12 opacity-50" />
-                <span className="ml-2">Vista previa del mapa aquí</span>
+              {/* Map Preview */}
+              <div className="h-48 bg-muted rounded-md flex items-center justify-center text-muted-foreground border overflow-hidden">
+                 {fetchedCoordinates && user ? (
+                    <ReportsMap
+                      reports={[{
+                        id: 'current-location',
+                        userId: user.uid,
+                        reportType: selectedReportType || 'incidente',
+                        title: 'Ubicación Actual del Reporte',
+                        description: form.getValues('description') || 'Ubicación seleccionada para el nuevo reporte.',
+                        location: form.getValues('location'),
+                        mediaUrl: null,
+                        latitude: fetchedCoordinates.lat,
+                        longitude: fetchedCoordinates.lng,
+                        createdAt: new Date(),
+                        upvotes: 0,
+                        downvotes: 0,
+                      }]}
+                      defaultCenter={fetchedCoordinates}
+                      defaultZoom={16}
+                      viewMode="markers"
+                    />
+                  ) : (
+                    <>
+                      <ImageIcon className="h-12 w-12 opacity-50" />
+                      <span className="ml-2">Vista previa del mapa aquí</span>
+                    </>
+                  )}
               </div>
 
 
