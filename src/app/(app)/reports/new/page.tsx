@@ -22,7 +22,8 @@ import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
 import Image from "next/image"; 
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog"; 
-import { ReportsMap } from '@/components/reports-map'; // Import ReportsMap
+import { ReportsMap } from '@/components/reports-map';
+import { RecentCommunityReports } from '@/components/reports/recent-community-reports'; // Import the new component
 
 type ReportType = 'incidente' | 'funcionario';
 
@@ -498,6 +499,13 @@ const NewReportPage: FC = () => {
           </Form>
         </CardContent>
       </Card>
+
+      {/* Recent Community Reports Section */}
+      <div className="w-full max-w-2xl mt-12">
+          <h2 className="text-xl font-semibold text-foreground mb-4">Reportes Recientes de la Comunidad</h2>
+          <RecentCommunityReports />
+      </div>
+
     </main>
   );
 };
