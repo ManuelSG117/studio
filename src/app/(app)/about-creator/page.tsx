@@ -19,7 +19,7 @@ const AboutCreatorPage: FC = () => {
 
   return (
     <main className="flex flex-col items-center py-8 px-4 sm:px-6 lg:px-8 bg-secondary min-h-screen">
-      <div className="w-full max-w-3xl space-y-8">
+      <div className="w-full max-w-7xl space-y-8">
         <div className="flex items-center justify-start w-full">
           <Button
             variant="ghost"
@@ -36,7 +36,7 @@ const AboutCreatorPage: FC = () => {
           {/* CardHeader can be used for a generic page title if needed, or kept for styling */}
           <CardHeader className="bg-muted/30 p-4 text-center">
              {/* Intentionally left somewhat sparse as specific creator details are moved to "Sobre Mí" section */}
-             <h1 className="text-2xl font-bold text-primary">Sobre el Creador</h1>
+             <h1 className="text-2xl font-bold text-primary">Sobre  +Seguro</h1>
           </CardHeader>
 
           <CardContent className="p-6 sm:p-8 space-y-6">
