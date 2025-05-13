@@ -1,5 +1,3 @@
-
-
 "use client";
 
 import type { FC } from 'react';
@@ -22,7 +20,7 @@ import { ReportsMap } from '@/components/reports-map';
 import { useToast } from '@/hooks/use-toast';
 import { cn, formatLocation } from '@/lib/utils';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Badge } from '@/components/ui/badge'; // Import Badge
+import { Badge } from '@/components/ui/badge'; 
 import { Separator } from '@/components/ui/separator';
 
 interface ReporterProfile {
@@ -42,7 +40,7 @@ const ReportDetailPage: FC = () => {
     const [isLoading, setIsLoading] = useState(true);
     const [user, setUser] = useState<User | null>(null);
     const [isClient, setIsClient] = useState(false);
-    const [votingState, setVotingState] = useState<boolean>(false);
+    const [votingState, setVotingState] = useState<boolean>(false); // Changed from object to boolean for single report
     const [votesModalOpen, setVotesModalOpen] = useState(false);
     const [reporterProfile, setReporterProfile] = useState<ReporterProfile | null>(null);
     const [isLoadingReporter, setIsLoadingReporter] = useState(true);
@@ -181,7 +179,7 @@ const ReportDetailPage: FC = () => {
         try {
             const reportRef = doc(db, "reports", reportId);
             const voteRef = doc(db, `reports/${reportId}/votes/${user.uid}`);
-            const userVoteRef = doc(db, 'userVotes', `${user.uid}_${reportId}`);
+            const userVoteRef = doc(db, 'userVotes', `${user.uid}_${reportId}`); // Reference to userVotes collection
             await runTransaction(db, async (transaction) => {
                 const reportSnap = await transaction.get(reportRef);
                 if (!reportSnap.exists()) throw new Error("El reporte ya no existe.");
@@ -195,18 +193,18 @@ const ReportDetailPage: FC = () => {
                     if (voteType === 'up') newUpvotes = Math.max(0, newUpvotes - 1);
                     else newDownvotes = Math.max(0, newDownvotes - 1);
                     transaction.delete(voteRef);
-                    transaction.delete(userVoteRef);
+                    transaction.delete(userVoteRef); // Delete from userVotes
                 } else {
                     if (voteType === 'up') {
                         newUpvotes++;
                         if (existingVote === 'down') newDownvotes = Math.max(0, newDownvotes - 1);
-                        transaction.set(voteRef, { type: 'up' });
-                        transaction.set(userVoteRef, { userId: user.uid, reportId: reportId, reportTitle: reportTitle, type: 'up', timestamp: Timestamp.now() });
+                        transaction.set(voteRef, { type: 'up', timestamp: Timestamp.now() });
+                        transaction.set(userVoteRef, { userId: user.uid, reportId: reportId, reportTitle: reportTitle, type: 'up', timestamp: Timestamp.now() }); // Add to userVotes
                     } else {
                         newDownvotes++;
                         if (existingVote === 'up') newUpvotes = Math.max(0, newUpvotes - 1);
-                        transaction.set(voteRef, { type: 'down' });
-                        transaction.set(userVoteRef, { userId: user.uid, reportId: reportId, reportTitle: reportTitle, type: 'down', timestamp: Timestamp.now() });
+                        transaction.set(voteRef, { type: 'down', timestamp: Timestamp.now() });
+                        transaction.set(userVoteRef, { userId: user.uid, reportId: reportId, reportTitle: reportTitle, type: 'down', timestamp: Timestamp.now() }); // Add to userVotes
                     }
                 }
                 transaction.update(reportRef, { upvotes: newUpvotes, downvotes: newDownvotes });
@@ -223,15 +221,13 @@ const ReportDetailPage: FC = () => {
     if (isLoading || !isClient || isLoadingReporter) {
         return (
             <main className="flex flex-col items-center p-4 sm:p-6 md:p-8 bg-secondary min-h-screen">
-                 {/* Back button outside the grid to ensure it's always accessible */}
                  <div className="w-full max-w-4xl mb-4">
                     <Skeleton className="h-9 w-9 rounded-full" />
                 </div>
                 <div className="w-full max-w-4xl grid grid-cols-1 md:grid-cols-3 gap-6">
                     <div className="md:col-span-2">
                         <Card className="shadow-lg border-none rounded-xl bg-card">
-                            <CardHeader className="relative pt-6 pb-4">
-                                {/* Removed back button from here */}
+                            <CardHeader className="relative pt-6 pb-4 px-6">
                                 <Skeleton className="h-8 w-3/4 mb-2" />
                                 <div className="flex items-center gap-2">
                                     <Skeleton className="h-8 w-8 rounded-full" />
@@ -285,7 +281,6 @@ const ReportDetailPage: FC = () => {
     if (report === null) {
          return (
              <main className="flex flex-col items-center justify-center min-h-screen p-4 sm:p-8 bg-secondary">
-                  {/* Back button outside the grid to ensure it's always accessible */}
                  <div className="w-full max-w-md mb-4 self-start">
                     <Button variant="ghost" size="icon" className="text-muted-foreground hover:text-primary rounded-full" onClick={() => router.back()} aria-label="Volver">
                         <ArrowLeft className="h-5 w-5" />
@@ -322,7 +317,6 @@ const ReportDetailPage: FC = () => {
                     downvotes={report.downvotes}
                 />
             )}
-            {/* Back button at the top of the page */}
             <div className="w-full max-w-4xl mb-4">
                 <Button variant="ghost" size="icon" className="text-muted-foreground hover:text-primary rounded-full" onClick={() => router.back()} aria-label="Volver">
                     <ArrowLeft className="h-5 w-5" />
@@ -330,7 +324,6 @@ const ReportDetailPage: FC = () => {
             </div>
 
             <div className="w-full max-w-4xl grid grid-cols-1 md:grid-cols-3 gap-6">
-                {/* Main Report Content */}
                 <div className="md:col-span-2">
                     <Card className="w-full shadow-lg border-none rounded-xl bg-card">
                         <CardHeader className="pt-6 pb-4 px-6">
@@ -377,40 +370,41 @@ const ReportDetailPage: FC = () => {
                                 <h3 className="text-lg font-semibold text-foreground mb-2">Descripción del incidente</h3>
                                 <p className="text-foreground/90 leading-relaxed whitespace-pre-wrap">{report.description}</p>
                             </div>
-
+                            
                             <Separator />
 
-                            <div className="flex items-center justify-between">
+                            {/* Voting Section - Copied and adapted */}
+                             <div className="flex items-center justify-between">
                                 <div className="flex items-center space-x-1 bg-muted p-1 rounded-full">
-                                    <Button
-                                        variant="ghost" size="icon"
-                                        className={cn("h-8 w-8 rounded-full", report.userVote === 'down' && "bg-destructive/20 text-destructive", votingState && "opacity-50", isOwnReport && "cursor-not-allowed opacity-60")}
-                                        onClick={() => handleVote('down')}
-                                        disabled={votingState || isOwnReport}
-                                        aria-pressed={report.userVote === 'down'}
-                                        title={isOwnReport ? "No puedes votar en tus propios reportes" : "Votar negativamente"}
-                                    >
-                                        {votingState && report.userVote !== 'down' && !isOwnReport ? <Loader2 className="h-4 w-4 animate-spin"/> : <ThumbsDown className="h-4 w-4"/>}
-                                    </Button>
-                                    <Button 
-                                        variant="ghost" 
-                                        className="text-sm font-medium text-foreground tabular-nums w-10 text-center p-0 h-auto hover:bg-transparent hover:text-primary"
-                                        onClick={() => setVotesModalOpen(true)}
-                                        title="Ver detalles de votos"
-                                    >
-                                        {report.upvotes - report.downvotes}
-                                    </Button>
-                                    <Button
-                                        variant="ghost" size="icon"
-                                        className={cn("h-8 w-8 rounded-full", report.userVote === 'up' && "bg-primary/20 text-primary", votingState && "opacity-50", isOwnReport && "cursor-not-allowed opacity-60")}
-                                        onClick={() => handleVote('up')}
-                                        disabled={votingState || isOwnReport}
-                                        aria-pressed={report.userVote === 'up'}
-                                        title={isOwnReport ? "No puedes votar en tus propios reportes" : "Votar positivamente"}
-                                    >
-                                        {votingState && report.userVote !== 'up' && !isOwnReport ? <Loader2 className="h-4 w-4 animate-spin"/> : <ThumbsUp className="h-4 w-4"/>}
-                                    </Button>
-                                </div>
+                                   <Button
+                                       variant="ghost" size="icon"
+                                       className={cn("h-8 w-8 rounded-full", report.userVote === 'down' && "bg-destructive/20 text-destructive", votingState && "opacity-50", isOwnReport && "cursor-not-allowed opacity-60")}
+                                      onClick={() => handleVote('down')}
+                                      disabled={votingState || isOwnReport}
+                                      aria-pressed={report.userVote === 'down'}
+                                      title={isOwnReport ? "No puedes votar en tus propios reportes" : "Votar negativamente"}
+                                   >
+                                      {votingState && report.userVote !== 'down' && !isOwnReport ? <Loader2 className="h-4 w-4 animate-spin"/> : <ArrowDown className="h-4 w-4"/>}
+                                   </Button>
+                                   <Button 
+                                       variant="ghost" 
+                                       className="text-sm font-medium text-foreground tabular-nums w-10 text-center p-0 h-auto hover:bg-transparent hover:text-primary"
+                                       onClick={() => setVotesModalOpen(true)}
+                                       title="Ver detalles de votos"
+                                   >
+                                       {report.upvotes - report.downvotes}
+                                   </Button>
+                                   <Button
+                                      variant="ghost" size="icon"
+                                      className={cn("h-8 w-8 rounded-full", report.userVote === 'up' && "bg-primary/20 text-primary", votingState && "opacity-50", isOwnReport && "cursor-not-allowed opacity-60")}
+                                      onClick={() => handleVote('up')}
+                                      disabled={votingState || isOwnReport}
+                                      aria-pressed={report.userVote === 'up'}
+                                      title={isOwnReport ? "No puedes votar en tus propios reportes" : "Votar positivamente"}
+                                   >
+                                      {votingState && report.userVote !== 'up' && !isOwnReport ? <Loader2 className="h-4 w-4 animate-spin"/> : <ArrowUp className="h-4 w-4"/>}
+                                   </Button>
+                               </div>
                                 <div className="flex items-center space-x-2">
                                     <Button variant="outline" size="sm" className="rounded-full">
                                         <Share2 className="mr-2 h-4 w-4" /> Compartir
@@ -466,7 +460,6 @@ const ReportDetailPage: FC = () => {
                     </Card>
                 </div>
 
-                {/* Sidebar-like Content */}
                 <div className="md:col-span-1 space-y-6">
                     <Card className="bg-card shadow-lg rounded-xl border-none">
                         <CardHeader className="pb-3">
@@ -535,4 +528,3 @@ const ReportDetailPage: FC = () => {
 };
 
 export default ReportDetailPage;
-
