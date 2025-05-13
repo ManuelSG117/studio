@@ -237,4 +237,3 @@ export const TopNavBar: FC = () => {
 };
 
 export { TopNavBar as BottomNavBar };
-
