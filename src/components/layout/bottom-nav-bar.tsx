@@ -6,7 +6,7 @@ import React from 'react';
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
-import { Home, User, FileText, ShieldAlert, Globe, BarChart3, Menu, X, LogOut, Settings, Sun, Moon } from 'lucide-react';
+import { Home, User, FileText, ShieldAlert, Globe, BarChart3, Menu, X, LogOut, Settings } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger, SheetClose } from '@/components/ui/sheet';
@@ -15,7 +15,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { signOut } from 'firebase/auth';
 import { auth } from '@/lib/firebase/client';
 import { useToast } from '@/hooks/use-toast';
-import { useTheme } from "next-themes";
+import { ThemeToggle } from '@/components/ui/theme-toggle'; // Import shared ThemeToggle
 import Image from 'next/image';
 
 interface NavLinkItem {
@@ -49,37 +49,6 @@ const DesktopNavItem: FC<NavLinkItem & { isActive: boolean }> = ({ href, label, 
     </Link>
   );
 };
-
-const ThemeToggle: FC = () => {
-  const { theme, setTheme } = useTheme();
-  const [mounted, setMounted] = useState(false);
-
-  useEffect(() => setMounted(true), []);
-
-  if (!mounted) {
-    return (
-      <Button variant="ghost" size="icon" className="w-9 h-9 rounded-full" disabled>
-        <Sun className="h-5 w-5 rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0" />
-        <Moon className="absolute h-5 w-5 rotate-90 scale-0 transition-all dark:rotate-0 dark:scale-100" />
-        <span className="sr-only">Toggle theme</span>
-      </Button>
-    );
-  }
-
-  return (
-    <Button
-      variant="ghost"
-      size="icon"
-      onClick={() => setTheme(theme === "light" ? "dark" : "light")}
-      className="w-9 h-9 rounded-full text-muted-foreground hover:text-primary hover:bg-primary/10"
-      aria-label="Toggle theme"
-    >
-      <Sun className="h-5 w-5 rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0" />
-      <Moon className="absolute h-5 w-5 rotate-90 scale-0 transition-all dark:rotate-0 dark:scale-100" />
-    </Button>
-  );
-};
-
 
 export const TopNavBar: FC = () => {
   const pathname = usePathname();
@@ -268,3 +237,4 @@ export const TopNavBar: FC = () => {
 };
 
 export { TopNavBar as BottomNavBar };
+
