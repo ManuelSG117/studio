@@ -67,7 +67,7 @@ const AboutCreatorPage: FC = () => {
                 La plataforma +Seguro nace de un deseo genuino de contribuir a mejorar la seguridad y la calidad de vida en Uruapan. Mi objetivo es proporcionar una herramienta útil y accesible para que los ciudadanos puedan reportar incidentes, compartir información relevante y, juntos, construir un entorno más seguro para todos.
               </p>
               <p className="text-muted-foreground leading-relaxed mt-3">
-                Es importante destacar que este proyecto es una iniciativa personal y comunitaria, <span className="font-semibold text-primary">sin fines de lucro ni afiliaciones políticas</span>. Mi única motivación es el bienestar de nuestra comunidad.
+                Es importante destacar que este proyecto es una iniciativa personal y comunitaria, sin fines de lucro ni afiliaciones políticas. Mi única motivación es el bienestar de nuestra comunidad.
               </p>
             </section>
 
