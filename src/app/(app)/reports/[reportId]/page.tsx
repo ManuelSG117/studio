@@ -1,3 +1,4 @@
+
 "use client";
 
 import type { FC } from 'react';
@@ -40,7 +41,7 @@ const ReportDetailPage: FC = () => {
     const [isLoading, setIsLoading] = useState(true);
     const [user, setUser] = useState<User | null>(null);
     const [isClient, setIsClient] = useState(false);
-    const [votingState, setVotingState] = useState<boolean>(false); // Changed from object to boolean for single report
+    const [votingState, setVotingState] = useState<boolean>(false);
     const [votesModalOpen, setVotesModalOpen] = useState(false);
     const [reporterProfile, setReporterProfile] = useState<ReporterProfile | null>(null);
     const [isLoadingReporter, setIsLoadingReporter] = useState(true);
@@ -94,7 +95,6 @@ const ReportDetailPage: FC = () => {
                             };
                             setReport(fetchedReport);
 
-                            // Fetch reporter profile
                             if (fetchedReport.userId) {
                                 setIsLoadingReporter(true);
                                 try {
@@ -109,7 +109,7 @@ const ReportDetailPage: FC = () => {
                                             photoURL: reporterData.photoURL || null,
                                             memberSince: reporterData.createdAt instanceof Timestamp ? reporterData.createdAt.toDate() : (auth.currentUser?.metadata.creationTime ? new Date(auth.currentUser.metadata.creationTime) : undefined),
                                             reportCount: reportCountSnapshot.size,
-                                            credibility: Math.min(90 + reportCountSnapshot.size, 99), // Placeholder credibility
+                                            credibility: Math.min(90 + reportCountSnapshot.size, 99), 
                                         });
                                     } else {
                                        setReporterProfile({ displayName: "Usuario Anónimo", reportCount: 0, credibility: 50 });
@@ -179,7 +179,7 @@ const ReportDetailPage: FC = () => {
         try {
             const reportRef = doc(db, "reports", reportId);
             const voteRef = doc(db, `reports/${reportId}/votes/${user.uid}`);
-            const userVoteRef = doc(db, 'userVotes', `${user.uid}_${reportId}`); // Reference to userVotes collection
+            const userVoteRef = doc(db, 'userVotes', `${user.uid}_${reportId}`);
             await runTransaction(db, async (transaction) => {
                 const reportSnap = await transaction.get(reportRef);
                 if (!reportSnap.exists()) throw new Error("El reporte ya no existe.");
@@ -193,18 +193,18 @@ const ReportDetailPage: FC = () => {
                     if (voteType === 'up') newUpvotes = Math.max(0, newUpvotes - 1);
                     else newDownvotes = Math.max(0, newDownvotes - 1);
                     transaction.delete(voteRef);
-                    transaction.delete(userVoteRef); // Delete from userVotes
+                    transaction.delete(userVoteRef);
                 } else {
                     if (voteType === 'up') {
                         newUpvotes++;
                         if (existingVote === 'down') newDownvotes = Math.max(0, newDownvotes - 1);
-                        transaction.set(voteRef, { type: 'up', timestamp: Timestamp.now() });
-                        transaction.set(userVoteRef, { userId: user.uid, reportId: reportId, reportTitle: reportTitle, type: 'up', timestamp: Timestamp.now() }); // Add to userVotes
+                        transaction.set(voteRef, { type: 'up' });
+                        transaction.set(userVoteRef, { userId: user.uid, reportId: reportId, reportTitle: reportTitle, type: 'up', timestamp: Timestamp.now() });
                     } else {
                         newDownvotes++;
                         if (existingVote === 'up') newUpvotes = Math.max(0, newUpvotes - 1);
-                        transaction.set(voteRef, { type: 'down', timestamp: Timestamp.now() });
-                        transaction.set(userVoteRef, { userId: user.uid, reportId: reportId, reportTitle: reportTitle, type: 'down', timestamp: Timestamp.now() }); // Add to userVotes
+                        transaction.set(voteRef, { type: 'down' });
+                        transaction.set(userVoteRef, { userId: user.uid, reportId: reportId, reportTitle: reportTitle, type: 'down', timestamp: Timestamp.now() });
                     }
                 }
                 transaction.update(reportRef, { upvotes: newUpvotes, downvotes: newDownvotes });
@@ -221,7 +221,7 @@ const ReportDetailPage: FC = () => {
     if (isLoading || !isClient || isLoadingReporter) {
         return (
             <main className="flex flex-col items-center p-4 sm:p-6 md:p-8 bg-secondary min-h-screen">
-                 <div className="w-full max-w-4xl mb-4">
+                 <div className="w-full max-w-4xl mb-4 self-start"> {/* Ensure back button is aligned to the start */}
                     <Skeleton className="h-9 w-9 rounded-full" />
                 </div>
                 <div className="w-full max-w-4xl grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -281,7 +281,7 @@ const ReportDetailPage: FC = () => {
     if (report === null) {
          return (
              <main className="flex flex-col items-center justify-center min-h-screen p-4 sm:p-8 bg-secondary">
-                 <div className="w-full max-w-md mb-4 self-start">
+                 <div className="w-full max-w-md mb-4 self-start"> {/* Align back button to start */}
                     <Button variant="ghost" size="icon" className="text-muted-foreground hover:text-primary rounded-full" onClick={() => router.back()} aria-label="Volver">
                         <ArrowLeft className="h-5 w-5" />
                     </Button>
@@ -317,7 +317,7 @@ const ReportDetailPage: FC = () => {
                     downvotes={report.downvotes}
                 />
             )}
-            <div className="w-full max-w-4xl mb-4">
+             <div className="w-full max-w-4xl mb-4 self-start"> {/* Moved back button container here */}
                 <Button variant="ghost" size="icon" className="text-muted-foreground hover:text-primary rounded-full" onClick={() => router.back()} aria-label="Volver">
                     <ArrowLeft className="h-5 w-5" />
                 </Button>
@@ -373,9 +373,8 @@ const ReportDetailPage: FC = () => {
                             
                             <Separator />
 
-                            {/* Voting Section - Copied and adapted */}
                              <div className="flex items-center justify-between">
-                                <div className="flex items-center space-x-1 bg-muted p-1 rounded-full">
+                               <div className="flex items-center space-x-1 bg-muted p-1 rounded-full">
                                    <Button
                                        variant="ghost" size="icon"
                                        className={cn("h-8 w-8 rounded-full", report.userVote === 'down' && "bg-destructive/20 text-destructive", votingState && "opacity-50", isOwnReport && "cursor-not-allowed opacity-60")}
@@ -402,7 +401,7 @@ const ReportDetailPage: FC = () => {
                                       aria-pressed={report.userVote === 'up'}
                                       title={isOwnReport ? "No puedes votar en tus propios reportes" : "Votar positivamente"}
                                    >
-                                      {votingState && report.userVote !== 'up' && !isOwnReport ? <Loader2 className="h-4 w-4 animate-spin"/> : <ArrowUp className="h-4 w-4"/>}
+                                      {votingState && report.userVote !== 'up' && !isOwnReport ? <Loader2 className="h-4 w-4 animate-spin"/> : <ThumbsUp className="h-4 w-4"/>}
                                    </Button>
                                </div>
                                 <div className="flex items-center space-x-2">
