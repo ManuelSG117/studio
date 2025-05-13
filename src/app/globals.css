@@ -91,3 +91,14 @@ body {
     @apply bg-secondary text-foreground; /* Use secondary as default background */
   }
 }
+
+/* For GradientText animation (optional) */
+@keyframes gradient {
+  to {
+    background-position: var(--gradient-size, 200%) 0; /* Default gradient size if not set */
+  }
+}
+
+.animate-gradient {
+  animation: gradient 8s linear infinite;
+}

@@ -97,11 +97,17 @@ export default {
   				to: {
   					height: '0'
   				}
-  			}
+  			},
+        gradient: { // Added for GradientText animation
+          to: {
+            backgroundPosition: "var(--gradient-size, 200%) 0",
+          },
+        },
   		},
   		animation: {
   			'accordion-down': 'accordion-down 0.2s ease-out',
-  			'accordion-up': 'accordion-up 0.2s ease-out'
+  			'accordion-up': 'accordion-up 0.2s ease-out',
+        gradient: "gradient 8s linear infinite", // Added for GradientText animation
   		}
   	}
   },

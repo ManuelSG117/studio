@@ -11,7 +11,8 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Separator } from '@/components/ui/separator';
 import { Badge } from '@/components/ui/badge';
-import AnimatedTextCycle from "@/components/ui/animated-text-cycle"; // Import AnimatedTextCycle
+import AnimatedTextCycle from "@/components/ui/animated-text-cycle"; 
+import GradientText from "@/components/ui/gradient-text"; // Import GradientText
 
 const AboutCreatorPage: FC = () => {
   const router = useRouter();
@@ -67,7 +68,16 @@ const AboutCreatorPage: FC = () => {
                 La plataforma +Seguro nace de un deseo genuino de contribuir a mejorar la seguridad y la calidad de vida en Uruapan. Mi objetivo es proporcionar una herramienta útil y accesible para que los ciudadanos puedan reportar incidentes, compartir información relevante y, juntos, construir un entorno más seguro para todos.
               </p>
               <p className="text-muted-foreground leading-relaxed mt-3">
-                Es importante destacar que este proyecto es una iniciativa personal y comunitaria, sin fines de lucro ni afiliaciones políticas. Mi única motivación es el bienestar de nuestra comunidad.
+                Es importante destacar que este proyecto es una iniciativa personal y comunitaria,{' '}
+                <GradientText
+                  from="from-primary" // Example start color (theme primary)
+                  to="to-destructive" // Example end color (theme destructive)
+                  size="text-base" // Adjust size as needed
+                  className="font-semibold"
+                >
+                  sin fines de lucro ni afiliaciones políticas.
+                </GradientText>
+                {' '}Mi única motivación es el bienestar de nuestra comunidad.
               </p>
             </section>
 
@@ -75,7 +85,7 @@ const AboutCreatorPage: FC = () => {
 
             <section>
               <h2 className="text-xl font-semibold text-foreground mb-4">
-                <AnimatedTextCycle texts={["Contacto", "Colaboración"]} duration={3000} className="inline-block" />
+                <AnimatedTextCycle texts={["Contacto", "Colaboración", "Sugerencia"]} duration={3000} className="inline-block" />
               </h2>
               <p className="text-muted-foreground mb-4 leading-relaxed">
                 Si tienes alguna pregunta, sugerencia para mejorar la plataforma, o simplemente quieres charlar sobre cómo podemos hacer de Uruapan un lugar mejor, no dudes en contactarme.
