@@ -1,3 +1,4 @@
+
 "use client";
 
 import type { FC, ChangeEvent } from "react";
@@ -7,58 +8,52 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import { onAuthStateChanged, type User } from "firebase/auth";
-import { collection, addDoc, Timestamp } from "firebase/firestore"; // Use collection and addDoc for new documents
+import { collection, addDoc, Timestamp } from "firebase/firestore"; 
 import { getStorage, ref as storageRef, uploadBytes, getDownloadURL } from "@firebase/storage";
-import imageCompression from 'browser-image-compression'; // Import compression library
+import imageCompression from 'browser-image-compression'; 
 import { auth, db, storage } from "@/lib/firebase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea"; // Import Textarea
+import { Textarea } from "@/components/ui/textarea"; 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-// Correctly import FormDescription
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage, FormDescription } from "@/components/ui/form";
 import { Skeleton } from "@/components/ui/skeleton";
-import { ArrowLeft, Send, Loader2, Upload, Image as ImageIcon, Trash2, UserCog, TriangleAlert, LocateFixed } from "lucide-react"; // Use Send for submit, Upload/ImageIcon for media, UserCog, TriangleAlert, LocateFixed
+import { ArrowLeft, Send, Loader2, UploadCloud, Image as ImageIcon, Trash2, UserCog, TriangleAlert, LocateFixed, FileUp } from "lucide-react"; 
 import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
-import Image from "next/image"; // Import Image
-import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog"; // Import AlertDialog components
+import Image from "next/image"; 
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog"; 
 
 
-// Define the report type enum
 type ReportType = 'incidente' | 'funcionario';
 
-// Define the form schema WITHOUT reportType
 const reportFormSchema = z.object({
   title: z.string().min(5, { message: "El título debe tener al menos 5 caracteres." }).max(100, { message: "El título no puede exceder los 100 caracteres."}),
   description: z.string().min(10, { message: "La descripción debe tener al menos 10 caracteres." }).max(1000, { message: "La descripción no puede exceder los 1000 caracteres."}),
   location: z.string().min(3, { message: "La ubicación es requerida." }).max(150, { message: "La ubicación no puede exceder los 150 caracteres."}),
-  // Optional latitude and longitude fields (will be set by location button)
   latitude: z.number().optional(),
   longitude: z.number().optional(),
-  // mediaFile is handled separately
 });
 
 type ReportFormData = z.infer<typeof reportFormSchema>;
 
 const NewReportPage: FC = () => {
   const router = useRouter();
-  const [isLoading, setIsLoading] = useState(false); // For overall form submission
+  const [isLoading, setIsLoading] = useState(false); 
   const [isAuthLoading, setIsAuthLoading] = useState(true);
-  const [isUploading, setIsUploading] = useState(false); // For media upload specifically
-  const [isCompressing, setIsCompressing] = useState(false); // For media compression
-  const [isFetchingLocation, setIsFetchingLocation] = useState(false); // For location fetching
+  const [isUploading, setIsUploading] = useState(false); 
+  const [isCompressing, setIsCompressing] = useState(false); 
+  const [isFetchingLocation, setIsFetchingLocation] = useState(false); 
   const [user, setUser] = useState<User | null>(null);
   const { toast } = useToast();
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const [selectedFile, setSelectedFile] = useState<File | null>(null); // Holds the compressed file
-  const [previewUrl, setPreviewUrl] = useState<string | null>(null); // Preview for image/video
-  const [selectedReportType, setSelectedReportType] = useState<ReportType | null>(null); // State for visual selection
+  const [selectedFile, setSelectedFile] = useState<File | null>(null); 
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null); 
+  const [selectedReportType, setSelectedReportType] = useState<ReportType | null>(null); 
 
   const form = useForm<ReportFormData>({
     resolver: zodResolver(reportFormSchema),
     defaultValues: {
-      // reportType removed from defaultValues
       title: "",
       description: "",
       location: "",
@@ -67,7 +62,6 @@ const NewReportPage: FC = () => {
     },
   });
 
-  // Authentication check
   useEffect(() => {
     setIsAuthLoading(true);
     const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
@@ -81,7 +75,6 @@ const NewReportPage: FC = () => {
     return () => unsubscribe();
   }, [router]);
 
-  // Handle file selection and COMPRESSION
   const handleFileChange = async (event: ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (!file) return;
@@ -100,7 +93,7 @@ const NewReportPage: FC = () => {
     setSelectedFile(null);
 
     const options = {
-        maxSizeMB: file.type.startsWith("image/") ? 2 : 10,
+        maxSizeMB: file.type.startsWith("image/") ? 2 : 10, // 2MB for images, 10MB for videos
         maxWidthOrHeight: 1280,
         useWebWorker: true,
         initialQuality: 0.7,
@@ -114,8 +107,8 @@ const NewReportPage: FC = () => {
              processedFile = await imageCompression(file, options);
              console.log(`Compressed image size: ${(processedFile.size / 1024 / 1024).toFixed(2)} MB`);
         } else {
-            console.log(`Video file size: ${(file.size / 1024 / 1024).toFixed(2)} MB (compression skipped)`);
-            if (file.size > options.maxSizeMB * 1024 * 1024) {
+            console.log(`Video file size: ${(file.size / 1024 / 1024).toFixed(2)} MB`);
+            if (file.size > options.maxSizeMB * 1024 * 1024) { // Check against 10MB for videos
                 toast({
                     variant: "warning",
                     title: "Archivo Grande",
@@ -152,35 +145,31 @@ const NewReportPage: FC = () => {
     }
   };
 
-  // Trigger hidden file input click
   const handleUploadClick = () => {
     if (!isCompressing && !isUploading && !isLoading) {
         fileInputRef.current?.click();
     }
   };
 
-   // Remove selected file
    const handleRemoveFile = () => {
        if (isCompressing || isUploading || isLoading) return;
        setSelectedFile(null);
        setPreviewUrl(null);
    };
 
-   // Get Current Location Logic (inside a separate function for clarity)
     const fetchAndSetLocation = () => {
         setIsFetchingLocation(true);
         navigator.geolocation.getCurrentPosition(
              (position) => {
                 const { latitude, longitude } = position.coords;
-                // Try reverse geocoding
                  fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}`)
                     .then(response => response.json())
                     .then(data => {
-                         const address = data.display_name || `Ubicación (Lat: ${latitude.toFixed(4)}, Lon: ${longitude.toFixed(4)})`;
+                         const address = data.display_name || `Lat: ${latitude.toFixed(4)}, Lon: ${longitude.toFixed(4)}`;
                          form.setValue("location", address, { shouldValidate: true });
                          toast({
                             title: "Ubicación Actual Obtenida",
-                            description: "Se estableció tu ubicación. Revisa si es correcta y añade detalles si es necesario (ej. número interior, piso).", // Updated toast message
+                            description: "Se estableció tu ubicación. Revisa si es correcta y añade detalles si es necesario (ej. número interior, piso).",
                          });
                     })
                     .catch(err => {
@@ -189,7 +178,7 @@ const NewReportPage: FC = () => {
                          form.setValue("location", locationString, { shouldValidate: true });
                           toast({
                              title: "Coordenadas Obtenidas",
-                             description: "No se pudo obtener la dirección, se usaron coordenadas. Por favor, completa la dirección manualmente.", // Updated toast message
+                             description: "No se pudo obtener la dirección, se usaron coordenadas. Por favor, completa la dirección manualmente.",
                           });
                     })
                     .finally(() => {
@@ -201,65 +190,37 @@ const NewReportPage: FC = () => {
             (error) => {
                  console.error("Geolocation error:", error);
                  let description = "No se pudo obtener tu ubicación.";
-                 if (error.code === error.PERMISSION_DENIED) {
-                     description = "Permiso de ubicación denegado.";
-                 } else if (error.code === error.POSITION_UNAVAILABLE) {
-                     description = "La información de ubicación no está disponible.";
-                 } else if (error.code === error.TIMEOUT) {
-                     description = "Se agotó el tiempo de espera para obtener la ubicación.";
-                 }
-                 toast({
-                     variant: "destructive",
-                     title: "Error de Ubicación",
-                     description: description,
-                 });
+                 if (error.code === error.PERMISSION_DENIED) description = "Permiso de ubicación denegado.";
+                 else if (error.code === error.POSITION_UNAVAILABLE) description = "La información de ubicación no está disponible.";
+                 else if (error.code === error.TIMEOUT) description = "Se agotó el tiempo de espera para obtener la ubicación.";
+                 toast({ variant: "destructive", title: "Error de Ubicación", description: description });
                  setIsFetchingLocation(false);
             },
-            {
-                 enableHighAccuracy: true,
-                 timeout: 10000,
-                 maximumAge: 0
-            }
+            { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
          );
     };
 
-
-    // Handler for the AlertDialog action button
     const handleConfirmUseLocation = () => {
        if (!navigator.geolocation) {
-          toast({
-              variant: "destructive",
-              title: "Geolocalización no soportada",
-              description: "Tu navegador no soporta la geolocalización.",
-          });
+          toast({ variant: "destructive", title: "Geolocalización no soportada", description: "Tu navegador no soporta la geolocalización." });
           return;
        }
-       fetchAndSetLocation(); // Call the location fetching logic
+       fetchAndSetLocation(); 
     };
 
-
-
-  // Form submission handler
   const onSubmit = async (values: ReportFormData) => {
-    // Check if report type is selected
     if (!selectedReportType) {
         toast({ variant: "destructive", title: "Error", description: "Por favor, selecciona un tipo de reporte." });
         return;
     }
-
     setIsLoading(true);
     setIsUploading(false);
-
     if (!user) {
         toast({ variant: "destructive", title: "Error", description: "Usuario no autenticado." });
         setIsLoading(false);
         return;
     }
-
-    console.log("Submitting report data:", { ...values, reportType: selectedReportType });
     let mediaDownloadURL: string | null = null;
-
-    // 1. Upload Media if selected
     if (selectedFile) {
       setIsUploading(true);
       const fileName = `${user.uid}_${Date.now()}_${selectedFile.name}`;
@@ -267,62 +228,37 @@ const NewReportPage: FC = () => {
       try {
         await uploadBytes(mediaRef, selectedFile);
         mediaDownloadURL = await getDownloadURL(mediaRef);
-        console.log("Media uploaded successfully:", mediaDownloadURL);
         toast({ title: "Archivo Subido", description: "La evidencia multimedia se ha guardado." });
       } catch (uploadError) {
         console.error("Error uploading media:", uploadError);
-        toast({
-          variant: "destructive",
-          title: "Error al Subir Archivo",
-          description: "No se pudo guardar la evidencia. El reporte se guardará sin ella.",
-        });
+        toast({ variant: "destructive", title: "Error al Subir Archivo", description: "No se pudo guardar la evidencia. El reporte se guardará sin ella."});
       } finally {
         setIsUploading(false);
       }
     }
-
-    // 2. Save Report Data to Firestore
     try {
       const reportsCollectionRef = collection(db, "reports");
       const reportData = {
-        userId: user.uid,
-        userEmail: user.email,
-        reportType: selectedReportType, // Use state variable
-        title: values.title,
-        description: values.description,
-        location: values.location,
-        mediaUrl: mediaDownloadURL,
-        latitude: values.latitude ?? null, // Save coordinates if available
-        longitude: values.longitude ?? null,
-        createdAt: Timestamp.now(),
-        upvotes: 0, // Initialize upvotes to 0
-        downvotes: 0, // Initialize downvotes to 0
+        userId: user.uid, userEmail: user.email, reportType: selectedReportType, 
+        title: values.title, description: values.description, location: values.location,
+        mediaUrl: mediaDownloadURL, latitude: values.latitude ?? null, longitude: values.longitude ?? null,
+        createdAt: Timestamp.now(), upvotes: 0, downvotes: 0,
       };
-
       const docRef = await addDoc(reportsCollectionRef, reportData);
-      console.log("Report submitted successfully with ID:", docRef.id);
-
-      toast({
-        title: "Reporte Enviado",
-        description: "Tu reporte ha sido registrado exitosamente.",
-      });
+      toast({ title: "Reporte Enviado", description: "Tu reporte ha sido registrado exitosamente." });
       router.push("/welcome");
     } catch (error) {
       console.error("Error saving report:", error);
-      toast({
-        variant: "destructive",
-        title: "Error al Guardar Reporte",
-        description: "No se pudo registrar el reporte. Inténtalo de nuevo.",
-      });
+      toast({ variant: "destructive", title: "Error al Guardar Reporte", description: "No se pudo registrar el reporte. Inténtalo de nuevo."});
+    } finally {
       setIsLoading(false);
     }
   };
 
-   // Loading state skeleton
    if (isAuthLoading) {
       return (
         <main className="flex min-h-screen flex-col items-center justify-center py-8 px-4 sm:px-8 bg-secondary">
-           <Card className="w-full max-w-lg shadow-lg border-none rounded-xl">
+           <Card className="w-full max-w-2xl shadow-lg border-none rounded-xl">
              <CardHeader className="text-center relative pb-4 pt-8 items-center">
                   <Skeleton className="h-8 w-2/3 mx-auto mb-2" />
                   <Skeleton className="h-4 w-1/2 mx-auto" />
@@ -345,86 +281,65 @@ const NewReportPage: FC = () => {
 
 
   return (
-    <main className="flex min-h-screen flex-col items-center justify-center py-8 px-4 sm:px-8 bg-secondary">
-      <Card className="w-full max-w-lg shadow-lg border-none rounded-xl bg-card">
-        <CardHeader className="text-center relative pb-4 pt-8">
-           <Button
-             variant="ghost"
-             size="icon"
-             className="absolute left-4 top-6 text-muted-foreground hover:text-primary rounded-full"
-             onClick={() => router.back()}
-             aria-label="Volver"
-             type="button"
-             disabled={disableForm}
-           >
-             <ArrowLeft className="h-5 w-5" />
-           </Button>
-          <CardTitle className="text-2xl font-bold text-primary">Crear Nuevo Reporte</CardTitle>
-          <CardDescription className="text-muted-foreground">Selecciona el tipo y describe el incidente.</CardDescription>
+    <main className="flex flex-col items-center py-8 px-4 sm:px-6 md:px-8 bg-secondary min-h-screen">
+      <Card className="w-full max-w-2xl shadow-xl border-none rounded-xl bg-card">
+        <CardHeader className="pt-8 pb-6 px-6 md:px-8">
+           <div className="flex items-center mb-4">
+             <Button
+               variant="ghost"
+               size="icon"
+               className="mr-3 text-muted-foreground hover:text-primary rounded-full h-9 w-9"
+               onClick={() => router.back()}
+               aria-label="Volver"
+               type="button"
+               disabled={disableForm}
+             >
+               <ArrowLeft className="h-5 w-5" />
+             </Button>
+             <div className="flex-grow">
+                <CardTitle className="text-2xl font-bold text-foreground">Crear Nuevo Reporte</CardTitle>
+                <CardDescription className="text-muted-foreground mt-1">
+                    Ayuda a mejorar la seguridad de tu comunidad reportando incidentes o actos indebidos. Tu participación es importante para construir una sociedad +SEGURA.
+                </Description>
+             </div>
+           </div>
         </CardHeader>
-        <CardContent className="px-6 sm:px:8 pt-2 pb-6">
+        <CardContent className="px-6 md:px-8 pb-8">
           <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-
-               {/* Report Type Selection Cards */}
                <FormItem>
-                   <FormLabel className="text-base font-medium text-foreground">Tipo de Reporte</FormLabel>
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-2">
-                        {/* Funcionario Card */}
+                   <FormLabel className="text-sm font-medium text-foreground">Tipo de Reporte</FormLabel>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mt-1">
                         <Card
                              className={cn(
-                                "cursor-pointer border-2 p-4 flex flex-col items-center justify-between transition-all hover:shadow-md",
-                                selectedReportType === 'funcionario' ? 'border-primary bg-primary/10 scale-105 shadow-lg' : 'border-border bg-card hover:border-primary/50', // Enhanced selected style
+                                "cursor-pointer border-2 p-4 flex flex-col items-center justify-center text-center transition-all hover:shadow-md h-32",
+                                selectedReportType === 'funcionario' ? 'border-primary bg-primary/5 ring-2 ring-primary' : 'border-border bg-card hover:border-primary/40',
                                 disableForm ? 'opacity-60 cursor-not-allowed' : ''
                              )}
                              onClick={() => !disableForm && setSelectedReportType('funcionario')}
                         >
-                            <CardHeader className="p-0 items-center text-center space-y-2">
-                                <div className={cn(
-                                    "p-3 rounded-full mb-3 transition-colors",
-                                    selectedReportType === 'funcionario' ? 'bg-primary text-primary-foreground' : 'bg-blue-100 dark:bg-blue-900/30 text-primary'
-                                 )}>
-                                    <UserCog className="h-8 w-8" />
-                                </div>
-                                <CardTitle className="text-lg text-primary">Funcionario Público</CardTitle>
-                                <CardDescription className="text-xs text-muted-foreground px-2">
-                                     Reporta malas prácticas, corrupción o abuso por parte de un funcionario público.
-                                </CardDescription>
-                            </CardHeader>
-                            {/* Removed Button */}
+                            <UserCog className={cn("h-7 w-7 mb-2", selectedReportType === 'funcionario' ? 'text-primary' : 'text-muted-foreground group-hover:text-primary')} />
+                            <p className={cn("text-sm font-medium", selectedReportType === 'funcionario' ? 'text-primary' : 'text-foreground')}>Funcionario Público</p>
+                            <p className="text-xs text-muted-foreground">Actos indebidos, corrupción, etc.</p>
                         </Card>
-
-                        {/* Incidente Card */}
                          <Card
                             className={cn(
-                                "cursor-pointer border-2 p-4 flex flex-col items-center justify-between transition-all hover:shadow-md",
-                                selectedReportType === 'incidente' ? 'border-destructive bg-destructive/10 scale-105 shadow-lg' : 'border-border bg-card hover:border-destructive/50', // Enhanced selected style
+                                "cursor-pointer border-2 p-4 flex flex-col items-center justify-center text-center transition-all hover:shadow-md h-32",
+                                selectedReportType === 'incidente' ? 'border-destructive bg-destructive/5 ring-2 ring-destructive' : 'border-border bg-card hover:border-destructive/40',
                                 disableForm ? 'opacity-60 cursor-not-allowed' : ''
                              )}
                              onClick={() => !disableForm && setSelectedReportType('incidente')}
                          >
-                             <CardHeader className="p-0 items-center text-center space-y-2">
-                                 <div className={cn(
-                                     "p-3 rounded-full mb-3 transition-colors",
-                                     selectedReportType === 'incidente' ? 'bg-destructive text-destructive-foreground' : 'bg-red-100 dark:bg-red-900/30 text-destructive'
-                                  )}>
-                                     <TriangleAlert className="h-8 w-8" />
-                                 </div>
-                                <CardTitle className="text-lg text-destructive">Delito / Incidente</CardTitle>
-                                <CardDescription className="text-xs text-muted-foreground px-2">
-                                     Reporta robos, asaltos, extorsiones u otros delitos que hayas presenciado.
-                                </CardDescription>
-                             </CardHeader>
-                              {/* Removed Button */}
+                            <TriangleAlert className={cn("h-7 w-7 mb-2", selectedReportType === 'incidente' ? 'text-destructive' : 'text-muted-foreground group-hover:text-destructive')} />
+                            <p className={cn("text-sm font-medium", selectedReportType === 'incidente' ? 'text-destructive' : 'text-foreground')}>Delito/Incidente</p>
+                            <p className="text-xs text-muted-foreground">Robos, asaltos, vandalismo, etc.</p>
                         </Card>
                     </div>
-                     {/* Hidden Form Field for validation trigger if needed, or rely on button check */}
                      {!selectedReportType && form.formState.isSubmitted && (
-                        <p className="text-sm font-medium text-destructive mt-2">Por favor, selecciona un tipo de reporte.</p>
+                        <p className="text-xs font-medium text-destructive mt-1.5">Por favor, selecciona un tipo de reporte.</p>
                     )}
                </FormItem>
 
-              {/* Title */}
               <FormField
                 control={form.control}
                 name="title"
@@ -432,179 +347,126 @@ const NewReportPage: FC = () => {
                   <FormItem>
                     <FormLabel>Título del Reporte</FormLabel>
                     <FormControl>
-                      <Input
-                        placeholder="Ej: Robo en Calle Principal"
-                        {...field}
-                        disabled={disableForm}
-                        aria-required="true"
-                        className="h-11"
-                      />
+                      <Input placeholder="Ej: Robo en la calle principal" {...field} disabled={disableForm} aria-required="true" className="h-11"/>
                     </FormControl>
                     <FormMessage />
                   </FormItem>
                 )}
               />
 
-              {/* Description */}
               <FormField
                 control={form.control}
                 name="description"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Descripción Detallada</FormLabel>
+                    <FormLabel>Descripción</FormLabel>
                     <FormControl>
-                      <Textarea
-                        placeholder="Describe lo sucedido con la mayor cantidad de detalles posible..."
-                        {...field}
-                        disabled={disableForm}
-                        aria-required="true"
-                        className="min-h-[120px]" // Increase default height for description
-                      />
+                      <Textarea placeholder="Describe con detalle lo sucedido..." {...field} disabled={disableForm} aria-required="true" className="min-h-[100px]"/>
                     </FormControl>
                     <FormMessage />
                   </FormItem>
                 )}
               />
 
-              {/* Location */}
               <FormField
                 control={form.control}
                 name="location"
                 render={({ field }) => (
                   <FormItem>
                      <FormLabel>Ubicación</FormLabel>
-                     <FormControl>
-                         <Input
-                             placeholder="Ej: Esquina de Av. Juárez y Calle Madero, Col. Centro"
-                             {...field}
-                             disabled={disableForm}
-                             aria-required="true"
-                             className="h-11 flex-grow mb-2" // Add margin-bottom
-                         />
-                     </FormControl>
-                     {/* Use Current Location Button with AlertDialog */}
-                     <AlertDialog>
-                        <AlertDialogTrigger asChild>
-                             <Button
-                                type="button"
-                                variant="outline"
-                                className="w-full h-11 border-primary text-primary hover:bg-primary/10 flex items-center justify-center space-x-2"
-                                disabled={disableForm || isFetchingLocation}
-                                aria-label="Usar ubicación actual (solo si estás en el lugar del incidente)"
-                                title="Usar mi ubicación actual (solo si estás en el lugar del incidente)"
-                            >
-                                {isFetchingLocation ? (
-                                    <Loader2 className="h-5 w-5 animate-spin" />
-                                ) : (
-                                    <LocateFixed className="h-5 w-5" />
-                                )}
-                                <span>{isFetchingLocation ? 'Obteniendo...' : 'Usar mi Ubicación Actual'}</span>
-                            </Button>
-                        </AlertDialogTrigger>
-                        <AlertDialogContent>
-                            <AlertDialogHeader>
-                                <AlertDialogTitle>Confirmación de Ubicación</AlertDialogTitle>
-                                <AlertDialogDescription>
-                                    Esta acción usará tu ubicación actual del GPS. Asegúrate de estar físicamente en el lugar donde ocurrió el incidente para mayor precisión.
-                                </AlertDialogDescription>
-                            </AlertDialogHeader>
-                            <AlertDialogFooter>
-                                <AlertDialogCancel disabled={isFetchingLocation}>Cancelar</AlertDialogCancel>
-                                <AlertDialogAction onClick={handleConfirmUseLocation} disabled={isFetchingLocation}>
-                                    {isFetchingLocation ? <Loader2 className="mr-2 h-4 w-4 animate-spin"/> : null}
-                                     Usar Ubicación Actual
-                                </AlertDialogAction>
-                            </AlertDialogFooter>
-                        </AlertDialogContent>
-                     </AlertDialog>
-
-                     <FormDescription className="text-xs text-center mt-1">
-                         Asegúrate de estar en el lugar del reporte al usar esta opción.
-                     </FormDescription>
+                     <div className="flex items-center gap-2">
+                        <FormControl>
+                            <Input placeholder="Dirección del incidente" {...field} disabled={disableForm} aria-required="true" className="h-11 flex-grow"/>
+                        </FormControl>
+                        <AlertDialog>
+                            <AlertDialogTrigger asChild>
+                                <Button type="button" variant="outline" className="h-11 px-3" disabled={disableForm || isFetchingLocation} aria-label="Usar mi ubicación">
+                                    {isFetchingLocation ? <Loader2 className="h-5 w-5 animate-spin" /> : <LocateFixed className="h-5 w-5" />}
+                                    <span className="ml-2 hidden sm:inline">Usar mi ubicación</span>
+                                </Button>
+                            </AlertDialogTrigger>
+                            <AlertDialogContent>
+                                <AlertDialogHeader>
+                                    <AlertDialogTitle>Confirmación de Ubicación</AlertDialogTitle>
+                                    <AlertDialogDescription>
+                                        Esta acción usará tu ubicación actual del GPS. Asegúrate de estar físicamente en el lugar donde ocurrió el incidente para mayor precisión.
+                                    </AlertDialogDescription>
+                                </AlertDialogHeader>
+                                <AlertDialogFooter>
+                                    <AlertDialogCancel disabled={isFetchingLocation}>Cancelar</AlertDialogCancel>
+                                    <AlertDialogAction onClick={handleConfirmUseLocation} disabled={isFetchingLocation}>
+                                        {isFetchingLocation ? <Loader2 className="mr-2 h-4 w-4 animate-spin"/> : null}
+                                        Usar Ubicación Actual
+                                    </AlertDialogAction>
+                                </AlertDialogFooter>
+                            </AlertDialogContent>
+                        </AlertDialog>
+                     </div>
                      <FormMessage />
                   </FormItem>
                 )}
               />
+              {/* Placeholder for Map Preview */}
+              <div className="h-48 bg-muted rounded-md flex items-center justify-center text-muted-foreground border">
+                <ImageIcon className="h-12 w-12 opacity-50" />
+                <span className="ml-2">Vista previa del mapa aquí</span>
+              </div>
 
-               {/* Media Upload Section */}
+
                <FormItem>
-                    <FormLabel>Evidencia Multimedia (Opcional)</FormLabel>
-                    <FormControl>
-                       <div className="flex items-center space-x-4">
-                          <Button
-                            type="button"
-                            variant="outline"
-                            onClick={handleUploadClick}
-                            disabled={disableForm}
-                            className="h-11"
-                          >
-                             {isCompressing ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Upload className="mr-2 h-4 w-4" />}
-                             {isCompressing ? "Procesando..." : selectedFile ? "Cambiar Archivo" : "Subir Imagen/Video"}
-                          </Button>
-                           {previewUrl && (
-                                <div className="flex items-center space-x-2">
-                                   {selectedFile?.type.startsWith('image/') ? (
-                                       <Image src={previewUrl} alt="Preview" width={40} height={40} className="rounded object-cover aspect-square" data-ai-hint="media preview"/>
-                                   ) : (
-                                        <div className="w-10 h-10 rounded bg-muted flex items-center justify-center">
-                                            <ImageIcon className="h-5 w-5 text-muted-foreground" /> {/* Placeholder for video */}
-                                        </div>
-                                   )}
-                                   <Button
-                                       type="button"
-                                       variant="ghost"
-                                       size="icon"
-                                       className="h-8 w-8 text-destructive hover:bg-destructive/10"
-                                       onClick={handleRemoveFile}
-                                       disabled={disableForm}
-                                       aria-label="Eliminar archivo"
-                                   >
-                                       <Trash2 className="h-4 w-4" />
-                                   </Button>
+                    <FormLabel>Evidencia</FormLabel>
+                    <div className="mt-1 flex justify-center px-6 pt-5 pb-6 border-2 border-border border-dashed rounded-md">
+                        <div className="space-y-1 text-center">
+                            {previewUrl ? (
+                                <div className="relative group w-full max-w-xs mx-auto">
+                                    {selectedFile?.type.startsWith('image/') ? (
+                                        <Image src={previewUrl} alt="Vista previa" width={200} height={150} className="mx-auto rounded-md object-contain max-h-[150px]" data-ai-hint="evidence preview"/>
+                                    ) : (
+                                        <video src={previewUrl} controls className="mx-auto rounded-md max-h-[150px] max-w-full" preload="metadata"/>
+                                    )}
+                                    <Button type="button" variant="destructive" size="icon" className="absolute -top-2 -right-2 h-7 w-7 rounded-full opacity-0 group-hover:opacity-100 transition-opacity" onClick={handleRemoveFile} disabled={disableForm} aria-label="Eliminar archivo">
+                                        <Trash2 className="h-4 w-4" />
+                                    </Button>
                                 </div>
-                           )}
-                       </div>
-                    </FormControl>
-                     <FormDescription className="text-xs">
-                         Puedes adjuntar una imagen (jpg, png, gif) o video (mp4, webm) como evidencia. Máx 2MB para imágenes, 10MB para videos.
-                     </FormDescription>
-                     <FormMessage /> {/* For file-related errors if needed */}
-                    <input
-                        type="file"
-                        ref={fileInputRef}
-                        onChange={handleFileChange}
-                        accept="image/*,video/*" // Accept images and videos
-                        className="hidden"
-                        disabled={disableForm}
-                     />
-                     {/* Upload Progress Indicator */}
-                     {isUploading && (
-                        <div className="flex items-center text-sm text-muted-foreground mt-2">
-                            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                            Subiendo archivo...
+                            ) : (
+                                <UploadCloud className="mx-auto h-12 w-12 text-muted-foreground" />
+                            )}
+                            
+                            <div className="flex text-sm text-muted-foreground justify-center">
+                                <label htmlFor="file-upload" className={cn("relative cursor-pointer rounded-md font-medium text-primary hover:text-primary/80 focus-within:outline-none focus-within:ring-2 focus-within:ring-offset-2 focus-within:ring-primary", disableForm && "opacity-50 cursor-not-allowed")}>
+                                <span>{isCompressing ? "Procesando..." : "Arrastra y suelta o selecciona archivos"}</span>
+                                <input id="file-upload" name="file-upload" type="file" className="sr-only" ref={fileInputRef} onChange={handleFileChange} accept="image/*,video/*" disabled={disableForm} />
+                                </label>
+                            </div>
+                            <p className="text-xs text-muted-foreground">Formatos aceptados: JPG, PNG, MP4 (máx 2MB img, 10MB video)</p>
+                            {isUploading && (
+                                <div className="flex items-center text-sm text-primary mt-1">
+                                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                                    Subiendo archivo...
+                                </div>
+                            )}
                         </div>
-                     )}
+                    </div>
+                     <FormMessage />
                </FormItem>
 
-
-              {/* Submit Button */}
-              <Button
-                type="submit"
-                size="lg"
-                className="w-full bg-primary hover:bg-primary/90 text-primary-foreground h-12 rounded-full text-base font-medium mt-8" // Increased margin-top
-                disabled={
-                    disableForm ||
-                    !form.formState.isValid ||
-                    !selectedReportType // Also disable if report type not selected
-                 }
-              >
-                 {isLoading || isUploading || isCompressing || isFetchingLocation ? (
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                 ) : (
-                    <Send className="mr-2 h-4 w-4" />
-                 )}
-                {isLoading ? "Enviando..." : isUploading ? "Subiendo..." : isCompressing ? "Procesando..." : isFetchingLocation ? "Obteniendo Ubicación..." : "Enviar Reporte"}
-              </Button>
+              <div className="flex justify-end space-x-3 pt-4">
+                <Button type="button" variant="ghost" onClick={() => router.back()} disabled={disableForm} className="rounded-full">
+                    Cancelar
+                </Button>
+                <Button
+                    type="submit"
+                    className="bg-primary hover:bg-primary/90 text-primary-foreground rounded-full px-6"
+                    disabled={disableForm || !form.formState.isValid || !selectedReportType}
+                >
+                    {isLoading || isUploading || isCompressing || isFetchingLocation ? (
+                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    ) : (
+                        <Send className="mr-2 h-4 w-4" />
+                    )}
+                    {isLoading ? "Enviando..." : isUploading ? "Subiendo..." : isCompressing ? "Procesando..." : isFetchingLocation ? "Ubicando..." : "Enviar Reporte"}
+                </Button>
+              </div>
             </form>
           </Form>
         </CardContent>
