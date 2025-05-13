@@ -262,7 +262,7 @@ const NewReportPage: FC = () => {
    if (isAuthLoading) {
       return (
         <main className="flex min-h-screen flex-col items-center justify-center py-8 px-4 sm:px-8 bg-secondary">
-           <Card className="w-full max-w-2xl shadow-lg border-none rounded-xl">
+           <Card className="w-full max-w-7xl shadow-lg border-none rounded-xl">
              <CardHeader className="text-center relative pb-4 pt-8 items-center">
                   <Skeleton className="h-8 w-2/3 mx-auto mb-2" />
                   <Skeleton className="h-4 w-1/2 mx-auto" />
@@ -286,7 +286,7 @@ const NewReportPage: FC = () => {
 
   return (
     <main className="flex flex-col items-center py-8 px-4 sm:px-6 md:px-8 bg-secondary min-h-screen">
-      <Card className="w-full max-w-2xl shadow-xl border-none rounded-xl bg-card">
+      <Card className="w-full max-w-7xl shadow-xl border-none rounded-xl bg-card">
         <CardHeader className="pt-8 pb-6 px-6 md:px-8">
            <div className="flex items-center mb-4">
              <Button
@@ -303,7 +303,7 @@ const NewReportPage: FC = () => {
              <div className="flex-grow">
                 <CardTitle className="text-2xl font-bold text-foreground">Crear Nuevo Reporte</CardTitle>
                 <CardDescription className="text-muted-foreground mt-1">
-                    Ayuda a mejorar la seguridad de tu comunidad reportando incidentes o actos indebidos. Tu participación es importante para construir una sociedad +SEGURA.
+                    Ayuda a mejorar la seguridad de tu comunidad reportando incidentes o actos indebidos. Tu participación es importante para construir un Uruapan +SEGURO.
                 </CardDescription>
              </div>
            </div>
@@ -501,7 +501,7 @@ const NewReportPage: FC = () => {
       </Card>
 
       {/* Recent Community Reports Section */}
-      <div className="w-full max-w-2xl mt-12">
+      <div className="w-full max-w-7xl mt-12">
           <h2 className="text-xl font-semibold text-foreground mb-4">Reportes Recientes de la Comunidad</h2>
           <RecentCommunityReports />
       </div>
