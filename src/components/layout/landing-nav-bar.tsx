@@ -9,6 +9,7 @@ import { cn } from '@/lib/utils';
 import { useEffect, useState } from 'react';
 import { LogIn, Menu} from 'lucide-react';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
+import { ThemeToggle } from '@/components/ui/theme-toggle'; // Import ThemeToggle
 
 const LandingNavBar: FC = () => {
   const router = useRouter();
@@ -104,9 +105,9 @@ const LandingNavBar: FC = () => {
         scrolled ? "opacity-100 translate-y-0 pointer-events-auto" : "opacity-0 -translate-y-full pointer-events-none"
       )}>
         <nav className={cn(
-          "flex items-center gap-3 text-sm font-medium rounded-full px-3 py-2.5 transition-all duration-300 ease-in-out",
-          scrolled 
-            ? "bg-background/70 backdrop-blur-lg shadow-xl border border-border/50 scale-100" 
+          "flex items-center gap-2 text-sm font-medium rounded-full px-3 py-2.5 transition-all duration-300 ease-in-out", // Reduced gap from gap-3 to gap-2
+          scrolled
+            ? "bg-background/70 backdrop-blur-lg shadow-xl border border-border/50 scale-100"
             : "bg-white/5 backdrop-blur-md scale-95 shadow-lg border border-white/20"
         )}>
           {/* +Seguro Link (Home/Top) */}
@@ -116,7 +117,7 @@ const LandingNavBar: FC = () => {
             className={cn(
               "transition-all duration-300 px-5 py-2.5 rounded-full flex items-center gap-2 hover:scale-105 font-semibold",
               isLinkActive('top')
-                ? "bg-primary/20 text-primary shadow-inner ring-1 ring-primary/30" 
+                ? "bg-primary/20 text-primary shadow-inner ring-1 ring-primary/30"
                 : "text-muted-foreground hover:text-primary hover:bg-primary/10"
             )}
             aria-current={isLinkActive('top') ? 'page' : undefined}
@@ -154,11 +155,12 @@ const LandingNavBar: FC = () => {
           >
             Iniciar Sesión
           </Link>
+          <ThemeToggle /> {/* Added ThemeToggle for desktop */}
         </nav>
       </div>
 
       {/* Mobile Menu with enhanced styles */}
-      <div className="absolute right-4 top-1/2 transform -translate-y-1/2 md:hidden pointer-events-auto flex items-center gap-3">
+      <div className="absolute right-4 top-1/2 transform -translate-y-1/2 md:hidden pointer-events-auto flex items-center gap-2"> {/* Reduced gap from gap-3 */}
         <Button
           asChild
           size="icon"
@@ -170,6 +172,8 @@ const LandingNavBar: FC = () => {
             <span className="sr-only">Iniciar Sesión</span>
           </Link>
         </Button>
+
+        <ThemeToggle /> {/* Added ThemeToggle for mobile */}
 
         <Sheet>
           <SheetTrigger asChild>
