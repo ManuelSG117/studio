@@ -2,25 +2,26 @@
 "use client";
 
 import type { FC, ReactElement } from 'react';
-import React from 'react'; // Import React
-import { useState, useEffect } from 'react'; // Added useEffect
+import React from 'react';
+import { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
-import { Home, User, FileText, ShieldAlert, Globe, BarChart3, Menu, X, LogOut, Settings } from 'lucide-react'; // Added LogOut, Settings
+import { usePathname, useRouter } from 'next/navigation';
+import { Home, User, FileText, ShieldAlert, Globe, BarChart3, Menu, X, LogOut, Settings, Sun, Moon } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger, SheetClose } from '@/components/ui/sheet';
-import { useAuth } from '@/context/AuthContext'; // Import useAuth
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'; // Import Avatar components
-import { signOut } from 'firebase/auth'; // Import signOut
-import { auth } from '@/lib/firebase/client'; // Import auth
-import { useToast } from '@/hooks/use-toast'; // Import useToast
-import { useRouter } from 'next/navigation'; // Import useRouter
+import { useAuth } from '@/context/AuthContext';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { signOut } from 'firebase/auth';
+import { auth } from '@/lib/firebase/client';
+import { useToast } from '@/hooks/use-toast';
+import { useTheme } from "next-themes";
+import Image from 'next/image';
 
 interface NavLinkItem {
   href: string;
   label: string;
-  icon: ReactElement; // Expect a ReactElement for icon
+  icon: ReactElement;
 }
 
 const navLinks: NavLinkItem[] = [
@@ -31,34 +32,74 @@ const navLinks: NavLinkItem[] = [
   { href: "/profile", label: "Perfil", icon: <User className="h-5 w-5" /> },
 ];
 
-const DesktopNavItem: FC<NavLinkItem> = ({ href, label, icon }) => {
-  const pathname = usePathname();
-  const isActive = href === '/' ? pathname === href : pathname?.startsWith(href);
-
+const DesktopNavItem: FC<NavLinkItem & { isActive: boolean }> = ({ href, label, icon, isActive }) => {
   return (
     <Link
       href={href}
       className={cn(
-        "flex flex-col items-center justify-center flex-1 p-2 text-xs transition-colors duration-150",
-        isActive ? 'text-primary font-medium' : 'text-muted-foreground hover:text-primary/80'
+        "transition-all duration-300 px-4 py-2 rounded-full flex items-center gap-1.5 hover:scale-105 text-sm font-medium",
+        isActive
+          ? "bg-primary/15 text-primary ring-1 ring-primary/20 shadow-inner"
+          : "text-muted-foreground hover:text-primary hover:bg-primary/10"
       )}
       aria-current={isActive ? 'page' : undefined}
     >
-      {icon}
-      <span className="mt-1 sm:inline">{label}</span>
+      {React.cloneElement(icon, { className: "h-4 w-4"})}
+      {label}
     </Link>
   );
 };
 
+const ThemeToggle: FC = () => {
+  const { theme, setTheme } = useTheme();
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => setMounted(true), []);
+
+  if (!mounted) {
+    return (
+      <Button variant="ghost" size="icon" className="w-9 h-9 rounded-full" disabled>
+        <Sun className="h-5 w-5 rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0" />
+        <Moon className="absolute h-5 w-5 rotate-90 scale-0 transition-all dark:rotate-0 dark:scale-100" />
+        <span className="sr-only">Toggle theme</span>
+      </Button>
+    );
+  }
+
+  return (
+    <Button
+      variant="ghost"
+      size="icon"
+      onClick={() => setTheme(theme === "light" ? "dark" : "light")}
+      className="w-9 h-9 rounded-full text-muted-foreground hover:text-primary hover:bg-primary/10"
+      aria-label="Toggle theme"
+    >
+      <Sun className="h-5 w-5 rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0" />
+      <Moon className="absolute h-5 w-5 rotate-90 scale-0 transition-all dark:rotate-0 dark:scale-100" />
+    </Button>
+  );
+};
+
+
 export const TopNavBar: FC = () => {
   const pathname = usePathname();
-  const router = useRouter(); // Initialize router
-  const { toast } = useToast(); // Initialize toast
+  const router = useRouter();
+  const { toast } = useToast();
   const [isSheetOpen, setIsSheetOpen] = useState(false);
-  const { user, isAuthenticated, loading: authLoading } = useAuth(); // Get user from AuthContext
+  const { user, isAuthenticated, loading: authLoading } = useAuth();
   const [userName, setUserName] = useState<string | null>(null);
   const [userEmail, setUserEmail] = useState<string | null>(null);
   const [userPhotoURL, setUserPhotoURL] = useState<string | null>(null);
+  const [scrolled, setScrolled] = useState(false);
+
+  useEffect(() => {
+    const handleScroll = () => {
+      setScrolled(window.scrollY > 10);
+    };
+    window.addEventListener('scroll', handleScroll);
+    handleScroll(); // Check scroll position on mount
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
 
   useEffect(() => {
     if (isAuthenticated && user) {
@@ -66,13 +107,11 @@ export const TopNavBar: FC = () => {
       setUserEmail(user.email);
       setUserPhotoURL(user.photoURL);
     } else if (!authLoading) {
-      // If not authenticated and not loading, clear user info
       setUserName(null);
       setUserEmail(null);
       setUserPhotoURL(null);
     }
   }, [user, isAuthenticated, authLoading]);
-
 
   const getInitials = (name?: string | null): string => {
     if (!name) return "?";
@@ -88,8 +127,8 @@ export const TopNavBar: FC = () => {
         title: "Sesión Cerrada",
         description: "Has cerrado sesión exitosamente.",
       });
-      setIsSheetOpen(false); // Close sheet after logout
-      router.push("/"); // Redirect to home or login page
+      setIsSheetOpen(false);
+      router.push("/");
     } catch (error) {
       console.error("Error signing out: ", error);
       toast({
@@ -100,97 +139,132 @@ export const TopNavBar: FC = () => {
     }
   };
 
-
   return (
-    <nav className="sticky top-0 left-0 right-0 h-16 bg-card border-b border-border shadow-sm flex items-center z-50">
+    <header className={cn(
+        'fixed top-0 left-0 right-0 z-50 flex h-20 items-center justify-center px-4 md:px-8 transition-all duration-300',
+         // Always visible, apply styles directly
+    )}>
+      {/* Desktop Navigation in Pill Container - Centered */}
+       <div className={cn(
+        "absolute left-1/2 top-1/2 transform -translate-x-1/2 -translate-y-1/2 transition-all duration-300 ease-in-out hidden md:flex",
+         "opacity-100 translate-y-0 pointer-events-auto" // Always visible styles
+      )}>
+        <nav className={cn(
+          "flex items-center gap-2 text-sm font-medium rounded-full px-3 py-2.5 transition-all duration-300 ease-in-out",
+          "bg-background/70 backdrop-blur-lg shadow-xl border border-border/50 scale-100" // Always visible styles
+        )}>
+            <Link
+                href="/welcome"
+                className={cn(
+                "transition-all duration-300 px-3 py-2.5 rounded-full flex items-center gap-2 hover:scale-105 font-semibold",
+                pathname?.startsWith("/welcome") || pathname === "/" 
+                    ? "bg-primary/20 text-primary shadow-inner ring-1 ring-primary/30" 
+                    : "text-muted-foreground hover:text-primary hover:bg-primary/10"
+                )}
+                aria-current={pathname?.startsWith("/welcome") || pathname === "/" ? 'page' : undefined}
+            >
+                 <Image src="/logo.png" alt="+Seguro Logo" width={24} height={24} data-ai-hint="app logo"/>
+                 +Seguro
+            </Link>
+
+          {navLinks.map((item) => {
+             const isActive = item.href === '/' ? pathname === item.href : pathname?.startsWith(item.href);
+             return <DesktopNavItem key={item.href} {...item} isActive={isActive} />;
+          })}
+          <ThemeToggle />
+        </nav>
+      </div>
+
+
       {/* Mobile View: Logo on left, Menu button on right */}
-      <div className="sm:hidden flex items-center justify-between w-full px-4">
-        <Link href="/welcome" className="text-xl font-bold text-primary flex items-center">
-          <ShieldAlert className="h-6 w-6 mr-2 text-primary" /> {/* App logo/icon */}
-          +Seguro
+      <div className="md:hidden flex items-center justify-between w-full">
+         <Link href="/welcome" className="text-xl font-bold text-primary flex items-center">
+            <Image src="/logo.png" alt="+Seguro Logo" width={28} height={28} className="mr-2" data-ai-hint="app logo small"/>
+            +Seguro
         </Link>
-        <Sheet open={isSheetOpen} onOpenChange={setIsSheetOpen}>
-          <SheetTrigger asChild>
-            <Button variant="ghost" size="icon" className="text-foreground rounded-full">
-              <Menu className="h-6 w-6" />
-              <span className="sr-only">Abrir menú</span>
-            </Button>
-          </SheetTrigger>
-          <SheetContent side="right" className="w-[300px] p-0 flex flex-col bg-background text-foreground">
-            {/* User Profile Section */}
-            {isAuthenticated && user && (
-              <div className="p-4 border-b border-border">
-                <Link href="/profile" onClick={() => setIsSheetOpen(false)} className="flex items-center gap-3">
-                  <Avatar className="h-12 w-12 border-2 border-primary">
-                    <AvatarImage src={userPhotoURL || undefined} alt="Foto de perfil" data-ai-hint="user profile avatar"/>
-                    <AvatarFallback className="text-lg bg-muted text-muted-foreground">
-                      {getInitials(userName)}
-                    </AvatarFallback>
-                  </Avatar>
-                  <div>
-                    <p className="text-base font-semibold text-foreground">{userName}</p>
-                    <p className="text-xs text-muted-foreground">{userEmail}</p>
-                  </div>
-                </Link>
-                 <p className="text-xs text-muted-foreground mt-2">
-                  Miembro activo de la comunidad +Seguro.
-                </p>
-              </div>
-            )}
-
-            <nav className="flex-1 mt-4 flex flex-col gap-1 px-2 overflow-y-auto">
-              {navLinks.map(({ href, label, icon }) => {
-                const isActive = href === '/' ? pathname === href : pathname?.startsWith(href);
-                return (
-                  <SheetClose asChild key={href}>
-                    <Link
-                      href={href}
-                      className={cn(
-                        "flex items-center gap-3 rounded-md px-3 py-2.5 text-base font-medium transition-all duration-150 ease-in-out",
-                        isActive
-                          ? "bg-primary/10 text-primary"
-                          : "text-muted-foreground hover:bg-muted hover:text-foreground"
-                      )}
-                      onClick={() => setIsSheetOpen(false)}
-                    >
-                      {React.cloneElement(icon, { className: "h-5 w-5" })}
-                      <span>{label}</span>
+        <div className="flex items-center gap-2">
+            <ThemeToggle />
+            <Sheet open={isSheetOpen} onOpenChange={setIsSheetOpen}>
+            <SheetTrigger asChild>
+                <Button variant="ghost" size="icon" className="text-foreground rounded-full w-9 h-9 hover:bg-primary/10">
+                <Menu className="h-5 w-5" />
+                <span className="sr-only">Abrir menú</span>
+                </Button>
+            </SheetTrigger>
+            <SheetContent side="right" className="w-[300px] p-0 flex flex-col bg-background text-foreground border-l border-border/50 shadow-2xl">
+                {isAuthenticated && user && (
+                <div className="p-4 border-b border-border">
+                    <Link href="/profile" onClick={() => setIsSheetOpen(false)} className="flex items-center gap-3">
+                    <Avatar className="h-12 w-12 border-2 border-primary">
+                        <AvatarImage src={userPhotoURL || undefined} alt="Foto de perfil" data-ai-hint="user avatar"/>
+                        <AvatarFallback className="text-lg bg-muted text-muted-foreground">
+                        {getInitials(userName)}
+                        </AvatarFallback>
+                    </Avatar>
+                    <div>
+                        <p className="text-base font-semibold text-foreground">{userName}</p>
+                        <p className="text-xs text-muted-foreground">{userEmail}</p>
+                    </div>
                     </Link>
-                  </SheetClose>
-                );
-              })}
-            </nav>
-            {/* Footer with Settings and Logout */}
-             {isAuthenticated && (
-                <div className="mt-auto p-3 border-t border-border">
-                    <SheetClose asChild>
-                        <Button variant="ghost" className="w-full justify-start text-muted-foreground hover:text-foreground mb-1" onClick={() => { router.push('/profile/edit'); setIsSheetOpen(false); }}>
-                            <Settings className="h-5 w-5 mr-3" />
-                            Configuración
-                        </Button>
-                    </SheetClose>
-                    <SheetClose asChild>
-                        <Button variant="ghost" className="w-full justify-start text-destructive hover:text-destructive hover:bg-destructive/10" onClick={handleLogout}>
-                            <LogOut className="h-5 w-5 mr-3" />
-                            Cerrar Sesión
-                        </Button>
-                    </SheetClose>
+                    <p className="text-xs text-muted-foreground mt-2">
+                    Miembro activo de la comunidad +Seguro.
+                    </p>
                 </div>
-             )}
-          </SheetContent>
-        </Sheet>
-      </div>
+                )}
 
-      {/* Desktop View: Horizontal navigation items */}
-      <div className="hidden sm:flex items-stretch justify-around w-full">
-        {navLinks.map((item) => (
-          <DesktopNavItem key={item.href} {...item} />
-        ))}
+                <nav className="flex-1 mt-4 flex flex-col gap-1 px-2 overflow-y-auto">
+                {navLinks.map(({ href, label, icon }) => {
+                    const isActive = href === '/' ? pathname === href : pathname?.startsWith(href);
+                    return (
+                    <SheetClose asChild key={href}>
+                        <Link
+                        href={href}
+                        className={cn(
+                            "flex items-center gap-3 rounded-md px-3 py-2.5 text-base font-medium transition-all duration-150 ease-in-out",
+                            isActive
+                            ? "bg-primary/10 text-primary"
+                            : "text-muted-foreground hover:bg-muted hover:text-foreground"
+                        )}
+                        onClick={() => setIsSheetOpen(false)}
+                        >
+                        {React.cloneElement(icon, { className: "h-5 w-5" })}
+                        <span>{label}</span>
+                        </Link>
+                    </SheetClose>
+                    );
+                })}
+                </nav>
+                {isAuthenticated && (
+                    <div className="mt-auto p-3 border-t border-border">
+                        <SheetClose asChild>
+                            <Button variant="ghost" className="w-full justify-start text-muted-foreground hover:text-foreground mb-1" onClick={() => { router.push('/profile/edit'); setIsSheetOpen(false); }}>
+                                <Settings className="h-5 w-5 mr-3" />
+                                Configuración
+                            </Button>
+                        </SheetClose>
+                        <SheetClose asChild>
+                            <Button variant="ghost" className="w-full justify-start text-destructive hover:text-destructive hover:bg-destructive/10" onClick={handleLogout}>
+                                <LogOut className="h-5 w-5 mr-3" />
+                                Cerrar Sesión
+                            </Button>
+                        </SheetClose>
+                    </div>
+                )}
+                 {!isAuthenticated && !authLoading && (
+                     <div className="mt-auto p-3 border-t border-border">
+                        <SheetClose asChild>
+                            <Button variant="default" className="w-full" onClick={() => { router.push('/auth'); setIsSheetOpen(false);}}>
+                                Iniciar Sesión / Registrarse
+                            </Button>
+                        </SheetClose>
+                    </div>
+                 )}
+            </SheetContent>
+            </Sheet>
+        </div>
       </div>
-    </nav>
+    </header>
   );
 };
 
-// Exporting with the old name for compatibility if it was used elsewhere,
-// though direct usage of TopNavBar is preferred.
 export { TopNavBar as BottomNavBar };

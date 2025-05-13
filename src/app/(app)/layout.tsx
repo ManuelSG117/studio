@@ -13,7 +13,7 @@ export default function AppLayout({ children }: AppLayoutProps) {
     <AuthProvider>
       <div className="flex flex-col min-h-screen">
         <TopNavBar /> {/* Use TopNavBar instead of BottomNavBar */}
-        <main className="flex-grow pt-0 sm:pt-0"> {/* Remove bottom padding, adjust top padding if needed */}
+        <main className="flex-grow pt-20 sm:pt-20"> {/* Added top padding for fixed navbar */}
           {children}
         </main>
         {/* BottomNavBar removed from here */}
@@ -21,5 +21,3 @@ export default function AppLayout({ children }: AppLayoutProps) {
     </AuthProvider>
   );
 }
-
-    
