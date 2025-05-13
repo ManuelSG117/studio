@@ -22,6 +22,7 @@ import { useToast } from '@/hooks/use-toast';
 import { cn, formatLocation } from '@/lib/utils';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge'; // Import Badge
+import { Separator } from '@/components/ui/separator';
 
 interface ReporterProfile {
   displayName?: string;
@@ -221,11 +222,15 @@ const ReportDetailPage: FC = () => {
     if (isLoading || !isClient || isLoadingReporter) {
         return (
             <main className="flex flex-col items-center p-4 sm:p-6 md:p-8 bg-secondary min-h-screen">
+                 {/* Back button outside the grid to ensure it's always accessible */}
+                 <div className="w-full max-w-4xl mb-4">
+                    <Skeleton className="h-9 w-9 rounded-full" />
+                </div>
                 <div className="w-full max-w-4xl grid grid-cols-1 md:grid-cols-3 gap-6">
                     <div className="md:col-span-2">
                         <Card className="shadow-lg border-none rounded-xl bg-card">
                             <CardHeader className="relative pt-6 pb-4">
-                                <Skeleton className="absolute left-4 top-4 h-9 w-9 rounded-full" />
+                                {/* Removed back button from here */}
                                 <Skeleton className="h-8 w-3/4 mb-2" />
                                 <div className="flex items-center gap-2">
                                     <Skeleton className="h-8 w-8 rounded-full" />
@@ -279,6 +284,12 @@ const ReportDetailPage: FC = () => {
     if (report === null) {
          return (
              <main className="flex flex-col items-center justify-center min-h-screen p-4 sm:p-8 bg-secondary">
+                  {/* Back button outside the grid to ensure it's always accessible */}
+                 <div className="w-full max-w-md mb-4 self-start">
+                    <Button variant="ghost" size="icon" className="text-muted-foreground hover:text-primary rounded-full" onClick={() => router.back()} aria-label="Volver">
+                        <ArrowLeft className="h-5 w-5" />
+                    </Button>
+                </div>
                  <Card className="w-full max-w-md shadow-lg border-none rounded-xl text-center bg-card">
                      <CardHeader>
                          <CardTitle className="text-xl text-destructive">Reporte No Encontrado</CardTitle>
@@ -310,25 +321,29 @@ const ReportDetailPage: FC = () => {
                     downvotes={report.downvotes}
                 />
             )}
+            {/* Back button at the top of the page */}
+            <div className="w-full max-w-4xl mb-4">
+                <Button variant="ghost" size="icon" className="text-muted-foreground hover:text-primary rounded-full" onClick={() => router.back()} aria-label="Volver">
+                    <ArrowLeft className="h-5 w-5" />
+                </Button>
+            </div>
+
             <div className="w-full max-w-4xl grid grid-cols-1 md:grid-cols-3 gap-6">
                 {/* Main Report Content */}
                 <div className="md:col-span-2">
                     <Card className="w-full shadow-lg border-none rounded-xl bg-card">
-                        <CardHeader className="relative pt-6 pb-4 px-6">
-                            <Button variant="ghost" size="icon" className="absolute left-4 top-4 text-muted-foreground hover:text-primary rounded-full" onClick={() => router.back()} aria-label="Volver">
-                                <ArrowLeft className="h-5 w-5" />
-                            </Button>
-                            <div className="flex items-center justify-between mt-10">
-                                <h1 className="text-2xl font-bold text-foreground">{report.title}</h1>
-                                <Badge variant={report.reportType === 'incidente' ? 'destructive' : 'default'} className="ml-2 capitalize">
+                        <CardHeader className="pt-6 pb-4 px-6">
+                            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-1">
+                                <h1 className="text-2xl font-bold text-foreground flex-grow">{report.title}</h1>
+                                <Badge variant={report.reportType === 'incidente' ? 'destructive' : 'default'} className="ml-0 sm:ml-2 mt-1 sm:mt-0 capitalize self-start sm:self-center">
                                     {report.reportType === 'incidente' ? 'Delito' : 'Funcionario'}
                                 </Badge>
                             </div>
-                            <div className="flex items-center space-x-2 mt-2 text-sm text-muted-foreground">
+                            <div className="flex items-center space-x-2 text-sm text-muted-foreground">
                                 {reporterProfile && (
                                     <Avatar className="h-6 w-6">
                                         <AvatarImage src={reporterProfile.photoURL || undefined} alt={reporterProfile.displayName} data-ai-hint="reporter avatar"/>
-                                        <AvatarFallback>{getInitials(reporterProfile.displayName)}</AvatarFallback>
+                                        <AvatarFallback className="text-xs">{getInitials(reporterProfile.displayName)}</AvatarFallback>
                                     </Avatar>
                                 )}
                                 <span>{reporterProfile?.displayName || 'Reporte Anónimo'}</span>
@@ -346,26 +361,32 @@ const ReportDetailPage: FC = () => {
                                 ) : (
                                     <Image src={report.mediaUrl} alt={`Evidencia para reporte ${report.id}`} fill style={{ objectFit: 'cover' }} data-ai-hint="report evidence media" className="bg-muted" sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw" />
                                 )}
-                                <p className="absolute bottom-2 left-2 bg-black/50 text-white text-xs px-2 py-1 rounded">
-                                    Fotografía tomada en el lugar del incidente
-                                </p>
+                            </div>
+                        )}
+                         {!report.mediaUrl && (
+                            <div className="aspect-video w-full bg-muted flex flex-col items-center justify-center text-muted-foreground">
+                                <ImageIcon size={48} className="opacity-50 mb-2"/>
+                                <p className="text-sm">Sin evidencia multimedia adjunta.</p>
                             </div>
                         )}
 
+
                         <CardContent className="px-6 pt-6 space-y-6">
-                            <div>
+                             <div>
                                 <h3 className="text-lg font-semibold text-foreground mb-2">Descripción del incidente</h3>
                                 <p className="text-foreground/90 leading-relaxed whitespace-pre-wrap">{report.description}</p>
                             </div>
 
-                            <div className="flex items-center justify-between pt-4 border-t border-border">
+                            <Separator />
+
+                            <div className="flex items-center justify-between">
                                 <div className="flex items-center space-x-1">
-                                     <Button variant="ghost" size="icon" className={cn("h-8 w-8 rounded-full", report.userVote === 'up' && "bg-primary/10 text-primary", votingState && "opacity-50", isOwnReport && "cursor-not-allowed opacity-60")} onClick={() => handleVote('up')} disabled={votingState || isOwnReport} aria-pressed={report.userVote === 'up'}>
+                                     <Button variant="ghost" size="icon" className={cn("h-9 w-9 rounded-full", report.userVote === 'up' && "bg-primary/10 text-primary", votingState && "opacity-50", isOwnReport && "cursor-not-allowed opacity-60")} onClick={() => handleVote('up')} disabled={votingState || isOwnReport} aria-pressed={report.userVote === 'up'}>
                                          {votingState && report.userVote !== 'up' && !isOwnReport ? <Loader2 className="h-4 w-4 animate-spin"/> : <ThumbsUp className="h-4 w-4"/>}
                                      </Button>
                                      <span className="text-sm font-medium text-foreground min-w-[24px] text-center" onClick={() => report.upvotes > 0 && setVotesModalOpen(true)} role={report.upvotes > 0 ? "button" : undefined } tabIndex={report.upvotes > 0 ? 0 : undefined}>{report.upvotes}</span>
                                      
-                                     <Button variant="ghost" size="icon" className={cn("h-8 w-8 rounded-full", report.userVote === 'down' && "bg-destructive/10 text-destructive", votingState && "opacity-50", isOwnReport && "cursor-not-allowed opacity-60")} onClick={() => handleVote('down')} disabled={votingState || isOwnReport} aria-pressed={report.userVote === 'down'}>
+                                     <Button variant="ghost" size="icon" className={cn("h-9 w-9 rounded-full", report.userVote === 'down' && "bg-destructive/10 text-destructive", votingState && "opacity-50", isOwnReport && "cursor-not-allowed opacity-60")} onClick={() => handleVote('down')} disabled={votingState || isOwnReport} aria-pressed={report.userVote === 'down'}>
                                          {votingState && report.userVote !== 'down' && !isOwnReport ? <Loader2 className="h-4 w-4 animate-spin"/> : <ThumbsDown className="h-4 w-4"/>}
                                      </Button>
                                      <span className="text-sm font-medium text-foreground min-w-[24px] text-center" onClick={() => report.downvotes > 0 && setVotesModalOpen(true)} role={report.downvotes > 0 ? "button" : undefined } tabIndex={report.downvotes > 0 ? 0 : undefined}>{report.downvotes}</span>
@@ -380,8 +401,10 @@ const ReportDetailPage: FC = () => {
                                 </div>
                             </div>
                             
+                            <Separator />
+
                             <div>
-                                <h3 className="text-lg font-semibold text-foreground mb-2">Ubicación del incidente</h3>
+                                <h3 className="text-lg font-semibold text-foreground mb-2">Ubicación</h3>
                                 <div className="h-64 w-full bg-muted border border-border rounded-lg overflow-hidden mb-2">
                                     {isClient && report.latitude && report.longitude ? (
                                         <ReportsMap reports={[report]} defaultZoom={16} defaultCenter={{ lat: report.latitude, lng: report.longitude }} />
@@ -395,8 +418,9 @@ const ReportDetailPage: FC = () => {
                                 <p className="text-sm text-muted-foreground flex items-center gap-2">
                                     <MapPin className="h-4 w-4 flex-shrink-0" /> {formatLocation(report.location)}
                                 </p>
-                                {/* Add additional location details if available */}
                             </div>
+
+                            <Separator />
 
                             <div>
                                 <h3 className="text-lg font-semibold text-foreground mb-3">Detalles adicionales</h3>
@@ -407,7 +431,7 @@ const ReportDetailPage: FC = () => {
                                         <span className="text-foreground font-medium">{format(report.createdAt, "PPP", { locale: es })}</span>
                                     </div>
                                     <div className="flex items-center">
-                                        <Eye className="h-4 w-4 mr-2 text-muted-foreground" /> {/* Changed to Eye for "Hora aproximada" */}
+                                        <Eye className="h-4 w-4 mr-2 text-muted-foreground" />
                                         <span className="text-muted-foreground mr-1">Hora aproximada:</span>
                                         <span className="text-foreground font-medium">{format(report.createdAt, "p", { locale: es })}</span>
                                     </div>
