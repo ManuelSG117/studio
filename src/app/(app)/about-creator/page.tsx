@@ -11,6 +11,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Separator } from '@/components/ui/separator';
 import { Badge } from '@/components/ui/badge';
+import AnimatedTextCycle from "@/components/ui/animated-text-cycle"; // Import AnimatedTextCycle
 
 const AboutCreatorPage: FC = () => {
   const router = useRouter();
@@ -73,7 +74,9 @@ const AboutCreatorPage: FC = () => {
             <Separator />
 
             <section>
-              <h2 className="text-xl font-semibold text-foreground mb-4">Contacto y Colaboración</h2>
+              <h2 className="text-xl font-semibold text-foreground mb-4">
+                <AnimatedTextCycle texts={["Contacto", "Colaboración"]} duration={3000} className="inline-block" />
+              </h2>
               <p className="text-muted-foreground mb-4 leading-relaxed">
                 Si tienes alguna pregunta, sugerencia para mejorar la plataforma, o simplemente quieres charlar sobre cómo podemos hacer de Uruapan un lugar mejor, no dudes en contactarme.
               </p>
