@@ -6,7 +6,7 @@ import React from 'react';
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
-import { Home, User, FileText, ShieldAlert, Globe, BarChart3, Menu, X, LogOut, Settings } from 'lucide-react';
+import { Home, User, FileText, ShieldAlert, Globe, BarChart3, Menu, X, LogOut, Settings, Info } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger, SheetClose } from '@/components/ui/sheet';
@@ -15,7 +15,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { signOut } from 'firebase/auth';
 import { auth } from '@/lib/firebase/client';
 import { useToast } from '@/hooks/use-toast';
-import { ThemeToggle } from '@/components/ui/theme-toggle'; // Import shared ThemeToggle
+import { ThemeToggle } from '@/components/ui/theme-toggle';
 import Image from 'next/image';
 
 interface NavLinkItem {
@@ -59,16 +59,6 @@ export const TopNavBar: FC = () => {
   const [userName, setUserName] = useState<string | null>(null);
   const [userEmail, setUserEmail] = useState<string | null>(null);
   const [userPhotoURL, setUserPhotoURL] = useState<string | null>(null);
-  const [scrolled, setScrolled] = useState(false);
-
-  useEffect(() => {
-    const handleScroll = () => {
-      setScrolled(window.scrollY > 10);
-    };
-    window.addEventListener('scroll', handleScroll);
-    handleScroll(); // Check scroll position on mount
-    return () => window.removeEventListener('scroll', handleScroll);
-  }, []);
 
   useEffect(() => {
     if (isAuthenticated && user) {
@@ -108,29 +98,29 @@ export const TopNavBar: FC = () => {
     }
   };
 
+  const isLogoActive = pathname === "/about-creator"; // Check if the current path is for the about creator page
+
   return (
     <header className={cn(
         'fixed top-0 left-0 right-0 z-50 flex h-20 items-center justify-center px-4 md:px-8 transition-all duration-300',
-         // Always visible, apply styles directly
     )}>
-      {/* Desktop Navigation in Pill Container - Centered */}
        <div className={cn(
         "absolute left-1/2 top-1/2 transform -translate-x-1/2 -translate-y-1/2 transition-all duration-300 ease-in-out hidden md:flex",
-         "opacity-100 translate-y-0 pointer-events-auto" // Always visible styles
+         "opacity-100 translate-y-0 pointer-events-auto"
       )}>
         <nav className={cn(
           "flex items-center gap-2 text-sm font-medium rounded-full px-3 py-2.5 transition-all duration-300 ease-in-out",
-          "bg-background/70 backdrop-blur-lg shadow-xl border border-border/50 scale-100" // Always visible styles
+          "bg-background/70 backdrop-blur-lg shadow-xl border border-border/50 scale-100"
         )}>
             <Link
-                href="/welcome"
+                href="/about-creator" // Changed href to /about-creator
                 className={cn(
                 "transition-all duration-300 px-3 py-2.5 rounded-full flex items-center gap-2 hover:scale-105 font-semibold",
-                pathname?.startsWith("/welcome") || pathname === "/" 
+                isLogoActive // Updated active state logic
                     ? "bg-primary/20 text-primary shadow-inner ring-1 ring-primary/30" 
                     : "text-muted-foreground hover:text-primary hover:bg-primary/10"
                 )}
-                aria-current={pathname?.startsWith("/welcome") || pathname === "/" ? 'page' : undefined}
+                aria-current={isLogoActive ? 'page' : undefined}
             >
                  <Image src="/logo.png" alt="+Seguro Logo" width={24} height={24} data-ai-hint="app logo"/>
                  +Seguro
@@ -147,7 +137,7 @@ export const TopNavBar: FC = () => {
 
       {/* Mobile View: Logo on left, Menu button on right */}
       <div className="md:hidden flex items-center justify-between w-full">
-         <Link href="/welcome" className="text-xl font-bold text-primary flex items-center">
+         <Link href="/about-creator" className="text-xl font-bold text-primary flex items-center"> {/* Changed href to /about-creator */}
             <Image src="/logo.png" alt="+Seguro Logo" width={28} height={28} className="mr-2" data-ai-hint="app logo small"/>
             +Seguro
         </Link>
@@ -182,6 +172,21 @@ export const TopNavBar: FC = () => {
                 )}
 
                 <nav className="flex-1 mt-4 flex flex-col gap-1 px-2 overflow-y-auto">
+                 <SheetClose asChild>
+                    <Link
+                        href="/about-creator"
+                        className={cn(
+                            "flex items-center gap-3 rounded-md px-3 py-2.5 text-base font-medium transition-all duration-150 ease-in-out",
+                            isLogoActive
+                            ? "bg-primary/10 text-primary"
+                            : "text-muted-foreground hover:bg-muted hover:text-foreground"
+                        )}
+                        onClick={() => setIsSheetOpen(false)}
+                        >
+                        <Info className="h-5 w-5" /> {/* Icon for About/Info */}
+                        <span>Sobre +Seguro</span>
+                    </Link>
+                  </SheetClose>
                 {navLinks.map(({ href, label, icon }) => {
                     const isActive = href === '/' ? pathname === href : pathname?.startsWith(href);
                     return (
