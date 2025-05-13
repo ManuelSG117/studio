@@ -12,7 +12,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Separator } from '@/components/ui/separator';
 import { Badge } from '@/components/ui/badge';
 import AnimatedTextCycle from "@/components/ui/animated-text-cycle"; 
-import GradientText from "@/components/ui/gradient-text"; // Import GradientText
+import GradientText from "@/components/ui/gradient-text"; 
 
 const AboutCreatorPage: FC = () => {
   const router = useRouter();
@@ -33,35 +33,14 @@ const AboutCreatorPage: FC = () => {
         </div>
 
         <Card className="w-full shadow-xl border-none rounded-2xl bg-card overflow-hidden">
-          <CardHeader className="bg-muted/30 p-6 sm:p-8 text-center">
-            <div className="flex flex-col items-center">
-              <div>
-                <Avatar className="w-32 h-32 border-4 border-primary mb-4 shadow-lg">
-                  <AvatarImage src="https://picsum.photos/seed/manuel/200" alt="Manuel Sandoval" data-ai-hint="creator avatar" />
-                  <AvatarFallback className="text-4xl bg-primary text-primary-foreground">MS</AvatarFallback>
-                </Avatar>
-              </div>
-              <CardTitle className="text-3xl font-bold text-primary">Manuel Sandoval</CardTitle>
-              <CardDescription className="text-base text-muted-foreground mt-1">
-                Ingeniero en Sistemas Computacionales | Desarrollador
-              </CardDescription>
-              <div className="mt-3 flex gap-2">
-                <Badge variant="secondary">Uruapan, Michoacán</Badge>
-                <Badge variant="secondary">25 años</Badge>
-              </div>
-            </div>
+          {/* CardHeader can be used for a generic page title if needed, or kept for styling */}
+          <CardHeader className="bg-muted/30 p-4 text-center">
+             {/* Intentionally left somewhat sparse as specific creator details are moved to "Sobre Mí" section */}
+             <h1 className="text-2xl font-bold text-primary">Sobre el Creador</h1>
           </CardHeader>
 
           <CardContent className="p-6 sm:p-8 space-y-6">
-            <section>
-              <h2 className="text-xl font-semibold text-foreground mb-3">Sobre Mí</h2>
-              <p className="text-muted-foreground leading-relaxed">
-                Soy Manuel Sandoval, un Ingeniero en Sistemas Computacionales y desarrollador apasionado por la tecnología y el impacto positivo que puede tener en la sociedad. He vivido toda mi vida en la hermosa comunidad de Uruapan, Michoacán, y estoy profundamente comprometido con su bienestar.
-              </p>
-            </section>
-
-            <Separator />
-
+            {/* Section 1: Motivación */}
             <section>
               <h2 className="text-xl font-semibold text-foreground mb-3">Motivación detrás de +Seguro</h2>
               <p className="text-muted-foreground leading-relaxed">
@@ -70,9 +49,9 @@ const AboutCreatorPage: FC = () => {
               <p className="text-muted-foreground leading-relaxed mt-3">
                 Es importante destacar que este proyecto es una iniciativa personal y comunitaria,{' '}
                 <GradientText
-                  from="from-primary" // Example start color (theme primary)
-                  to="to-destructive" // Example end color (theme destructive)
-                  size="text-base" // Adjust size as needed
+                  from="from-primary" 
+                  to="to-destructive" 
+                  size="text-base" 
                   className="font-semibold"
                 >
                   sin fines de lucro ni afiliaciones políticas.
@@ -83,6 +62,7 @@ const AboutCreatorPage: FC = () => {
 
             <Separator />
 
+            {/* Section 2: Contacto */}
             <section>
               <h2 className="text-xl font-semibold text-foreground mb-4">
                 <AnimatedTextCycle texts={["Contacto", "Colaboración", "Sugerencia"]} duration={3000} className="inline-block" />
@@ -130,6 +110,34 @@ const AboutCreatorPage: FC = () => {
               </div>
             </section>
             
+            <Separator />
+
+            {/* Section 3: Sobre Mí (Combined original CardHeader content and "Sobre Mí" paragraph) */}
+            <section>
+              <div className="flex flex-col items-center text-center mb-6">
+                <Avatar className="w-32 h-32 border-4 border-primary mb-4 shadow-lg">
+                  <AvatarImage src="https://picsum.photos/seed/manuel/200" alt="Manuel Sandoval" data-ai-hint="creator avatar" />
+                  <AvatarFallback className="text-4xl bg-primary text-primary-foreground">MS</AvatarFallback>
+                </Avatar>
+                {/* Using h2 for semantic structure, styled like CardTitle */}
+                <h2 className="text-3xl font-bold text-primary mb-1">Manuel Sandoval</h2>
+                {/* Using p for semantic structure, styled like CardDescription */}
+                <p className="text-base text-muted-foreground mt-1">
+                  Ingeniero en Sistemas Computacionales | Desarrollador
+                </p>
+                <div className="mt-3 flex gap-2">
+                  <Badge variant="secondary">Uruapan, Michoacán</Badge>
+                  <Badge variant="secondary">25 años</Badge>
+                </div>
+              </div>
+              
+              {/* Original "Sobre Mí" paragraph */}
+              {/* <h2 className="text-xl font-semibold text-foreground mb-3">Sobre Mí</h2> // This title might be redundant if the above serves as the main intro */}
+              <p className="text-muted-foreground leading-relaxed">
+                Soy Manuel Sandoval, un Ingeniero en Sistemas Computacionales y desarrollador apasionado por la tecnología y el impacto positivo que puede tener en la sociedad. He vivido toda mi vida en la hermosa comunidad de Uruapan, Michoacán, y estoy profundamente comprometido con su bienestar.
+              </p>
+            </section>
+
             <Separator />
 
             <div className="text-center text-muted-foreground text-sm">
