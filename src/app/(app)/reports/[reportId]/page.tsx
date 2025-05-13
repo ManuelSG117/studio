@@ -317,7 +317,7 @@ const ReportDetailPage: FC = () => {
                     downvotes={report.downvotes}
                 />
             )}
-             <div className="w-full max-w-4xl mb-4 self-start"> {/* Moved back button container here */}
+             <div className="w-full max-w-4xl mb-4 ml-14 self-start"> {/* Moved back button container here */}
                 <Button variant="ghost" size="icon" className="text-muted-foreground hover:text-primary rounded-full" onClick={() => router.back()} aria-label="Volver">
                     <ArrowLeft className="h-5 w-5" />
                 </Button>
