@@ -263,7 +263,7 @@ const NewReportPage: FC = () => {
                   <Skeleton className="h-8 w-2/3 mx-auto mb-2" />
                   <Skeleton className="h-4 w-1/2 mx-auto" />
              </CardHeader>
-             <CardContent className="px-6 sm:px:8 pt-2 pb-6 space-y-5">
+             <CardContent className="px-6 sm:px-8 pt-2 pb-6 space-y-5">
                   {[...Array(5)].map((_, i) => (
                       <div key={i} className="space-y-2">
                          <Skeleton className="h-4 w-1/4" />
@@ -300,7 +300,7 @@ const NewReportPage: FC = () => {
                 <CardTitle className="text-2xl font-bold text-foreground">Crear Nuevo Reporte</CardTitle>
                 <CardDescription className="text-muted-foreground mt-1">
                     Ayuda a mejorar la seguridad de tu comunidad reportando incidentes o actos indebidos. Tu participación es importante para construir una sociedad +SEGURA.
-                </Description>
+                </CardDescription>
              </div>
            </div>
         </CardHeader>
