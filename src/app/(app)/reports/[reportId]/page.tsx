@@ -237,16 +237,33 @@ const ReportDetailPage: FC = () => {
             await navigator.share(shareData);
             toast({ title: "Compartido", description: "El reporte se ha compartido exitosamente." });
           } else {
+            // Fallback if navigator.share is not supported at all
             await navigator.clipboard.writeText(window.location.href);
-            toast({ title: "Enlace Copiado", description: "El enlace del reporte se ha copiado al portapapeles." });
+            toast({ title: "Enlace Copiado", description: "El enlace del reporte se ha copiado al portapapeles. La función de compartir no está disponible en tu navegador." });
           }
-        } catch (err) {
-          console.error("Error al compartir/copiar:", err);
-          toast({
-            variant: "destructive",
-            title: "Error",
-            description: "No se pudo compartir o copiar el enlace.",
-          });
+        } catch (err: any) { 
+          console.error("Error al compartir:", err);
+          // Attempt clipboard fallback if sharing failed (e.g., due to permission denied)
+          try {
+            await navigator.clipboard.writeText(window.location.href);
+            let description = "El enlace del reporte se ha copiado al portapapeles.";
+            if (err.name === 'NotAllowedError' || err.message?.includes('Permission denied')) {
+              description = "No se pudo compartir directamente. El enlace del reporte se ha copiado al portapapeles.";
+            } else if (!navigator.share) {
+               description = "La función de compartir no está disponible. El enlace del reporte se ha copiado al portapapeles.";
+            }
+            toast({
+              title: "Enlace Copiado",
+              description: description,
+            });
+          } catch (copyError) {
+            console.error("Error al copiar al portapapeles:", copyError);
+            toast({
+              variant: "destructive",
+              title: "Error",
+              description: "No se pudo compartir ni copiar el enlace del reporte.",
+            });
+          }
         }
       };
 
