@@ -50,7 +50,7 @@ const AboutCreatorPage: FC = () => {
               <h1 className="text-2xl font-bold text-primary">Sobre +Seguro</h1>
             </CardHeader>
 
-            <CardContent className="p-6 sm:p-8 space-y-6">
+            <CardContent className="p-6 sm:p-8 space-y-12"> {/* Increased space-y from 6 to 12 */}
               {/* Section 1: Motivación */}
               <section>
                 <h2 className="text-xl font-semibold text-foreground mb-3">Motivación detrás de +Seguro</h2>
