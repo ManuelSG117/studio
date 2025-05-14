@@ -121,7 +121,7 @@ export const TopNavBar: FC = () => {
                 )}
                 aria-current={isLogoActive ? 'page' : undefined}
             >
-                 <Image src="/logo.png" alt="+Seguro Logo" width={24} height={24} data-ai-hint="app logo"/>
+                 <Image src="/logo.webp" alt="+Seguro Logo" width={24} height={24} data-ai-hint="app logo"/>
                  +Seguro
             </Link>
 
@@ -137,7 +137,7 @@ export const TopNavBar: FC = () => {
       {/* Mobile View: Logo on left, Menu button on right */}
       <div className="md:hidden flex items-center justify-between w-full">
          <Link href="/about-creator" className="text-xl font-bold text-primary flex items-center">
-            <Image src="/logo.png" alt="+Seguro Logo" width={28} height={28} className="mr-2" data-ai-hint="app logo small"/>
+            <Image src="/logo.webp" alt="+Seguro Logo" width={28} height={28} className="mr-2" data-ai-hint="app logo small"/>
             +Seguro
         </Link>
         <div className="flex items-center gap-2">

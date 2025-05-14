@@ -125,7 +125,7 @@ const LandingNavBar: FC = () => {
             aria-current={isLinkActive('top') ? 'page' : undefined}
           >
             <motion.div whileHover={{ scale: 1.1, rotate: 3 }} transition={{ type: "spring", stiffness: 400, damping: 10 }}>
-              <Image src="/logo.png" alt="+Seguro Logo" width={24} height={24} data-ai-hint="app logo"/>
+              <Image src="/logo.webp" alt="+Seguro Logo" width={24} height={24} data-ai-hint="app logo"/>
             </motion.div>
             +Seguro
           </Link>

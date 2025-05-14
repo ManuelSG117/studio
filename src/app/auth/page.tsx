@@ -284,7 +284,7 @@ const AuthScreen: FC = () => {
            {/* Header */}
            <CardHeader className="text-center pt-10 pb-6 bg-gradient-to-b from-card to-background"> {/* Subtle gradient */}
               <Image
-                  src="/logo.png"
+                  src="/logo.webp"
                   alt="App Logo"
                   width={150}
                   height={150}
