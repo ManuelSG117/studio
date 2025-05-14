@@ -10,7 +10,6 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Separator } from '@/components/ui/separator';
-import { Badge } from '@/components/ui/badge';
 import AnimatedTextCycle from "@/components/ui/animated-text-cycle";
 import GradientText from "@/components/ui/gradient-text";
 import { SuggestionDialog } from '@/components/suggestion-dialog';
@@ -129,9 +128,9 @@ const AboutCreatorPage: FC = () => {
                     <AvatarImage src="https://placehold.co/200x200.png" alt="Manuel Sandoval" data-ai-hint="creator avatar" />
                     <AvatarFallback className="text-4xl bg-primary text-primary-foreground">MS</AvatarFallback>
                   </Avatar>
-                  <h2 className="text-3xl font-bold text-primary mb-1">Manuel Sandoval</h2> <Badge variant="secondary">25 años</Badge>
+                  <h2 className="text-3xl font-bold text-primary mb-1">Manuel Sandoval</h2>
                   <p className="text-base text-muted-foreground mt-1">
-                    <AnimatedTextCycle texts={["Ingeniero en Sistemas", "Desarrollador Full-Stack", "Entusiasta Tecnológico"]} duration={4000} className="inline-block" />
+                    <AnimatedTextCycle texts={["Ingeniero en Sistemas", "Desarrollador Full-Stack"]} duration={4000} className="inline-block" />
                   </p>
                 </div>
 
