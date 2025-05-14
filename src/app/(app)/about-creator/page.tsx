@@ -13,15 +13,60 @@ import { Separator } from '@/components/ui/separator';
 import AnimatedTextCycle from "@/components/ui/animated-text-cycle";
 import GradientText from "@/components/ui/gradient-text";
 import { SuggestionDialog } from '@/components/suggestion-dialog';
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useAuth } from '@/context/AuthContext';
 import { useToast } from '@/hooks/use-toast';
+import { gsap } from 'gsap';
+import { ScrollTrigger } from 'gsap/ScrollTrigger';
+
+gsap.registerPlugin(ScrollTrigger);
 
 const AboutCreatorPage: FC = () => {
   const router = useRouter();
   const { user } = useAuth();
   const { toast } = useToast();
   const [isSuggestionDialogOpen, setIsSuggestionDialogOpen] = useState(false);
+
+  const motivationRef = useRef<HTMLDivElement>(null);
+  const contactRef = useRef<HTMLDivElement>(null);
+  const aboutMeRef = useRef<HTMLDivElement>(null);
+  const footerRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const sections = [
+      { ref: motivationRef, delay: 0 },
+      { ref: contactRef, delay: 0.2 },
+      { ref: aboutMeRef, delay: 0.2 },
+      { ref: footerRef, delay: 0.2 },
+    ];
+
+    sections.forEach(section => {
+      if (section.ref.current) {
+        gsap.fromTo(
+          section.ref.current,
+          { opacity: 0, y: 50 },
+          {
+            opacity: 1,
+            y: 0,
+            duration: 0.8,
+            delay: section.delay,
+            ease: 'power3.out',
+            scrollTrigger: {
+              trigger: section.ref.current,
+              start: 'top 85%', // When the top of the trigger hits 85% of the viewport height
+              toggleActions: 'play none none none', // Play animation once
+            },
+          }
+        );
+      }
+    });
+
+    // Cleanup ScrollTrigger instances on component unmount
+    return () => {
+      ScrollTrigger.getAll().forEach(trigger => trigger.kill());
+    };
+  }, []);
+
 
   const handleOpenSuggestionDialog = () => {
     // TODO: Implement user level check here.
@@ -59,7 +104,8 @@ const AboutCreatorPage: FC = () => {
             <CardContent className="p-6 sm:p-8 space-y-12">
               {/* Section 1: Motivación */}
               <section
-                className="pb-16 md:pb-24"
+                ref={motivationRef}
+                className="pb-16 md:pb-24 opacity-0" // Initial state for GSAP
               >
                 <h2 className="text-xl font-semibold text-foreground mb-3">Motivación detrás de +Seguro</h2>
                 <p className="text-muted-foreground leading-relaxed">
@@ -83,6 +129,8 @@ const AboutCreatorPage: FC = () => {
 
               {/* Section 2: Contacto */}
               <section
+                ref={contactRef}
+                className="opacity-0" // Initial state for GSAP
               >
                 <h2 className="text-xl font-semibold text-foreground mb-4">
                   <AnimatedTextCycle texts={["Contacto", "Colaboración", "Sugerencia"]} duration={3000} className="inline-block" />
@@ -132,6 +180,8 @@ const AboutCreatorPage: FC = () => {
 
               {/* Section 3: Sobre Mí */}
               <section
+                ref={aboutMeRef}
+                className="opacity-0" // Initial state for GSAP
               >
                 <div className="flex flex-col items-center text-center mb-6">
                   <Avatar className="w-32 h-32 border-4 border-primary mb-4 shadow-lg">
@@ -169,7 +219,8 @@ const AboutCreatorPage: FC = () => {
           </Card>
 
           <footer
-            className="mt-8 text-center text-xs text-muted-foreground"
+            ref={footerRef}
+            className="mt-8 text-center text-xs text-muted-foreground opacity-0" // Initial state for GSAP
           >
             © {new Date().getFullYear()} +SEGURO - Una iniciativa ciudadana para Uruapan.
           </footer>
