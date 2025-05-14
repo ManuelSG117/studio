@@ -103,8 +103,10 @@ export const TopNavBar: FC = () => {
   return (
     <header className={cn(
         'fixed top-0 left-0 right-0 z-50 flex h-20 items-center justify-between md:justify-center px-4 md:px-8 transition-all duration-300',
-        // Mobile specific background and blur, desktop transparent to let inner nav show its style
-        'bg-background/80 backdrop-blur-md shadow-sm border-b border-border/30 md:bg-transparent md:shadow-none md:border-none'
+      //en view mobile: fondo, blur, sombra, borde, solo en view mobile
+      'bg-background/80 backdrop-blur-md shadow-sm border-b border-border/30 md:bg-transparent md:shadow-none md:border-none',
+      //quita el fondo, sombra, borde en view desktop
+      'md:bg-transparent md:shadow-none md:border-none md:backdrop-blur-none'
     )}>
        <div className={cn(
         "absolute left-1/2 top-1/2 transform -translate-x-1/2 -translate-y-1/2 transition-all duration-300 ease-in-out hidden md:flex",
