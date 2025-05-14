@@ -235,11 +235,11 @@ const StatisticsPage: FC = () => {
   const chartConfig = {
     incidentCount: {
       label: "Incidentes",
-      color: "hsl(var(--accent))", // Use accent for incidentes (blue-ish)
+      color: "hsl(var(--accent))", 
     },
     officerCount: {
       label: "Funcionarios",
-      color: "hsl(var(--destructive))", // Use destructive for funcionarios (red-ish)
+      color: "hsl(var(--destructive))", 
     },
   } satisfies ChartConfig;
 
@@ -312,7 +312,7 @@ const StatisticsPage: FC = () => {
             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-2 gap-2">
                 <div className="flex-1">
                     <Skeleton className="h-8 w-48 sm:w-64" />
-                    <Skeleton className="h-4 w-64 sm:w-80 mt-2 md:hidden" />
+                    <Skeleton className="h-4 w-full mt-2 sm:w-80 md:hidden" />
                 </div>
                  <div className="md:hidden flex self-end">
                      <Skeleton className="h-10 w-10 rounded-full" />
@@ -369,7 +369,7 @@ const StatisticsPage: FC = () => {
                                 size="icon"
                                 className={cn(
                                     "rounded-full p-3 shadow-sm border border-border",
-                                    isAnyFilterActive && "border-primary text-primary bg-primary/5"
+                                    isAnyFilterActive && "border-primary text-primary bg-primary/5 dark:bg-primary/20"
                                 )}
                                 onClick={() => setFilterModalOpen(true)}
                                 aria-label="Filtrar Estadísticas"
@@ -383,7 +383,7 @@ const StatisticsPage: FC = () => {
                                 <SelectTrigger
                                      className={cn(
                                         "w-full md:w-[180px] h-9 rounded-full border-none bg-background shadow-sm px-4",
-                                        reportTypeFilter !== 'Todos' && "bg-primary/10 text-primary border border-primary/30"
+                                        reportTypeFilter !== 'Todos' && "bg-primary/10 dark:bg-primary/20 text-primary border border-primary/30 dark:border-primary/40"
                                     )}
                                 >
                                 <SelectValue placeholder="Tipo de Reporte" />
@@ -398,7 +398,7 @@ const StatisticsPage: FC = () => {
                                 <SelectTrigger
                                     className={cn(
                                         "w-full md:w-[140px] h-9 rounded-full border-none bg-background shadow-sm px-4",
-                                         filterPeriod !== 'day' && "bg-primary/10 text-primary border border-primary/30"
+                                         filterPeriod !== 'day' && "bg-primary/10 dark:bg-primary/20 text-primary border border-primary/30 dark:border-primary/40"
                                     )}
                                 >
                                 <SelectValue placeholder="Periodo" />
@@ -421,7 +421,7 @@ const StatisticsPage: FC = () => {
                                 <Select value={reportTypeFilter} onValueChange={(value) => setReportTypeFilter(value as ReportTypeFilter)}>
                                     <SelectTrigger className={cn(
                                         "h-10 rounded-full border-none bg-background shadow-sm px-4",
-                                        reportTypeFilter !== 'Todos' && "bg-primary/10 text-primary border border-primary/30"
+                                        reportTypeFilter !== 'Todos' && "bg-primary/10 dark:bg-primary/20 text-primary border border-primary/30 dark:border-primary/40"
                                     )}>
                                     <SelectValue placeholder="Tipo de Reporte" />
                                     </SelectTrigger>
@@ -437,7 +437,7 @@ const StatisticsPage: FC = () => {
                                 <Select value={filterPeriod} onValueChange={(value) => setFilterPeriod(value as FilterPeriod)}>
                                     <SelectTrigger className={cn(
                                         "h-10 rounded-full border-none bg-background shadow-sm px-4",
-                                         filterPeriod !== 'day' && "bg-primary/10 text-primary border border-primary/30"
+                                         filterPeriod !== 'day' && "bg-primary/10 dark:bg-primary/20 text-primary border border-primary/30 dark:border-primary/40"
                                     )}>
                                     <SelectValue placeholder="Periodo" />
                                     </SelectTrigger>
@@ -462,8 +462,8 @@ const StatisticsPage: FC = () => {
                     </div>
              </div>
 
-             <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
-                 <Card className="p-3 flex flex-col justify-between bg-primary/5 border-primary/20 rounded-lg shadow-sm hover:shadow-md transition-shadow">
+             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+                 <Card className={cn("p-3 flex flex-col justify-between bg-primary/10 dark:bg-primary/25 border-primary/20 dark:border-primary/40 rounded-lg shadow-sm hover:shadow-md transition-shadow")}>
                      <div>
                          <p className="text-xs text-primary font-medium flex items-center">
                             <List className="h-3.5 w-3.5 mr-1.5"/>Total Reportes ({reportTypeFilter})
@@ -475,7 +475,7 @@ const StatisticsPage: FC = () => {
                      </p>
                  </Card>
 
-                 <Card className="p-3 flex flex-col justify-between bg-destructive/5 border-destructive/20 rounded-lg shadow-sm hover:shadow-md transition-shadow">
+                 <Card className={cn("p-3 flex flex-col justify-between bg-destructive/10 dark:bg-destructive/25 border-destructive/20 dark:border-destructive/40 rounded-lg shadow-sm hover:shadow-md transition-shadow")}>
                      <div>
                          <p className="text-xs text-destructive font-medium flex items-center">
                             <UserCog className="h-3.5 w-3.5 mr-1.5"/>Reportes Funcionarios
@@ -487,7 +487,7 @@ const StatisticsPage: FC = () => {
                      </p>
                  </Card>
 
-                 <Card className="p-3 flex flex-col justify-between bg-accent/5 border-accent/20 rounded-lg shadow-sm hover:shadow-md transition-shadow">
+                 <Card className={cn("p-3 flex flex-col justify-between bg-accent/10 dark:bg-accent/25 border-accent/20 dark:border-accent/40 rounded-lg shadow-sm hover:shadow-md transition-shadow")}>
                      <div>
                          <p className="text-xs text-accent font-medium flex items-center">
                             <AlertTriangle className="h-3.5 w-3.5 mr-1.5"/>Incidentes Reportados
@@ -499,7 +499,7 @@ const StatisticsPage: FC = () => {
                      </p>
                  </Card>
 
-                 <Card className="p-3 flex flex-col justify-between bg-warning/5 border-warning/20 rounded-lg shadow-sm hover:shadow-md transition-shadow">
+                 <Card className={cn("p-3 flex flex-col justify-between bg-warning/10 dark:bg-warning/25 border-warning/20 dark:border-warning/40 rounded-lg shadow-sm hover:shadow-md transition-shadow")}>
                     <div>
                         <p className="text-xs text-warning-foreground font-medium flex items-center">
                            <MapPin className="h-3.5 w-3.5 mr-1.5 text-warning"/>Zona Más Peligrosa
@@ -513,7 +513,7 @@ const StatisticsPage: FC = () => {
              </div>
 
              <Card className="w-full shadow-lg rounded-xl border border-border bg-card overflow-hidden">
-                <CardHeader className="bg-muted/30 p-4 sm:p-5 border-b border-border/50 flex flex-row items-center justify-between">
+                <CardHeader className="bg-muted/30 dark:bg-muted/20 p-4 sm:p-5 border-b border-border/50 flex flex-row items-center justify-between">
                      <div>
                          <CardTitle className="text-lg font-semibold flex items-center gap-2 text-foreground">
                             <CalendarRange className="h-5 w-5 text-primary" /> Tendencia de Reportes {reportTypeFilter !== 'Todos' ? `(${reportTypeFilter}s)` : ''} por {filterPeriod === 'day' ? 'Día' : filterPeriod === 'week' ? 'Semana' : 'Mes'}
@@ -593,7 +593,7 @@ const StatisticsPage: FC = () => {
                             </AreaChart>
                         </ChartContainer>
                      ) : (
-                          <div className="h-[350px] sm:h-[450px] flex flex-col items-center justify-center text-center p-6 bg-muted/30 rounded-lg border border-dashed border-border">
+                          <div className="h-[350px] sm:h-[450px] flex flex-col items-center justify-center text-center p-6 bg-muted/30 dark:bg-muted/20 rounded-lg border border-dashed border-border">
                              <LineChartIcon className="h-16 w-16 text-muted-foreground opacity-40 mb-5" />
                              <p className="text-lg font-semibold text-muted-foreground mb-2">
                                  {isLoading ? "Calculando datos..." : `No hay suficientes datos ${reportTypeFilter !== 'Todos' ? `de tipo "${reportTypeFilter}"` : ''} para mostrar la tendencia.`}
@@ -609,3 +609,4 @@ const StatisticsPage: FC = () => {
 };
 
 export default StatisticsPage;
+
