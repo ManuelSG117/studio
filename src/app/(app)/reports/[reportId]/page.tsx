@@ -1,4 +1,3 @@
-
 "use client";
 
 import type { FC } from 'react';
@@ -24,6 +23,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge'; 
 import { Separator } from '@/components/ui/separator';
 import { ReporterQuickViewDialog } from '@/components/reporter-quick-view-dialog'; // Import the new dialog
+import { getDistance } from 'geolib';
 
 interface ReporterProfile {
   displayName?: string;
@@ -49,7 +49,7 @@ const ReportDetailPage: FC = () => {
     const [isLoadingReporter, setIsLoadingReporter] = useState(true);
     const [isQuickViewOpen, setIsQuickViewOpen] = useState(false);
     const [selectedReporterForQuickView, setSelectedReporterForQuickView] = useState<ReporterProfile | null>(null);
-
+    const [similarReports, setSimilarReports] = useState<Report[]>([]);
 
     const getInitials = (name?: string | null): string => {
         if (!name) return "?";
@@ -149,6 +149,56 @@ const ReportDetailPage: FC = () => {
         });
         return () => unsubscribe();
     }, [router, reportId, toast, fetchUserVote]);
+
+    // Fetch similar reports within 5km
+    useEffect(() => {
+        const fetchSimilarReports = async () => {
+            if (!report || !report.latitude || !report.longitude) {
+                setSimilarReports([]);
+                return;
+            }
+            try {
+                const reportsCollectionRef = collection(db, "reports");
+                const q = query(reportsCollectionRef);
+                const querySnapshot = await getDocs(q);
+                const fetchedReports: Report[] = querySnapshot.docs.map(doc => {
+                    const data = doc.data();
+                    const createdAtDate = data.createdAt instanceof Timestamp
+                        ? data.createdAt.toDate()
+                        : new Date();
+                    return {
+                        id: doc.id,
+                        userId: data.userId,
+                        userEmail: data.userEmail,
+                        reportType: data.reportType,
+                        title: data.title,
+                        description: data.description,
+                        location: data.location,
+                        mediaUrl: data.mediaUrl || null,
+                        latitude: data.latitude || null,
+                        longitude: data.longitude || null,
+                        createdAt: createdAtDate,
+                        upvotes: data.upvotes || 0,
+                        downvotes: data.downvotes || 0,
+                    } as Report;
+                });
+                // Filtra los reportes que estén a 5km y no sea el actual
+                const filtered = fetchedReports.filter(r =>
+                    r.id !== report.id &&
+                    r.latitude != null &&
+                    r.longitude != null &&
+                    getDistance(
+                        { latitude: report.latitude!, longitude: report.longitude! },
+                        { latitude: r.latitude!, longitude: r.longitude! }
+                    ) <= 5000
+                );
+                setSimilarReports(filtered);
+            } catch (error) {
+                setSimilarReports([]);
+            }
+        };
+        fetchSimilarReports();
+    }, [report]);
 
     const handleVote = async (voteType: 'up' | 'down') => {
         if (!user || !report) {
@@ -382,110 +432,98 @@ const ReportDetailPage: FC = () => {
                 <div className="md:col-span-2">
                     <Card className="w-full shadow-lg border-none rounded-xl bg-card">
                         <CardHeader className="pt-6 pb-4 px-6">
-                            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-1">
-                                <h1 className="text-2xl font-bold text-foreground flex-grow">{report.title}</h1>
-                                <Badge variant={report.reportType === 'incidente' ? 'destructive' : 'default'} className="ml-0 sm:ml-2 mt-1 sm:mt-0 capitalize self-start sm:self-center">
-                                    {report.reportType === 'incidente' ? 'Delito' : 'Funcionario'}
-                                </Badge>
-                            </div>
                             <div 
-                                className="flex items-center space-x-2 text-sm text-muted-foreground cursor-pointer hover:text-primary"
-                                onClick={() => {
-                                    if (reporterProfile) {
+                              className="flex items-center space-x-2 text-sm text-muted-foreground cursor-pointer hover:text-primary mb-2"
+                              onClick={() => {
+                                if (reporterProfile) {
+                                  setSelectedReporterForQuickView(reporterProfile);
+                                  setIsQuickViewOpen(true);
+                                }
+                              }}
+                              role="button"
+                              tabIndex={0}
+                              onKeyDown={(e) => {
+                                if (e.key === 'Enter' || e.key === ' ') {
+                                  if (reporterProfile) {
                                     setSelectedReporterForQuickView(reporterProfile);
                                     setIsQuickViewOpen(true);
-                                    }
-                                }}
-                                role="button"
-                                tabIndex={0}
-                                onKeyDown={(e) => {
-                                    if (e.key === 'Enter' || e.key === ' ') {
-                                        if (reporterProfile) {
-                                            setSelectedReporterForQuickView(reporterProfile);
-                                            setIsQuickViewOpen(true);
-                                        }
-                                    }
-                                }}
+                                  }
+                                }
+                              }}
                             >
-                                {reporterProfile && (
-                                    <Avatar className="h-6 w-6">
-                                        <AvatarImage src={reporterProfile.photoURL || undefined} alt={reporterProfile.displayName || "Avatar del reportante"} data-ai-hint="reporter avatar"/>
-                                        <AvatarFallback className="text-xs">{getInitials(reporterProfile.displayName)}</AvatarFallback>
-                                    </Avatar>
-                                )}
-                                <span>{reporterProfile?.displayName || 'Reporte Anónimo'}</span>
-                                <span>&bull;</span>
-                                <span>Publicado {formatDistanceToNow(report.createdAt, { addSuffix: true, locale: es })}</span>
+                              {reporterProfile && (
+                                <Avatar className="h-6 w-6">
+                                  <AvatarImage src={reporterProfile.photoURL || undefined} alt={reporterProfile.displayName || "Avatar del reportante"} data-ai-hint="reporter avatar"/>
+                                  <AvatarFallback className="text-xs">{getInitials(reporterProfile.displayName)}</AvatarFallback>
+                                </Avatar>
+                              )}
+                              <span>{reporterProfile?.displayName || 'Reporte Anónimo'}</span>
+                              <span>&bull;</span>
+                              <span>Publicado {formatDistanceToNow(report.createdAt, { addSuffix: true, locale: es })}</span>
+                            </div>
+                            <div className="flex flex-row items-start justify-between w-full gap-4">
+                              <h1 className="text-2xl font-bold text-foreground flex-grow">{report.title}</h1>
+                              <div className="flex flex-col items-end gap-2 min-w-[90px]">
+                                <Badge variant={report.reportType === 'incidente' ? 'destructive' : 'default'} className="capitalize">
+                                  {report.reportType === 'incidente' ? 'Delito' : 'Funcionario'}
+                                </Badge>
+                                <div className="flex items-center space-x-1 bg-muted p-1 rounded-full mt-1">
+                                  <Button
+                                    variant="ghost" size="icon"
+                                    className={cn("h-8 w-8 rounded-full", report.userVote === 'down' && "bg-destructive/20 text-destructive", votingState && "opacity-50", isOwnReport && "cursor-not-allowed opacity-60")}
+                                    onClick={() => handleVote('down')}
+                                    disabled={votingState || isOwnReport}
+                                    aria-pressed={report.userVote === 'down'}
+                                    title={isOwnReport ? "No puedes votar en tus propios reportes" : "Votar negativamente"}
+                                  >
+                                    {votingState && report.userVote !== 'down' && !isOwnReport ? <Loader2 className="h-4 w-4 animate-spin"/> : <ArrowDown className="h-4 w-4"/>}
+                                  </Button>
+                                  <Button 
+                                    variant="ghost" 
+                                    className="text-sm font-medium text-foreground tabular-nums w-10 text-center p-0 h-auto hover:bg-transparent hover:text-primary"
+                                    onClick={() => setVotesModalOpen(true)}
+                                    title="Ver detalles de votos"
+                                  >
+                                    {report.upvotes - report.downvotes}
+                                  </Button>
+                                  <Button
+                                    variant="ghost" size="icon"
+                                    className={cn("h-8 w-8 rounded-full", report.userVote === 'up' && "bg-primary/20 text-primary", votingState && "opacity-50", isOwnReport && "cursor-not-allowed opacity-60")}
+                                    onClick={() => handleVote('up')}
+                                    disabled={votingState || isOwnReport}
+                                    aria-pressed={report.userVote === 'up'}
+                                    title={isOwnReport ? "No puedes votar en tus propios reportes" : "Votar positivamente"}
+                                  >
+                                    {votingState && report.userVote !== 'up' && !isOwnReport ? <Loader2 className="h-4 w-4 animate-spin"/> : <ArrowUp className="h-4 w-4"/>}
+                                  </Button>
+                                </div>
+                              </div>
                             </div>
                         </CardHeader>
-
-                        {report.mediaUrl && (
-                            <div className="relative aspect-video w-full overflow-hidden bg-muted">
-                                {/\.(mp4|webm|ogg|mov)$/i.test(report.mediaUrl) ? (
-                                    <video controls src={report.mediaUrl} className="absolute inset-0 w-full h-full object-cover" preload="metadata">
-                                        Tu navegador no soporta videos HTML5.
-                                    </video>
-                                ) : (
-                                    <Image src={report.mediaUrl} alt={`Evidencia para reporte ${report.id}`} fill style={{ objectFit: 'cover' }} data-ai-hint="report evidence media" className="bg-muted" sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw" />
-                                )}
-                            </div>
-                        )}
-                         {!report.mediaUrl && (
-                            <div className="aspect-video w-full bg-muted flex flex-col items-center justify-center text-muted-foreground">
-                                <ImageIcon size={48} className="opacity-50 mb-2"/>
-                                <p className="text-sm">Sin evidencia multimedia adjunta.</p>
-                            </div>
-                        )}
-
-
                         <CardContent className="px-6 pt-6 space-y-6">
-                             <div>
+                            <div>
                                 <h3 className="text-lg font-semibold text-foreground mb-2">Descripción del incidente</h3>
                                 <p className="text-foreground/90 leading-relaxed whitespace-pre-wrap">{report.description}</p>
                             </div>
-                            
                             <Separator />
-
-                             <div className="flex items-center justify-between">
-                               <div className="flex items-center space-x-1 bg-muted p-1 rounded-full">
-                                   <Button
-                                       variant="ghost" size="icon"
-                                       className={cn("h-8 w-8 rounded-full", report.userVote === 'down' && "bg-destructive/20 text-destructive", votingState && "opacity-50", isOwnReport && "cursor-not-allowed opacity-60")}
-                                      onClick={() => handleVote('down')}
-                                      disabled={votingState || isOwnReport}
-                                      aria-pressed={report.userVote === 'down'}
-                                      title={isOwnReport ? "No puedes votar en tus propios reportes" : "Votar negativamente"}
-                                   >
-                                      {votingState && report.userVote !== 'down' && !isOwnReport ? <Loader2 className="h-4 w-4 animate-spin"/> : <ArrowDown className="h-4 w-4"/>}
-                                   </Button>
-                                   <Button 
-                                       variant="ghost" 
-                                       className="text-sm font-medium text-foreground tabular-nums w-10 text-center p-0 h-auto hover:bg-transparent hover:text-primary"
-                                       onClick={() => setVotesModalOpen(true)}
-                                       title="Ver detalles de votos"
-                                   >
-                                       {report.upvotes - report.downvotes}
-                                   </Button>
-                                   <Button
-                                      variant="ghost" size="icon"
-                                      className={cn("h-8 w-8 rounded-full", report.userVote === 'up' && "bg-primary/20 text-primary", votingState && "opacity-50", isOwnReport && "cursor-not-allowed opacity-60")}
-                                      onClick={() => handleVote('up')}
-                                      disabled={votingState || isOwnReport}
-                                      aria-pressed={report.userVote === 'up'}
-                                      title={isOwnReport ? "No puedes votar en tus propios reportes" : "Votar positivamente"}
-                                   >
-                                      {votingState && report.userVote !== 'up' && !isOwnReport ? <Loader2 className="h-4 w-4 animate-spin"/> : <ThumbsUp className="h-4 w-4"/>}
-                                   </Button>
-                               </div>
-                                <div className="flex items-center space-x-2">
-                                    <Button variant="outline" size="sm" className="rounded-full" onClick={handleShare}>
-                                        <Share2 className="mr-2 h-4 w-4" /> Compartir
-                                    </Button>
+                            {report.mediaUrl && (
+                                <div className="relative aspect-video w-full overflow-hidden bg-muted">
+                                    {/\.(mp4|webm|ogg|mov)$/i.test(report.mediaUrl) ? (
+                                        <video controls src={report.mediaUrl} className="absolute inset-0 w-full h-full object-cover" preload="metadata">
+                                            Tu navegador no soporta videos HTML5.
+                                        </video>
+                                    ) : (
+                                        <Image src={report.mediaUrl} alt={`Evidencia para reporte ${report.id}`} fill style={{ objectFit: 'cover' }} data-ai-hint="report evidence media" className="bg-muted" sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw" />
+                                    )}
                                 </div>
-                            </div>
-                            
+                            )}
+                            {!report.mediaUrl && (
+                                <div className="aspect-video w-full bg-muted flex flex-col items-center justify-center text-muted-foreground">
+                                    <ImageIcon size={48} className="opacity-50 mb-2"/>
+                                    <p className="text-sm">Sin evidencia multimedia adjunta.</p>
+                                </div>
+                            )}
                             <Separator />
-
                             <div>
                                 <h3 className="text-lg font-semibold text-foreground mb-2">Ubicación</h3>
                                 <div className="h-64 w-full bg-muted border border-border rounded-lg overflow-hidden mb-2">
@@ -502,9 +540,7 @@ const ReportDetailPage: FC = () => {
                                     <MapPin className="h-4 w-4 flex-shrink-0" /> {formatLocation(report.location)}
                                 </p>
                             </div>
-
                             <Separator />
-
                             <div>
                                 <h3 className="text-lg font-semibold text-foreground mb-3">Detalles adicionales</h3>
                                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-3 text-sm">
@@ -595,12 +631,32 @@ const ReportDetailPage: FC = () => {
                             <CardTitle className="text-lg font-semibold">Reportes similares cercanos</CardTitle>
                         </CardHeader>
                         <CardContent>
-                            <div className="text-center py-6">
-                                <ShieldAlert className="mx-auto h-10 w-10 text-muted-foreground opacity-50 mb-2" />
-                                <p className="text-sm text-muted-foreground">
-                                    Funcionalidad de reportes similares no disponible aún.
-                                </p>
-                            </div>
+                            {similarReports.length === 0 ? (
+                                <div className="text-center py-6">
+                                    <ShieldAlert className="mx-auto h-10 w-10 text-muted-foreground opacity-50 mb-2" />
+                                    <p className="text-sm text-muted-foreground">
+                                        No se encontraron reportes similares a menos de 5km de este reporte.
+                                    </p>
+                                </div>
+                            ) : (
+                                <div className="space-y-3">
+                                    {similarReports.map((r) => (
+                                        <Card key={r.id} className="p-3 flex flex-col gap-1 border border-border rounded-lg hover:shadow-md transition-shadow">
+                                            <div className="flex items-center gap-2">
+                                                <Badge variant={r.reportType === 'incidente' ? 'destructive' : 'default'} className="capitalize">
+                                                    {r.reportType === 'incidente' ? 'Delito' : 'Funcionario'}
+                                                </Badge>
+                                                <span className="text-xs text-muted-foreground">{formatDistanceToNow(r.createdAt, { addSuffix: true, locale: es })}</span>
+                                            </div>
+                                            <div className="font-semibold text-foreground text-sm truncate">{r.title}</div>
+                                            <div className="text-xs text-muted-foreground">
+                                                Distancia: {((getDistance({ latitude: report?.latitude!, longitude: report?.longitude! }, { latitude: r.latitude!, longitude: r.longitude! }) / 1000).toFixed(2))} km
+                                            </div>
+                                            <Link href={`/reports/${r.id}`} className="text-xs text-primary hover:underline mt-1">Ver detalle</Link>
+                                        </Card>
+                                    ))}
+                                </div>
+                            )}
                              <Button asChild variant="outline" className="w-full mt-4 rounded-full">
                                 <Link href="/danger-zones">
                                     <MapPin className="mr-2 h-4 w-4" /> Ver mapa de incidentes
