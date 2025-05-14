@@ -33,14 +33,29 @@ const AboutCreatorPage: FC = () => {
   const footerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    const sections = [
-      { ref: motivationRef, delay: 0 },
-      { ref: contactRef, delay: 0.2 },
-      { ref: aboutMeRef, delay: 0.2 },
-      { ref: footerRef, delay: 0.2 },
+    // Animate motivation section on load
+    if (motivationRef.current) {
+      gsap.fromTo(
+        motivationRef.current,
+        { opacity: 0, y: 20 }, // Start slightly down and faded
+        {
+          opacity: 1,
+          y: 0,
+          duration: 0.8,
+          delay: 0.1, // Small delay for effect
+          ease: 'power3.out',
+        }
+      );
+    }
+
+    // Sections to be animated on scroll
+    const scrollAnimatedSections = [
+      { ref: contactRef, delay: 0.1 },
+      { ref: aboutMeRef, delay: 0.1 },
+      { ref: footerRef, delay: 0.1 },
     ];
 
-    sections.forEach(section => {
+    scrollAnimatedSections.forEach(section => {
       if (section.ref.current) {
         gsap.fromTo(
           section.ref.current,
@@ -53,8 +68,8 @@ const AboutCreatorPage: FC = () => {
             ease: 'power3.out',
             scrollTrigger: {
               trigger: section.ref.current,
-              start: 'top 85%', // When the top of the trigger hits 85% of the viewport height
-              toggleActions: 'play none none none', // Play animation once
+              start: 'top 85%', 
+              toggleActions: 'play none none none',
             },
           }
         );
@@ -105,7 +120,7 @@ const AboutCreatorPage: FC = () => {
               {/* Section 1: Motivación */}
               <section
                 ref={motivationRef}
-                className="pb-16 md:pb-24 opacity-0" // Initial state for GSAP
+                className="pb-16 md:pb-24" // opacity-0 removed here
               >
                 <h2 className="text-xl font-semibold text-foreground mb-3">Motivación detrás de +Seguro</h2>
                 <p className="text-muted-foreground leading-relaxed">
@@ -236,3 +251,6 @@ const AboutCreatorPage: FC = () => {
 };
 
 export default AboutCreatorPage;
+
+
+    
