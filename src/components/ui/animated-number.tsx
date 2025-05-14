@@ -20,7 +20,7 @@ export const AnimatedNumber: FC<AnimatedNumberProps> = ({ value, formatOptions, 
 
     // Use a slightly shorter duration for smoother feel
     const controls = animate(displayValue, value, {
-      duration: 0.8, // Animation duration in seconds
+      duration: 0.3, // Animation duration in seconds
       ease: "easeOut",
       onUpdate(latest) {
         setDisplayValue(latest);

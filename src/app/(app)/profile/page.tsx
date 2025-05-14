@@ -1,4 +1,3 @@
-
 "use client";
 
 import type { FC, ReactNode } from 'react'; 
@@ -286,7 +285,7 @@ const ProfilePage: FC = () => {
   if (isLoading || isLoadingEnhancements) {
     return (
       <main className="flex flex-col items-center p-4 sm:p-8 bg-secondary min-h-screen">
-        <Card className="w-full max-w-4xl shadow-lg border-none rounded-xl bg-card">
+        <Card className="w-full max-w-7xl shadow-lg border-none rounded-xl bg-card">
           <CardContent className="p-6 grid grid-cols-1 md:grid-cols-3 gap-6">
             {/* Left Column Skeleton */}
             <div className="md:col-span-1 space-y-4 p-6 bg-muted/30 rounded-lg">
@@ -346,7 +345,7 @@ const ProfilePage: FC = () => {
 
   return (
     <main className="flex flex-col items-center py-8 px-4 sm:px-6 lg:px-8 bg-secondary min-h-screen">
-      <Card className="w-full max-w-4xl shadow-xl border-none rounded-2xl bg-card overflow-hidden"> 
+      <Card className="w-full max-w-7xl shadow-xl border-none rounded-2xl bg-card overflow-hidden"> 
         <CardContent className="p-0 sm:p-0 md:grid md:grid-cols-12">
           <div className="md:col-span-4 bg-muted/40 p-6 space-y-5 border-r border-border/50">
             <div className="flex flex-col items-center text-center">
@@ -357,9 +356,14 @@ const ProfilePage: FC = () => {
                     {getInitials(userProfile?.fullName || user.displayName || user.email)}
                   </AvatarFallback>
                 </Avatar>
-                <div className="absolute bottom-0 right-0 bg-green-500 p-1.5 rounded-full border-2 border-card">
-                    <CheckSquare className="h-3 w-3 text-white" />
-                </div>
+                <button
+                  type="button"
+                  aria-label="Editar perfil"
+                  onClick={() => router.push('/profile/edit')}
+                  className="absolute bottom-0 right-0 bg-green-500 p-1.5 rounded-full border-2 border-card cursor-pointer transition-all duration-200 hover:bg-green-600 hover:scale-110 focus:outline-none focus:ring-2 focus:ring-green-400"
+                >
+                  <Edit className="h-4 w-4 text-white" />
+                </button>
               </div>
               <h2 className="text-xl font-semibold text-foreground">
                  {userProfile?.fullName || user.displayName || 'Usuario +Seguro'}
@@ -440,27 +444,27 @@ const ProfilePage: FC = () => {
                   {displayAchievements.map((achievement) => (
                     <Card key={achievement.id} className={cn(
                         "p-3 rounded-lg border flex items-center gap-3 shadow-sm hover:shadow-md transition-shadow",
-                         achievement.id === 'first_report' ? 'bg-yellow-50 border-yellow-200' : 
-                         achievement.id === 'community_guardian' ? 'bg-blue-50 border-blue-200' :
-                         achievement.id === 'pioneer' ? 'bg-green-50 border-green-200' :
-                         'bg-gray-50 border-gray-200' // Default for other unlocked achievements if any
+                         achievement.id === 'first_report' ? 'bg-yellow-200 dark:bg-yellow-900/80 border-yellow-300 dark:border-yellow-900' : 
+                         achievement.id === 'community_guardian' ? 'bg-blue-200 dark:bg-blue-900/80 border-blue-300 dark:border-blue-900' :
+                         achievement.id === 'pioneer' ? 'bg-green-200 dark:bg-green-900/80 border-green-300 dark:border-green-900' :
+                         'bg-gray-200 dark:bg-gray-900/80 border-gray-300 dark:border-gray-900' // Default for other unlocked achievements if any
                         )}>
                       <div className={cn(
                           "p-2 rounded-full",
-                           achievement.id === 'first_report' ? 'bg-yellow-100' : 
-                           achievement.id === 'community_guardian' ? 'bg-blue-100' :
-                           achievement.id === 'pioneer' ? 'bg-green-100' :
-                           'bg-gray-100'
+                           achievement.id === 'first_report' ? 'bg-yellow-300 dark:bg-yellow-800/80' : 
+                           achievement.id === 'community_guardian' ? 'bg-blue-300 dark:bg-blue-800/80' :
+                           achievement.id === 'pioneer' ? 'bg-green-300 dark:bg-green-800/80' :
+                           'bg-gray-300 dark:bg-gray-800/80'
                           )}>
                         {achievement.icon}
                       </div>
                       <div>
                         <p className={cn(
                             "text-sm font-semibold",
-                             achievement.id === 'first_report' ? 'text-yellow-700' : 
-                             achievement.id === 'community_guardian' ? 'text-blue-700' :
-                             achievement.id === 'pioneer' ? 'text-green-700' :
-                             'text-gray-700'
+                             achievement.id === 'first_report' ? 'text-yellow-900 dark:text-yellow-100' : 
+                             achievement.id === 'community_guardian' ? 'text-blue-900 dark:text-blue-100' :
+                             achievement.id === 'pioneer' ? 'text-green-900 dark:text-green-100' :
+                             'text-gray-900 dark:text-gray-100'
                             )}>{achievement.title}</p>
                         <p className="text-xs text-muted-foreground line-clamp-1">{achievement.description}</p>
                       </div>
@@ -475,15 +479,6 @@ const ProfilePage: FC = () => {
             </div>
           </div>
         </CardContent>
-
-        <CardFooter className="flex flex-col sm:flex-row justify-end items-center p-6 gap-3 border-t border-border">
-          <Button variant="outline" className="w-full sm:w-auto rounded-full" onClick={() => router.push('/profile/edit')}>
-            <Edit className="mr-2 h-4 w-4" /> Editar Perfil
-          </Button>
-          <Button variant="destructive" className="w-full sm:w-auto rounded-full" onClick={handleLogout}>
-            <LogOut className="mr-2 h-4 w-4" /> Cerrar Sesión
-          </Button>
-        </CardFooter>
       </Card>
       <footer className="mt-12 text-center text-xs text-muted-foreground">
         © {new Date().getFullYear()} +SEGURO - Plataforma de reportes ciudadanos para la seguridad pública

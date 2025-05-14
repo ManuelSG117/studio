@@ -165,33 +165,37 @@ export const VotingStats: FC<VotingStatsProps> = ({ userId }) => {
             <CardDescription className="text-sm">Tu actividad en la comunidad +SEGURO</CardDescription>
         </CardHeader>
         <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-3 text-left">
-          <Card className="p-3 flex flex-col justify-between bg-blue-50 border-blue-200 rounded-lg">
-            <div>
-                <p className="text-xs text-blue-600 font-medium flex items-center"><FileText className="h-3.5 w-3.5 mr-1.5"/>Reportes Totales</p>
-                <AnimatedNumber value={totalUserReports} className="text-2xl font-bold text-blue-700 block mt-0.5"/>
+          <Card className="p-3 flex flex-col justify-between bg-green-200 dark:bg-green-900/80 border-green-300 dark:border-green-900 rounded-lg">
+            <div className="flex items-center gap-2">
+                <FileText className="h-3.5 w-3.5 mr-1.5 text-green-900 dark:text-green-100"/>
+                <span className="text-xs text-green-900 dark:text-green-100 font-medium">Reportes Totales</span>
+                <AnimatedNumber value={totalUserReports} className="text-2xl font-bold text-green-900 dark:text-green-100 ml-2"/>
             </div>
-            <p className="text-xs text-blue-500 mt-1 flex items-center"><TrendingUp className="h-3 w-3 mr-0.5"/> +5 este mes</p>
+            <p className="text-xs text-green-700 dark:text-green-200 mt-1 flex items-center"><TrendingUp className="h-3 w-3 mr-0.5 text-green-700 dark:text-green-200"/> +5 este mes</p>
           </Card>
-          <Card className="p-3 flex flex-col justify-between bg-green-50 border-green-200 rounded-lg">
-            <div>
-                <p className="text-xs text-green-600 font-medium flex items-center"><ThumbsUp className="h-3.5 w-3.5 mr-1.5"/>Votos Positivos</p>
-                <AnimatedNumber value={stats.upvotesGiven} className="text-2xl font-bold text-green-700 block mt-0.5"/>
+          <Card className="p-3 flex flex-col justify-between bg-blue-200 dark:bg-blue-900/80 border-blue-300 dark:border-blue-900 rounded-lg">
+            <div className="flex items-center gap-2">
+                <ThumbsUp className="h-3.5 w-3.5 mr-1.5 text-blue-900 dark:text-blue-100"/>
+                <span className="text-xs text-blue-900 dark:text-blue-100 font-medium">Votos Positivos</span>
+                <AnimatedNumber value={stats.upvotesGiven} className="text-2xl font-bold text-blue-900 dark:text-blue-100 ml-2"/>
             </div>
-             <p className="text-xs text-green-500 mt-1 flex items-center"><TrendingUp className="h-3 w-3 mr-0.5"/> +12 esta semana</p>
+             <p className="text-xs text-blue-700 dark:text-blue-200 mt-1 flex items-center"><TrendingUp className="h-3 w-3 mr-0.5 text-blue-700 dark:text-blue-200"/> +12 esta semana</p>
           </Card>
-          <Card className="p-3 flex flex-col justify-between bg-red-50 border-red-200 rounded-lg">
-             <div>
-                <p className="text-xs text-red-600 font-medium flex items-center"><ThumbsDown className="h-3.5 w-3.5 mr-1.5"/>Votos Negativos</p>
-                <AnimatedNumber value={stats.downvotesGiven} className="text-2xl font-bold text-red-700 block mt-0.5"/>
+          <Card className="p-3 flex flex-col justify-between bg-red-200 dark:bg-red-900/80 border-red-300 dark:border-red-900 rounded-lg">
+            <div className="flex items-center gap-2">
+                <ThumbsDown className="h-3.5 w-3.5 mr-1.5 text-red-900 dark:text-red-100"/>
+                <span className="text-xs text-red-900 dark:text-red-100 font-medium">Votos Negativos</span>
+                <AnimatedNumber value={stats.downvotesGiven} className="text-2xl font-bold text-red-900 dark:text-red-100 ml-2"/>
             </div>
-            <p className="text-xs text-red-500 mt-1 flex items-center"><TrendingDown className="h-3 w-3 mr-0.5"/> +2 esta semana</p>
+            <p className="text-xs text-red-700 dark:text-red-200 mt-1 flex items-center"><TrendingDown className="h-3 w-3 mr-0.5 text-red-700 dark:text-red-200"/> +2 esta semana</p>
           </Card>
-          <Card className="p-3 flex flex-col justify-between bg-indigo-50 border-indigo-200 rounded-lg">
-            <div>
-                <p className="text-xs text-indigo-600 font-medium flex items-center"><Users className="h-3.5 w-3.5 mr-1.5"/>Promedio/día</p>
-                <AnimatedNumber value={stats.averageVotesPerDay} formatOptions={{ minimumFractionDigits: 1, maximumFractionDigits: 1 }} className="text-2xl font-bold text-indigo-700 block mt-0.5"/>
+          <Card className="p-3 flex flex-col justify-between bg-indigo-200 dark:bg-indigo-900/80 border-indigo-300 dark:border-indigo-900 rounded-lg">
+            <div className="flex items-center gap-2">
+                <Users className="h-3.5 w-3.5 mr-1.5 text-indigo-900 dark:text-indigo-100"/>
+                <span className="text-xs text-indigo-900 dark:text-indigo-100 font-medium">Promedio/día</span>
+                <AnimatedNumber value={stats.averageVotesPerDay} formatOptions={{ minimumFractionDigits: 1, maximumFractionDigits: 1 }} className="text-2xl font-bold text-indigo-900 dark:text-indigo-100 ml-2"/>
             </div>
-            <p className="text-xs text-indigo-500 mt-1 flex items-center"><TrendingUp className="h-3 w-3 mr-0.5"/> +0.5 vs. anterior</p>
+            <p className="text-xs text-indigo-700 dark:text-indigo-200 mt-1 flex items-center"><TrendingUp className="h-3 w-3 mr-0.5 text-indigo-700 dark:text-indigo-200"/> +0.5 vs. anterior</p>
           </Card>
         </div>
       </div>

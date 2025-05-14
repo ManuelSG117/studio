@@ -107,7 +107,7 @@ const DangerZonesPage: FC = () => {
   if (isLoading || !isClient) {
     return (
       <main className="flex flex-col p-4 sm:p-6 bg-secondary min-h-screen">
-         <div className="w-full max-w-5xl mx-auto space-y-6"> {/* Increased max-width */}
+         <div className="w-full max-w-7xl mx-auto space-y-6"> {/* Increased max-width */}
             {/* Header Skeleton */}
              <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4">
                  <Skeleton className="h-8 w-2/3 sm:w-1/2" />
@@ -154,7 +154,7 @@ const DangerZonesPage: FC = () => {
 
   return (
     <main className="flex flex-col p-4 sm:p-6 bg-secondary min-h-screen">
-        <div className="w-full max-w-5xl mx-auto space-y-6"> {/* Increased max-width */}
+        <div className="w-full max-w-7xl mx-auto space-y-6"> {/* Increased max-width */}
 
              {/* Header with Title and Unified Filters */}
              <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4">

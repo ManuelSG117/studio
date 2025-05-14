@@ -287,7 +287,7 @@ const WelcomePage: FC = () => {
 
   return (
     <main className="flex flex-col p-4 sm:p-6 md:p-8 bg-secondary min-h-screen">
-      <div className="w-full max-w-4xl mx-auto space-y-6">
+      <div className="w-full max-w-7xl mx-auto space-y-6">
         {selectedReport && (
           <VotesModal 
             open={votesModalOpen} 

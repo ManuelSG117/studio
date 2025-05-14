@@ -1,4 +1,3 @@
-
 "use client";
 
 import type { FC } from 'react';
@@ -463,53 +462,92 @@ const StatisticsPage: FC = () => {
              </div>
 
              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
-                 <Card className={cn("p-3 flex flex-col justify-between bg-primary/10 dark:bg-primary/25 border-primary/20 dark:border-primary/40 rounded-lg shadow-sm hover:shadow-md transition-shadow")}>
-                     <div>
-                         <p className="text-xs text-primary font-medium flex items-center">
-                            <List className="h-3.5 w-3.5 mr-1.5"/>Total Reportes ({reportTypeFilter})
-                         </p>
-                         <AnimatedNumber value={totalReports} className="text-2xl sm:text-3xl font-bold text-primary block mt-0.5"/>
+                 <Card className="group rounded-lg shadow-sm overflow-hidden border border-border">
+                     <div className="bg-green-200 dark:bg-green-900/80 p-3 flex flex-col justify-between h-full">
+                         <div className="flex justify-between items-start">
+                            <p className="text-xs font-medium text-green-900 dark:text-green-100 flex items-center">
+                               Total Reportes ({reportTypeFilter})
+                            </p>
+                            <span className="bg-green-300 dark:bg-green-800/80 p-1 rounded-full hover:scale-110 transition-all duration-300 ease-in-out">
+                               <List className="h-4 w-4 text-green-900 dark:text-green-100 transition-transform duration-500 group-hover:scale-110 group-hover:rotate-[360deg] " />
+                            </span>
+                         </div>
+                         <div className="mt-2">
+                            <AnimatedNumber 
+                               value={totalReports} 
+                               className="text-2xl sm:text-3xl font-bold text-green-900 dark:text-green-100 block" 
+                            />
+                            <p className="text-xs text-green-700 dark:text-green-200 mt-1 flex items-center">
+                               <TrendingUp className="h-3 w-3 mr-0.5 text-green-700 dark:text-green-200"/> {averageReports.toFixed(1)} {averageLabel}
+                            </p>
+                         </div>
                      </div>
-                     <p className="text-xs text-primary/80 mt-1 flex items-center">
-                         <TrendingUp className="h-3 w-3 mr-0.5"/> {averageReports.toFixed(1)} {averageLabel}
-                     </p>
                  </Card>
 
-                 <Card className={cn("p-3 flex flex-col justify-between bg-destructive/10 dark:bg-destructive/25 border-destructive/20 dark:border-destructive/40 rounded-lg shadow-sm hover:shadow-md transition-shadow")}>
-                     <div>
-                         <p className="text-xs text-destructive font-medium flex items-center">
-                            <UserCog className="h-3.5 w-3.5 mr-1.5"/>Reportes Funcionarios
-                         </p>
-                         <AnimatedNumber value={officerReportsCount} className="text-2xl sm:text-3xl font-bold text-destructive block mt-0.5"/>
+                 <Card className="group rounded-lg shadow-sm overflow-hidden border border-border">
+                     <div className="bg-red-200 dark:bg-red-900/80 p-3 flex flex-col justify-between h-full">
+                         <div className="flex justify-between items-start">
+                            <p className="text-xs font-medium text-red-900 dark:text-red-100 flex items-center">
+                               Reportes Funcionarios
+                            </p>
+                            <span className="bg-red-300 dark:bg-red-800/80 p-1 rounded-full hover:scale-110 transition-all duration-300 ease-in-out">
+                               <UserCog className="h-4 w-4 text-red-900 dark:text-red-100 transition-transform duration-500 group-hover:scale-110 group-hover:rotate-[360deg]" />
+                            </span>
+                         </div>
+                         <div className="mt-2">
+                            <AnimatedNumber 
+                               value={officerReportsCount} 
+                               className="text-2xl sm:text-3xl font-bold text-red-900 dark:text-red-100 block" 
+                            />
+                            <p className="text-xs text-red-700 dark:text-red-200 mt-1 flex items-center">
+                               <TrendingUp className="h-3 w-3 mr-0.5 text-red-700 dark:text-red-200"/> +2% este mes
+                            </p>
+                         </div>
                      </div>
-                     <p className="text-xs text-destructive/80 mt-1 flex items-center">
-                        <TrendingUp className="h-3 w-3 mr-0.5"/> +2% este mes
-                     </p>
                  </Card>
 
-                 <Card className={cn("p-3 flex flex-col justify-between bg-accent/10 dark:bg-accent/25 border-accent/20 dark:border-accent/40 rounded-lg shadow-sm hover:shadow-md transition-shadow")}>
-                     <div>
-                         <p className="text-xs text-accent font-medium flex items-center">
-                            <AlertTriangle className="h-3.5 w-3.5 mr-1.5"/>Incidentes Reportados
-                         </p>
-                         <AnimatedNumber value={incidentReportsCount} className="text-2xl sm:text-3xl font-bold text-accent block mt-0.5"/>
+                 <Card className="group rounded-lg shadow-sm overflow-hidden border border-border">
+                     <div className="bg-blue-200 dark:bg-blue-900/80 p-3 flex flex-col justify-between h-full">
+                         <div className="flex justify-between items-start">
+                            <p className="text-xs font-medium text-blue-900 dark:text-blue-100 flex items-center">
+                               Incidentes Reportados
+                            </p>
+                            <span className="bg-blue-300 dark:bg-blue-800/80 p-1 rounded-full hover:scale-110 transition-all duration-300 ease-in-out">
+                               <AlertTriangle className="h-4 w-4 text-blue-900 dark:text-blue-100 transition-transform duration-500 group-hover:scale-110 group-hover:rotate-[360deg]" />
+                            </span>
+                         </div>
+                         <div className="mt-2">
+                            <AnimatedNumber 
+                               value={incidentReportsCount} 
+                               className="text-2xl sm:text-3xl font-bold text-blue-900 dark:text-blue-100 block" 
+                            />
+                            <p className="text-xs text-blue-700 dark:text-blue-200 mt-1 flex items-center">
+                               <TrendingDown className="h-3 w-3 mr-0.5 text-blue-700 dark:text-blue-200"/> {mostActiveDay} día más común
+                            </p>
+                         </div>
                      </div>
-                     <p className="text-xs text-accent/80 mt-1 flex items-center">
-                         <TrendingDown className="h-3 w-3 mr-0.5"/> {mostActiveDay} día más común
-                     </p>
                  </Card>
 
-                 <Card className={cn("p-3 flex flex-col justify-between bg-warning/10 dark:bg-warning/25 border-warning/20 dark:border-warning/40 rounded-lg shadow-sm hover:shadow-md transition-shadow")}>
-                    <div>
-                        <p className="text-xs text-warning-foreground font-medium flex items-center">
-                           <MapPin className="h-3.5 w-3.5 mr-1.5 text-warning"/>Zona Más Peligrosa
-                        </p>
-                        <div className="text-xl sm:text-2xl font-bold text-warning-foreground block mt-0.5 truncate">Col. Centro</div>
-                    </div>
-                    <p className="text-xs text-warning/80 mt-1 flex items-center">
-                       <AlertTriangle className="h-3 w-3 mr-0.5"/> Riesgo Elevado
-                    </p>
-                </Card>
+                 <Card className="group rounded-lg shadow-sm overflow-hidden border border-border">
+                     <div className="bg-yellow-200 dark:bg-yellow-900/80 p-3 flex flex-col justify-between h-full">
+                         <div className="flex justify-between items-start">
+                            <p className="text-xs font-medium text-yellow-900 dark:text-yellow-100 flex items-center">
+                               Zona Más Peligrosa
+                            </p>
+                            <span className="bg-yellow-300 dark:bg-yellow-800/80 p-1 rounded-full hover:scale-110 transition-all duration-300 ease-in-out">
+                               <MapPin className="h-4 w-4 text-yellow-900 dark:text-yellow-100 transition-transform duration-500 group-hover:scale-110 group-hover:rotate-[360deg]" />
+                            </span>
+                         </div>
+                         <div className="mt-2">
+                            <div className="text-xl sm:text-2xl font-bold text-yellow-900 dark:text-yellow-100 block truncate">
+                               Col. Centro
+                            </div>
+                            <p className="text-xs text-yellow-800 dark:text-yellow-200 mt-1 flex items-center">
+                               <AlertTriangle className="h-3 w-3 mr-0.5 text-yellow-800 dark:text-yellow-200"/> Riesgo Elevado
+                            </p>
+                         </div>
+                     </div>
+                 </Card>
              </div>
 
              <Card className="w-full shadow-lg rounded-xl border border-border bg-card overflow-hidden">
