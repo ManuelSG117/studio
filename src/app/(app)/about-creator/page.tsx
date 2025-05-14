@@ -16,6 +16,7 @@ import { SuggestionDialog } from '@/components/suggestion-dialog';
 import { useState } from 'react';
 import { useAuth } from '@/context/AuthContext';
 import { useToast } from '@/hooks/use-toast';
+import { motion } from 'framer-motion'; // Import framer-motion
 
 const AboutCreatorPage: FC = () => {
   const router = useRouter();
@@ -29,11 +30,21 @@ const AboutCreatorPage: FC = () => {
     setIsSuggestionDialogOpen(true);
   };
 
+  const sectionVariants = {
+    hidden: { opacity: 0, y: 20 },
+    visible: { opacity: 1, y: 0, transition: { duration: 0.6 } },
+  };
+
   return (
     <>
       <main className="flex flex-col items-center py-8 px-4 sm:px-6 lg:px-8 bg-secondary min-h-screen">
         <div className="w-full max-w-7xl space-y-8">
-          <div className="flex items-center justify-start w-full">
+          <motion.div 
+            initial={{ opacity: 0, x: -20 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ duration: 0.5 }}
+            className="flex items-center justify-start w-full"
+          >
             <Button
               variant="ghost"
               size="icon"
@@ -43,16 +54,28 @@ const AboutCreatorPage: FC = () => {
             >
               <ArrowLeft className="h-5 w-5" />
             </Button>
-          </div>
+          </motion.div>
 
           <Card className="w-full shadow-xl border-none rounded-2xl bg-card overflow-hidden">
             <CardHeader className="bg-muted/30 p-4 text-center">
-              <h1 className="text-2xl font-bold text-primary">Sobre +Seguro</h1>
+              <motion.h1 
+                initial={{ opacity: 0, y: -10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.5, delay: 0.2 }}
+                className="text-2xl font-bold text-primary"
+              >
+                Sobre +Seguro
+              </motion.h1>
             </CardHeader>
 
-            <CardContent className="p-6 sm:p-8 space-y-12"> {/* Increased space-y from 6 to 12 */}
+            <CardContent className="p-6 sm:p-8 space-y-12">
               {/* Section 1: Motivación */}
-              <section className="pb-16 md:pb-24"> {/* Added padding-bottom */}
+              <motion.section 
+                className="pb-16 md:pb-24"
+                initial="hidden"
+                animate="visible"
+                variants={sectionVariants}
+              >
                 <h2 className="text-xl font-semibold text-foreground mb-3">Motivación detrás de +Seguro</h2>
                 <p className="text-muted-foreground leading-relaxed">
                   La plataforma +Seguro surge con el propósito de ser una herramienta ciudadana fundamental para Uruapan. Nuestro objetivo es que puedas reportar incidentes, consultar niveles de seguridad en diferentes zonas y estar al tanto de cualquier problemática que afecte a nuestra ciudad. Es esencial la participación activa y responsable de la comunidad: al utilizar la plataforma correctamente, garantizamos que los reportes sean legítimos y la información sea verídica, contribuyendo así a un entorno más seguro para todos.
@@ -69,12 +92,17 @@ const AboutCreatorPage: FC = () => {
                   </GradientText>
                   {' '}Mi compromiso es con el progreso y la tranquilidad de Uruapan.
                 </p>
-              </section>
+              </motion.section>
 
               <Separator />
 
               {/* Section 2: Contacto */}
-              <section>
+              <motion.section
+                initial="hidden"
+                whileInView="visible"
+                viewport={{ once: true, amount: 0.3 }}
+                variants={sectionVariants}
+              >
                 <h2 className="text-xl font-semibold text-foreground mb-4">
                   <AnimatedTextCycle texts={["Contacto", "Colaboración", "Sugerencia"]} duration={3000} className="inline-block" />
                 </h2>
@@ -117,12 +145,17 @@ const AboutCreatorPage: FC = () => {
                     </Link>
                   </Button>
                 </div>
-              </section>
+              </motion.section>
 
               <Separator />
 
               {/* Section 3: Sobre Mí */}
-              <section>
+              <motion.section
+                initial="hidden"
+                whileInView="visible"
+                viewport={{ once: true, amount: 0.3 }}
+                variants={sectionVariants}
+              >
                 <div className="flex flex-col items-center text-center mb-6">
                   <Avatar className="w-32 h-32 border-4 border-primary mb-4 shadow-lg">
                     <AvatarImage src="https://placehold.co/200x200.png" alt="Manuel Sandoval" data-ai-hint="creator avatar"/>
@@ -146,19 +179,31 @@ const AboutCreatorPage: FC = () => {
                     </a>
                   </Button>
                 </div>
-              </section>
+              </motion.section>
 
               <Separator />
 
-              <div className="text-center text-muted-foreground text-sm">
+              <motion.div 
+                className="text-center text-muted-foreground text-sm"
+                initial="hidden"
+                whileInView="visible"
+                viewport={{ once: true, amount: 0.5 }}
+                variants={sectionVariants}
+              >
                 <p>¡Gracias por ser parte de +Seguro y por tu compromiso con nuestra comunidad!</p>
-              </div>
+              </motion.div>
             </CardContent>
           </Card>
 
-          <footer className="mt-8 text-center text-xs text-muted-foreground">
+          <motion.footer 
+            className="mt-8 text-center text-xs text-muted-foreground"
+            initial="hidden"
+            whileInView="visible"
+            viewport={{ once: true, amount: 0.5 }}
+            variants={sectionVariants}
+          >
             © {new Date().getFullYear()} +SEGURO - Una iniciativa ciudadana para Uruapan.
-          </footer>
+          </motion.footer>
         </div>
       </main>
       <SuggestionDialog
