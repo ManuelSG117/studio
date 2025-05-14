@@ -55,7 +55,7 @@ const AboutCreatorPage: FC = () => {
               <section>
                 <h2 className="text-xl font-semibold text-foreground mb-3">Motivación detrás de +Seguro</h2>
                 <p className="text-muted-foreground leading-relaxed">
-                  La plataforma +Seguro surge con el propósito de ser una herramienta ciudadana fundamental para Uruapan. Nuestro objetivo es que puedas reportar incidentes, consultar niveles de seguridad en diferentes zonas y estar al tanto de cualquier problemática que afecte a nuestra ciudad. Buscamos fomentar la cooperación entre usuarios para utilizar la plataforma de la manera más efectiva posible.
+                  La plataforma +Seguro surge con el propósito de ser una herramienta ciudadana fundamental para Uruapan. Nuestro objetivo es que puedas reportar incidentes, consultar niveles de seguridad en diferentes zonas y estar al tanto de cualquier problemática que afecte a nuestra ciudad. Es esencial la participación activa y responsable de la comunidad: al utilizar la plataforma correctamente, garantizamos que los reportes sean legítimos y la información sea verídica, contribuyendo así a un entorno más seguro para todos.
                 </p>
                 <p className="text-muted-foreground leading-relaxed mt-3">
                   Mi principal motivación es mejorar la seguridad y el bienestar de nuestra comunidad, facilitando el acceso rápido a información relevante. Es importante destacar que este proyecto es una iniciativa personal y comunitaria,{' '}
@@ -125,7 +125,7 @@ const AboutCreatorPage: FC = () => {
               <section>
                 <div className="flex flex-col items-center text-center mb-6">
                   <Avatar className="w-32 h-32 border-4 border-primary mb-4 shadow-lg">
-                    <AvatarImage src="https://placehold.co/200x200.png" alt="Manuel Sandoval" data-ai-hint="creator avatar" />
+                    <AvatarImage src="https://placehold.co/200x200.png" alt="Manuel Sandoval" data-ai-hint="creator avatar"/>
                     <AvatarFallback className="text-4xl bg-primary text-primary-foreground">MS</AvatarFallback>
                   </Avatar>
                   <h2 className="text-3xl font-bold text-primary mb-1">Manuel Sandoval</h2>
