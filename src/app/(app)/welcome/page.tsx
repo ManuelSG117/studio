@@ -1,4 +1,3 @@
-
 "use client";
 
 import type { FC } from 'react';
@@ -187,6 +186,17 @@ const WelcomePage: FC = () => {
     }
   }, [authLoading, isAuthenticated, user, router, fetchReports, reports.length, currentPage]);
 
+  useEffect(() => {
+    // Cargar el SDK de Facebook solo en cliente
+    if (typeof window !== 'undefined' && !window.FB) {
+      const script = document.createElement('script');
+      script.async = true;
+      script.defer = true;
+      script.crossOrigin = 'anonymous';
+      script.src = 'https://connect.facebook.net/es_ES/sdk.js#xfbml=1&version=v19.0&appId=3120155478148481';
+      document.body.appendChild(script);
+    }
+  }, []);
 
   const handleNextPage = () => {
     if (hasMore && !isLoading) {
@@ -371,10 +381,21 @@ const WelcomePage: FC = () => {
                                     </Link>
                                 </DropdownMenuItem>
                                 <DropdownMenuItem disabled className="text-muted-foreground flex items-center gap-2">
-                                    <svg className="h-4 w-4" fill="currentColor" viewBox="0 0 24 24">
-                                        <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/>
-                                    </svg>
-                                    Compartir en Facebook (Próximamente)
+                                    <div
+                                      className="fb-share-button ml-2"
+                                      data-href={`https://tusitio.com/reports/${report.id}`}
+                                      data-layout="button"
+                                      data-size="small"
+                                    >
+                                      <a
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        href={`https://www.facebook.com/sharer/sharer.php?u=https://tusitio.com/reports/${report.id}&src=sdkpreparse`}
+                                        className="fb-xfbml-parse-ignore"
+                                      >
+                                        Compartir en Facebook (Próximamente)
+                                      </a>
+                                    </div>
                                 </DropdownMenuItem>
                             </DropdownMenuContent>
                         </DropdownMenu>
