@@ -37,7 +37,7 @@ const DesktopNavItem: FC<NavLinkItem & { isActive: boolean }> = ({ href, label, 
     <Link
       href={href}
       className={cn(
-        "transition-all duration-300 px-4 py-2 rounded-full flex items-center gap-1.5 hover:scale-105 text-sm font-medium",
+        "transition-all duration-300 px-4 py-2 rounded-full flex items-center gap-1.5 hover:scale-105 text-sm font-medium whitespace-nowrap", // Added whitespace-nowrap
         isActive
           ? "bg-primary/15 text-primary ring-1 ring-primary/20 shadow-inner"
           : "text-muted-foreground hover:text-primary hover:bg-primary/10"
@@ -98,7 +98,7 @@ export const TopNavBar: FC = () => {
     }
   };
 
-  const isLogoActive = pathname === "/about-creator"; // Check if the current path is for the about creator page
+  const isLogoActive = pathname === "/about-creator";
 
   return (
     <header className={cn(
@@ -108,15 +108,12 @@ export const TopNavBar: FC = () => {
         "absolute left-1/2 top-1/2 transform -translate-x-1/2 -translate-y-1/2 transition-all duration-300 ease-in-out hidden md:flex",
          "opacity-100 translate-y-0 pointer-events-auto"
       )}>
-        <nav className={cn(
-          "flex items-center gap-2 text-sm font-medium rounded-full px-3 py-2.5 transition-all duration-300 ease-in-out",
-          "bg-background/70 backdrop-blur-lg shadow-xl border border-border/50 scale-100"
-        )}>
+        <nav className="flex items-center gap-2 whitespace-nowrap text-sm font-medium rounded-full bg-background/70 px-3 py-2.5 shadow-xl backdrop-blur-lg border border-border/50 transition-all duration-300 ease-in-out scale-100">
             <Link
-                href="/about-creator" // Changed href to /about-creator
+                href="/about-creator"
                 className={cn(
                 "transition-all duration-300 px-3 py-2.5 rounded-full flex items-center gap-2 hover:scale-105 font-semibold",
-                isLogoActive // Updated active state logic
+                isLogoActive
                     ? "bg-primary/20 text-primary shadow-inner ring-1 ring-primary/30" 
                     : "text-muted-foreground hover:text-primary hover:bg-primary/10"
                 )}
@@ -137,7 +134,7 @@ export const TopNavBar: FC = () => {
 
       {/* Mobile View: Logo on left, Menu button on right */}
       <div className="md:hidden flex items-center justify-between w-full">
-         <Link href="/about-creator" className="text-xl font-bold text-primary flex items-center"> {/* Changed href to /about-creator */}
+         <Link href="/about-creator" className="text-xl font-bold text-primary flex items-center">
             <Image src="/logo.png" alt="+Seguro Logo" width={28} height={28} className="mr-2" data-ai-hint="app logo small"/>
             +Seguro
         </Link>
@@ -183,7 +180,7 @@ export const TopNavBar: FC = () => {
                         )}
                         onClick={() => setIsSheetOpen(false)}
                         >
-                        <Info className="h-5 w-5" /> {/* Icon for About/Info */}
+                        <Info className="h-5 w-5" />
                         <span>Sobre +Seguro</span>
                     </Link>
                   </SheetClose>

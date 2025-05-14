@@ -23,6 +23,7 @@ import { cn, formatLocation } from '@/lib/utils';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge'; 
 import { Separator } from '@/components/ui/separator';
+import { ReporterQuickViewDialog } from '@/components/reporter-quick-view-dialog'; // Import the new dialog
 
 interface ReporterProfile {
   displayName?: string;
@@ -30,6 +31,7 @@ interface ReporterProfile {
   memberSince?: Date;
   reportCount?: number;
   credibility?: number; // Percentage 0-100
+  dob?: Date; // Added Date of Birth
 }
 
 const ReportDetailPage: FC = () => {
@@ -45,6 +47,9 @@ const ReportDetailPage: FC = () => {
     const [votesModalOpen, setVotesModalOpen] = useState(false);
     const [reporterProfile, setReporterProfile] = useState<ReporterProfile | null>(null);
     const [isLoadingReporter, setIsLoadingReporter] = useState(true);
+    const [isQuickViewOpen, setIsQuickViewOpen] = useState(false);
+    const [selectedReporterForQuickView, setSelectedReporterForQuickView] = useState<ReporterProfile | null>(null);
+
 
     const getInitials = (name?: string | null): string => {
         if (!name) return "?";
@@ -107,9 +112,10 @@ const ReportDetailPage: FC = () => {
                                         setReporterProfile({
                                             displayName: reporterData.fullName || reporterData.displayName || "Usuario Anónimo",
                                             photoURL: reporterData.photoURL || null,
-                                            memberSince: reporterData.createdAt instanceof Timestamp ? reporterData.createdAt.toDate() : (auth.currentUser?.metadata.creationTime ? new Date(auth.currentUser.metadata.creationTime) : undefined),
+                                            memberSince: reporterData.createdAt instanceof Timestamp ? reporterData.createdAt.toDate() : (reporterData.memberSince instanceof Timestamp ? reporterData.memberSince.toDate() : undefined), // Adjusted to check reporterData.memberSince first
                                             reportCount: reportCountSnapshot.size,
                                             credibility: Math.min(90 + reportCountSnapshot.size, 99), 
+                                            dob: reporterData.dob instanceof Timestamp ? reporterData.dob.toDate() : undefined,
                                         });
                                     } else {
                                        setReporterProfile({ displayName: "Usuario Anónimo", reportCount: 0, credibility: 50 });
@@ -317,6 +323,13 @@ const ReportDetailPage: FC = () => {
                     downvotes={report.downvotes}
                 />
             )}
+             {selectedReporterForQuickView && (
+                <ReporterQuickViewDialog
+                    open={isQuickViewOpen}
+                    onOpenChange={setIsQuickViewOpen}
+                    reporter={selectedReporterForQuickView}
+                />
+            )}
              <div className="w-full max-w-4xl mb-4 ml-14 self-start"> {/* Moved back button container here */}
                 <Button variant="ghost" size="icon" className="text-muted-foreground hover:text-primary rounded-full" onClick={() => router.back()} aria-label="Volver">
                     <ArrowLeft className="h-5 w-5" />
@@ -333,7 +346,25 @@ const ReportDetailPage: FC = () => {
                                     {report.reportType === 'incidente' ? 'Delito' : 'Funcionario'}
                                 </Badge>
                             </div>
-                            <div className="flex items-center space-x-2 text-sm text-muted-foreground">
+                            <div 
+                                className="flex items-center space-x-2 text-sm text-muted-foreground cursor-pointer hover:text-primary"
+                                onClick={() => {
+                                    if (reporterProfile) {
+                                    setSelectedReporterForQuickView(reporterProfile);
+                                    setIsQuickViewOpen(true);
+                                    }
+                                }}
+                                role="button"
+                                tabIndex={0}
+                                onKeyDown={(e) => {
+                                    if (e.key === 'Enter' || e.key === ' ') {
+                                        if (reporterProfile) {
+                                            setSelectedReporterForQuickView(reporterProfile);
+                                            setIsQuickViewOpen(true);
+                                        }
+                                    }
+                                }}
+                            >
                                 {reporterProfile && (
                                     <Avatar className="h-6 w-6">
                                         <AvatarImage src={reporterProfile.photoURL || undefined} alt={reporterProfile.displayName || "Avatar del reportante"} data-ai-hint="reporter avatar"/>
