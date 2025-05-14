@@ -34,6 +34,13 @@ import {
 } from "@/components/ui/pagination"
 import { VotesModal } from "@/components/votes-modal";
 
+// Add window.FB type declaration
+declare global {
+  interface Window {
+    FB?: any;
+  }
+}
+
 export type Report = {
     id: string;
     userId: string;
