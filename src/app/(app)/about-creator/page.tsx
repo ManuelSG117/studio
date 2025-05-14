@@ -16,7 +16,6 @@ import { SuggestionDialog } from '@/components/suggestion-dialog';
 import { useState } from 'react';
 import { useAuth } from '@/context/AuthContext';
 import { useToast } from '@/hooks/use-toast';
-import { motion } from 'framer-motion'; // Import framer-motion
 
 const AboutCreatorPage: FC = () => {
   const router = useRouter();
@@ -30,19 +29,11 @@ const AboutCreatorPage: FC = () => {
     setIsSuggestionDialogOpen(true);
   };
 
-  const sectionVariants = {
-    hidden: { opacity: 0, y: 20 },
-    visible: { opacity: 1, y: 0, transition: { duration: 0.6 } },
-  };
-
   return (
     <>
       <main className="flex flex-col items-center py-8 px-4 sm:px-6 lg:px-8 bg-secondary min-h-screen">
         <div className="w-full max-w-7xl space-y-8">
-          <motion.div 
-            initial={{ opacity: 0, x: -20 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ duration: 0.5 }}
+          <div
             className="flex items-center justify-start w-full"
           >
             <Button
@@ -54,27 +45,21 @@ const AboutCreatorPage: FC = () => {
             >
               <ArrowLeft className="h-5 w-5" />
             </Button>
-          </motion.div>
+          </div>
 
           <Card className="w-full shadow-xl border-none rounded-2xl bg-card overflow-hidden">
             <CardHeader className="bg-muted/30 p-4 text-center">
-              <motion.h1 
-                initial={{ opacity: 0, y: -10 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.5, delay: 0.2 }}
+              <h1
                 className="text-2xl font-bold text-primary"
               >
                 Sobre +Seguro
-              </motion.h1>
+              </h1>
             </CardHeader>
 
             <CardContent className="p-6 sm:p-8 space-y-12">
               {/* Section 1: Motivación */}
-              <motion.section 
+              <section
                 className="pb-16 md:pb-24"
-                initial="hidden"
-                animate="visible"
-                variants={sectionVariants}
               >
                 <h2 className="text-xl font-semibold text-foreground mb-3">Motivación detrás de +Seguro</h2>
                 <p className="text-muted-foreground leading-relaxed">
@@ -92,16 +77,12 @@ const AboutCreatorPage: FC = () => {
                   </GradientText>
                   {' '}Mi compromiso es con el progreso y la tranquilidad de Uruapan.
                 </p>
-              </motion.section>
+              </section>
 
               <Separator />
 
               {/* Section 2: Contacto */}
-              <motion.section
-                initial="hidden"
-                whileInView="visible"
-                viewport={{ once: true, amount: 0.3 }}
-                variants={sectionVariants}
+              <section
               >
                 <h2 className="text-xl font-semibold text-foreground mb-4">
                   <AnimatedTextCycle texts={["Contacto", "Colaboración", "Sugerencia"]} duration={3000} className="inline-block" />
@@ -136,7 +117,7 @@ const AboutCreatorPage: FC = () => {
                     </a>
                   </Button>
                   <Button asChild variant="outline" className="w-full justify-start text-left h-auto py-3 rounded-lg">
-                    <Link href="#"> 
+                    <Link href="#">
                       <Facebook className="h-5 w-5 mr-3 text-blue-600 flex-shrink-0" />
                       <div>
                         <span className="font-medium text-foreground">+Seguro en Facebook</span>
@@ -145,16 +126,12 @@ const AboutCreatorPage: FC = () => {
                     </Link>
                   </Button>
                 </div>
-              </motion.section>
+              </section>
 
               <Separator />
 
               {/* Section 3: Sobre Mí */}
-              <motion.section
-                initial="hidden"
-                whileInView="visible"
-                viewport={{ once: true, amount: 0.3 }}
-                variants={sectionVariants}
+              <section
               >
                 <div className="flex flex-col items-center text-center mb-6">
                   <Avatar className="w-32 h-32 border-4 border-primary mb-4 shadow-lg">
@@ -179,31 +156,23 @@ const AboutCreatorPage: FC = () => {
                     </a>
                   </Button>
                 </div>
-              </motion.section>
+              </section>
 
               <Separator />
 
-              <motion.div 
+              <div
                 className="text-center text-muted-foreground text-sm"
-                initial="hidden"
-                whileInView="visible"
-                viewport={{ once: true, amount: 0.5 }}
-                variants={sectionVariants}
               >
                 <p>¡Gracias por ser parte de +Seguro y por tu compromiso con nuestra comunidad!</p>
-              </motion.div>
+              </div>
             </CardContent>
           </Card>
 
-          <motion.footer 
+          <footer
             className="mt-8 text-center text-xs text-muted-foreground"
-            initial="hidden"
-            whileInView="visible"
-            viewport={{ once: true, amount: 0.5 }}
-            variants={sectionVariants}
           >
             © {new Date().getFullYear()} +SEGURO - Una iniciativa ciudadana para Uruapan.
-          </motion.footer>
+          </footer>
         </div>
       </main>
       <SuggestionDialog
