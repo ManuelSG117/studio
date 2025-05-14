@@ -4,23 +4,23 @@
 import type { FC } from 'react';
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import Link from 'next/link'; // Import Link for internal navigation
+import Link from 'next/link'; 
 import { useAuth } from '@/context/AuthContext';
 import { Button } from "@/components/ui/button";
 import { Card, CardContent} from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import {  AlertTriangle, ChevronRight, MapPin, Check, Mail, Phone, Facebook, Twitter, Instagram, Loader2, ImageIcon, UserCog, FileText, ThumbsUp, CheckCircle, ArrowUp, ArrowDown } from 'lucide-react'; // Added ThumbsUp, CheckCircle, ArrowUp, ArrowDown
-import { motion, useScroll } from 'framer-motion';
+import {  AlertTriangle, ChevronRight, MapPin, Check, Mail, Phone, Facebook, Twitter, Instagram, Loader2, ImageIcon, UserCog, FileText, ThumbsUp, CheckCircle, ArrowUp, ArrowDown, Navigation, Heart, HelpCircle, ExternalLink } from 'lucide-react';
+import { useScroll } from 'framer-motion';
 import Image from 'next/image';
 import { HoverCard, HoverCardTrigger, HoverCardContent } from "@/components/ui/hover-card";
-import LandingNavBar from '@/components/layout/landing-nav-bar'; // Import the new navbar
-import { DotLottieReact } from '@lottiefiles/dotlottie-react'; // Import Lottie component
+import LandingNavBar from '@/components/layout/landing-nav-bar';
+import { DotLottieReact } from '@lottiefiles/dotlottie-react';
 
 const HomePage: FC = () => {
   const router = useRouter();
   const { isAuthenticated, user, loading } = useAuth();
   const { scrollYProgress } = useScroll();
-  // Removed scaleX transform for progress bar
+  
 
   useEffect(() => {
     if (!loading && isAuthenticated) {
@@ -32,12 +32,6 @@ const HomePage: FC = () => {
     }
   }, [isAuthenticated, user, loading, router]);
 
-  // Animation variants
-  const containerVariants = { hidden: { opacity: 0 }, visible: { opacity: 1, transition: { when: "beforeChildren", staggerChildren: 0.3, duration: 0.5 } } };
-  const itemVariants = { hidden: { y: 20, opacity: 0 }, visible: { y: 0, opacity: 1, transition: { duration: 0.5 } } };
-  const reportCardVariants = { hidden: { opacity: 0, y: 30 }, visible: { opacity: 1, y: 0, transition: { duration: 0.6 } } };
-  const scrollRevealVariants = { offscreen: { y: 50, opacity: 0 }, onscreen: { y: 0, opacity: 1, transition: { type: "spring", bounce: 0.4, duration: 0.8 } } };
-
   if (loading) {
     return (
       <main className="flex min-h-screen flex-col items-center justify-center p-4 sm:p-8 bg-secondary">
@@ -48,80 +42,82 @@ const HomePage: FC = () => {
   }
 
   return (
-    <div className="min-h-screen flex flex-col bg-background"> {/* Use theme background */}
-       <LandingNavBar /> {/* Add the landing navbar */}
-       {/* Removed Progress Bar */}
+    <div className="min-h-screen flex flex-col bg-background"> 
+       <LandingNavBar /> 
+       
 
-      <main className="flex-1 pt-0"> {/* Remove padding-top, sections will handle their own padding */}
+      <main className="flex-1 pt-0"> 
         {/* Hero Section */}
-        <section className="w-full py-16 md:py-24 lg:py-32 bg-gradient-to-b from-white to-secondary pt-24 md:pt-32 lg:pt-40"> {/* Added more padding-top to hero */}
+        <section className="w-full py-16 md:py-24 lg:py-32 bg-gradient-to-b from-white to-secondary pt-24 md:pt-32 lg:pt-40"> 
           <div className="container px-4 md:px-6">
-             <motion.div className="flex flex-col items-center justify-center space-y-8 text-center" initial="hidden" animate="visible" variants={containerVariants}> {/* Changed md:flex-row and text-center */}
+             <div className="flex flex-col items-center justify-center space-y-8 text-center"> 
                {/* Left Side - Text Content */}
-               <div className="flex-1 space-y-4 text-center"> {/* Added text-center */}
-                  <motion.div className="space-y-2" variants={itemVariants}>
+               <div className="flex-1 space-y-4 text-center"> 
+                  <div className="space-y-2">
                      <Image
                         src="/logo.webp"
                         alt="App Logo"
-                        width={200} // Reduced logo size
+                        width={200} 
                         height={200}
-                        className="mx-auto mb-4 " // Ensure mx-auto for centering
+                        className="mx-auto mb-4 " 
                         priority
                         data-ai-hint="app logo safety shield"
                      />
                     <h1 className="text-4xl font-bold tracking-tighter sm:text-5xl md:text-6xl">
                       <span className="text-primary">+Seguro</span>
                     </h1>
-                    <p className="mx-auto max-w-[700px] text-muted-foreground md:text-xl/relaxed lg:text-base/relaxed xl:text-xl/relaxed"> {/* Ensure mx-auto */}
+                    <p className="mx-auto max-w-[700px] text-muted-foreground md:text-xl/relaxed lg:text-base/relaxed xl:text-xl/relaxed"> 
                        Tu plataforma para reportar incidentes y construir un Uruapan más seguro.
                     </p>
-                  </motion.div>
+                  </div>
 
-                   <motion.div className="w-full max-w-xs sm:max-w-sm mx-auto space-y-2" variants={itemVariants}> {/* Ensure mx-auto */}
+                   <div className="w-full max-w-xs sm:max-w-sm mx-auto space-y-2"> 
                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                      <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+                      <div>
                           <Button
-                            onClick={() => router.push('/auth')} // Navigate to the unified auth page
+                            onClick={() => router.push('/auth')} 
                             variant="outline"
                             className="w-full transition-all border-2 border-primary text-primary hover:bg-primary/60 h-11 rounded-full"
                             size="lg"
                            >
                             Iniciar Sesión
                           </Button>
-                       </motion.div>
-                       <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+                       </div>
+                       <div>
                           <Button
-                            onClick={() => router.push('/auth')} // Navigate to the unified auth page
+                            onClick={() => router.push('/auth')} 
                             className="w-full transition-all bg-primary hover:bg-primary/90 text-primary-foreground h-11 rounded-full"
                             size="lg"
                            >
                             Registrarse
                           </Button>
-                       </motion.div>
+                       </div>
                      </div>
-                  </motion.div>
+                  </div>
                   {/* Lottie Animation Below Buttons */}
-                    <motion.div className="relative pt-8 flex justify-center" variants={itemVariants}>
-             
-                    </motion.div>
+                    <div className="relative pt-8 flex justify-center">
+                        <DotLottieReact
+                            src="https://lottie.host/7734755b-dc79-461d-9ce9-517fc33c65b4/N7eBj4r78D.lottie"
+                            loop
+                            autoplay
+                            className="w-full max-w-md h-auto object-contain" 
+                            data-ai-hint="community safety animation"
+                        />
+                    </div>
                </div>
 
-            </motion.div>
+            </div>
           </div>
         </section>
 
 
         {/* Report Types Section */}
-         <motion.section
-            id="what-we-do" // Add ID for navigation
+         <section
+            id="what-we-do" 
             className="w-full py-16 md:py-24 bg-gradient-to-b from-secondary to-white"
-            initial="offscreen"
-            whileInView="onscreen"
-            viewport={{ once: true, amount: 0.2 }}
-            variants={scrollRevealVariants}
         >
           <div className="container px-4 md:px-6">
-             <motion.div className="text-center mb-12 max-w-3xl mx-auto" variants={scrollRevealVariants}>
+             <div className="text-center mb-12 max-w-3xl mx-auto">
                <Badge variant="secondary" className="mb-4 bg-primary/20 text-primary hover:bg-primary/30">
                  ¿QUÉ HACEMOS?
                </Badge>
@@ -129,20 +125,18 @@ const HomePage: FC = () => {
                <p className="text-muted-foreground text-lg">
                  +Seguro te permite contribuir a una comunidad más segura.
                </p>
-            </motion.div>
+            </div>
 
              <div className="grid md:grid-cols-2 gap-8 md:gap-12 max-w-5xl mx-auto">
                {/* Public Servant Card */}
-                <motion.div
+                <div
                     className="group"
-                    variants={reportCardVariants}
-                    whileHover={{ scale: 1.05, transition: { duration: 0.3 } }}
                 >
-                 <Card className="h-full overflow-hidden shadow-lg hover:shadow-xl transition-all duration-300 border-t-4 border-t-primary bg-card">
+                 <Card className="h-full overflow-hidden shadow-lg transition-all duration-300 border-t-4 border-t-primary bg-card">
                    <CardContent className="p-8">
                      <div className="flex justify-between items-start mb-6">
                        <div className="inline-flex items-center justify-center h-16 w-16 rounded-full bg-primary/10 group-hover:bg-primary/20 transition-colors duration-300">
-                         <UserCog className="h-8 w-8 text-primary" /> {/* Changed icon */}
+                         <UserCog className="h-8 w-8 text-primary" /> 
                        </div>
                        <Badge variant="outline" className="bg-primary/10 text-primary border-primary/20">
                          Funcionarios
@@ -156,7 +150,7 @@ const HomePage: FC = () => {
                      </p>
                       <HoverCard>
                           <HoverCardTrigger asChild>
-                            {/* Wrap Button in a div for HoverCardTrigger when asChild is used */}
+                            
                             <div>
                               <Button
                                 variant="outline"
@@ -184,15 +178,13 @@ const HomePage: FC = () => {
                       </HoverCard>
                    </CardContent>
                  </Card>
-               </motion.div>
+               </div>
 
                {/* Crime Report Card */}
-                <motion.div
+                <div
                     className="group"
-                    variants={reportCardVariants}
-                    whileHover={{ scale: 1.05, transition: { duration: 0.3 } }}
                 >
-                 <Card className="h-full overflow-hidden shadow-lg hover:shadow-xl transition-all duration-300 border-t-4 border-t-destructive bg-card">
+                 <Card className="h-full overflow-hidden shadow-lg transition-all duration-300 border-t-4 border-t-destructive bg-card">
                    <CardContent className="p-8">
                      <div className="flex justify-between items-start mb-6">
                        <div className="inline-flex items-center justify-center h-16 w-16 rounded-full bg-destructive/10 group-hover:bg-destructive/20 transition-colors duration-300">
@@ -210,7 +202,7 @@ const HomePage: FC = () => {
                      </p>
                       <HoverCard>
                         <HoverCardTrigger asChild>
-                           {/* Wrap Button in a div for HoverCardTrigger when asChild is used */}
+                           
                            <div>
                             <Button
                               variant="outline"
@@ -238,22 +230,18 @@ const HomePage: FC = () => {
                       </HoverCard>
                    </CardContent>
                  </Card>
-               </motion.div>
+               </div>
             </div>
           </div>
-        </motion.section>
+        </section>
 
         {/* Enhanced How It Works Section */}
-        <motion.section
-          id="how-it-works" // Add ID for navigation
+        <section
+          id="how-it-works" 
           className="w-full py-16 md:py-24 lg:py-32 bg-gradient-to-b from-white to-secondary overflow-hidden"
-          initial="offscreen"
-          whileInView="onscreen"
-          viewport={{ once: true, amount: 0.1 }}
-          variants={scrollRevealVariants}
         >
           <div className="container px-4 md:px-6">
-            <motion.div className="text-center mb-16 max-w-3xl mx-auto" variants={scrollRevealVariants}>
+            <div className="text-center mb-16 max-w-3xl mx-auto">
               <Badge className="mb-4 bg-primary/20 text-primary hover:bg-primary/30">
                 PROCESO
               </Badge>
@@ -263,32 +251,32 @@ const HomePage: FC = () => {
               <p className="mx-auto max-w-[700px] text-muted-foreground md:text-xl/relaxed">
                 Nuestra plataforma está diseñada para hacer el reporte de incidentes fácil, seguro y efectivo
               </p>
-            </motion.div>
+            </div>
 
             <div className="relative max-w-5xl mx-auto">
               {/* Timeline line */}
               <div className="absolute left-4 md:left-1/2 transform md:-translate-x-1/2 h-full w-1 bg-border rounded-full z-0 hidden md:block"></div>
 
               {/* Step 1 */}
-              <motion.div className="relative mb-16 md:mb-24" initial={{ opacity: 0, y: 50 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true, amount: 0.2 }} transition={{ duration: 0.6, delay: 0.1 }}>
+              <div className="relative mb-16 md:mb-24">
                 <div className="md:grid md:grid-cols-2 gap-8 md:gap-12 items-center">
-                  <motion.div className="md:text-right mb-8 md:mb-0 md:pr-12">
+                  <div className="md:text-right mb-8 md:mb-0 md:pr-12">
                     <div className="flex items-center justify-start md:justify-end mb-4">
-                       <motion.div className="flex-shrink-0 inline-flex items-center justify-center h-12 w-12 rounded-full bg-primary text-white text-xl font-bold z-10 shadow-md" >1</motion.div>
+                       <div className="flex-shrink-0 inline-flex items-center justify-center h-12 w-12 rounded-full bg-primary text-white text-xl font-bold z-10 shadow-md" >1</div>
                        <div className="absolute left-4 md:left-1/2 top-1/2 transform -translate-y-1/2 md:-translate-x-1/2 h-4 w-4 bg-card border-4 border-primary rounded-full z-20 hidden md:block"></div>
                     </div>
                     <h3 className="text-2xl md:text-3xl font-semibold text-primary mb-3">Crea una cuenta</h3>
                     <p className="text-muted-foreground">
                       Regístrate rápidamente con tu correo electrónico o usa tu cuenta de Google. En pocos minutos podrás añadir tu información y personalizar tu perfil, además de obtener mayor confianza al verificarlo.
                     </p>
-                    <motion.div className="mt-5 flex justify-start md:justify-end" whileTap={{ scale: 0.95 }}>
+                    <div className="mt-5 flex justify-start md:justify-end">
                       <Button variant="outline" className="border-primary text-primary hover:bg-primary/60 flex items-center rounded-full" onClick={() => router.push('/auth')}>
                         Crear cuenta
                         <ChevronRight className="ml-1 h-4 w-4" />
                       </Button>
-                    </motion.div>
-                  </motion.div>
-                  <motion.div className="bg-card p-4 rounded-2xl shadow-xl border border-border relative z-10 overflow-hidden" >
+                    </div>
+                  </div>
+                  <div className="bg-card p-4 rounded-2xl shadow-xl border border-border relative z-10 overflow-hidden" >
                      <div className="absolute inset-0 bg-gradient-to-br from-primary/50 to-primary/20 opacity-30 pointer-events-none"></div>
                      <Card className="overflow-hidden bg-transparent shadow-none border-none">
                         <CardContent className="p-4 sm:p-6 relative z-10">
@@ -324,14 +312,14 @@ const HomePage: FC = () => {
                            </div>
                          </CardContent>
                       </Card>
-                  </motion.div>
+                  </div>
                 </div>
-              </motion.div>
+              </div>
 
               {/* Step 2 */}
-              <motion.div className="relative mb-16 md:mb-24" initial={{ opacity: 0, y: 50 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true, amount: 0.2 }} transition={{ duration: 0.6, delay: 0.2 }}>
+              <div className="relative mb-16 md:mb-24">
                 <div className="md:grid md:grid-cols-2 gap-8 md:gap-12 items-center">
-                  <motion.div className="order-2 md:order-1 mb-8 md:mb-0 bg-card p-4 rounded-2xl shadow-xl border border-border relative z-10 overflow-hidden">
+                  <div className="order-2 md:order-1 mb-8 md:mb-0 bg-card p-4 rounded-2xl shadow-xl border border-border relative z-10 overflow-hidden">
                      <div className="absolute inset-0 bg-gradient-to-br from-destructive/50 to-destructive/20 opacity-30 pointer-events-none"></div>
                      <Card className="overflow-hidden bg-transparent shadow-none border-none">
                         <CardContent className="p-4 sm:p-6 relative z-10">
@@ -384,53 +372,53 @@ const HomePage: FC = () => {
                            </div>
                        </CardContent>
                      </Card>
-                  </motion.div>
-                  <motion.div className="md:text-left md:pl-12 order-1 md:order-2">
+                  </div>
+                  <div className="md:text-left md:pl-12 order-1 md:order-2">
                      <div className="flex items-center justify-start mb-4">
-                       <motion.div className="flex-shrink-0 inline-flex items-center justify-center h-12 w-12 rounded-full bg-destructive text-white text-xl font-bold z-10 shadow-md" >2</motion.div>
+                       <div className="flex-shrink-0 inline-flex items-center justify-center h-12 w-12 rounded-full bg-destructive text-white text-xl font-bold z-10 shadow-md" >2</div>
                        <div className="absolute left-4 md:left-1/2 top-1/2 transform -translate-y-1/2 md:-translate-x-1/2 h-4 w-4 bg-card border-4  border-destructive rounded-full z-20 hidden md:block"></div>
                      </div>
                     <h3 className="text-2xl md:text-3xl font-semibold text-destructive mb-3">Crea un reporte detallado</h3>
                     <p className="text-muted-foreground">
                       Describe el incidente con precisión, añade la ubicación exacta en el mapa, adjunta fotografías o videos como evidencia y clasifica correctamente el tipo de incidente. Cuanto más detallado sea tu reporte, más útil será para la comunidad.
                     </p>
-                    <motion.div className="mt-5 flex justify-start" whileTap={{ scale: 0.95 }}>
+                    <div className="mt-5 flex justify-start">
                       <Button variant="outline" className="border-destructive text-destructive hover:bg-destructive/60 flex items-center rounded-full" onClick={() => router.push('/auth')}>
                         Crear reporte
                         <ChevronRight className="ml-1 h-4 w-4" />
                       </Button>
-                    </motion.div>
-                  </motion.div>
+                    </div>
+                  </div>
                 </div>
-              </motion.div>
+              </div>
 
               {/* Step 3 */}
-              <motion.div className="relative mb-16 md:mb-24" initial={{ opacity: 0, y: 50 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true, amount: 0.2 }} transition={{ duration: 0.6, delay: 0.3 }}>
+              <div className="relative mb-16 md:mb-24">
                 <div className="md:grid md:grid-cols-2 gap-8 md:gap-12 items-center">
-                  <motion.div className="md:text-right mb-8 md:mb-0 md:pr-12" >
+                  <div className="md:text-right mb-8 md:mb-0 md:pr-12" >
                      <div className="flex items-center justify-start md:justify-end mb-4">
-                       <motion.div className="flex-shrink-0 inline-flex items-center justify-center h-12 w-12 rounded-full bg-accent text-white text-xl font-bold z-10 shadow-md">3</motion.div>
+                       <div className="flex-shrink-0 inline-flex items-center justify-center h-12 w-12 rounded-full bg-accent text-white text-xl font-bold z-10 shadow-md">3</div>
                        <div className="absolute left-4 md:left-1/2 top-1/2 transform -translate-y-1/2 md:-translate-x-1/2 h-4 w-4 bg-card border-4  border-accent rounded-full z-20 hidden md:block"></div>
                      </div>
                     <h3 className="text-2xl md:text-3xl font-semibold text-accent mb-3">Ve los reportes de la comunidad</h3>
                     <p className="text-muted-foreground">
                       Visualiza los reportes de otros usuarios en el mapa comunitario. Revisa la información y valida los reportes que consideres precisos para ayudar a otros a mantenerse informados.
                     </p>
-                     <motion.div className="mt-5 flex justify-start md:justify-end" whileTap={{ scale: 0.95 }}>
-                      <Button variant="outline" className="border-accent text-accent hover:bg-accent/60 flex items-center rounded-full" onClick={() => router.push('/auth')}> {/* Updated hover */}
+                     <div className="mt-5 flex justify-start md:justify-end">
+                      <Button variant="outline" className="border-accent text-accent hover:bg-accent/60 flex items-center rounded-full" onClick={() => router.push('/auth')}> 
                         Explorar Reportes
                         <ChevronRight className="ml-1 h-4 w-4" />
                       </Button>
-                    </motion.div>
-                  </motion.div>
-                  <motion.div className="bg-card p-4 rounded-2xl shadow-xl border border-border relative z-10 overflow-hidden" >
+                    </div>
+                  </div>
+                  <div className="bg-card p-4 rounded-2xl shadow-xl border border-border relative z-10 overflow-hidden" >
                      <div className="absolute inset-0 bg-gradient-to-br from-accent/50 to-accent/20 opacity-30 pointer-events-none"></div>
                      <Card className="overflow-hidden bg-transparent shadow-none border-none">
                          <CardContent className="p-4 sm:p-6 relative z-10">
                            <div className="flex justify-between items-center mb-4">
                              <h4 className="text-base font-medium text-accent">Reportes Comunitarios</h4>
                              <span className="inline-flex items-center justify-center h-6 w-6 rounded-full bg-accent/10 text-accent">
-                                <FileText className="h-3 w-3" /> {/* Changed icon to FileText */}
+                                <FileText className="h-3 w-3" /> 
                               </span>
                            </div>
                            {/* Simulated list of reports */}
@@ -465,15 +453,15 @@ const HomePage: FC = () => {
                            </div>
                          </CardContent>
                      </Card>
-                  </motion.div>
+                  </div>
                 </div>
-              </motion.div>
+              </div>
 
 
                {/* Step 4 - Voting */}
-               <motion.div className="relative" initial={{ opacity: 0, y: 50 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true, amount: 0.2 }} transition={{ duration: 0.6, delay: 0.4 }}>
+               <div className="relative">
                  <div className="md:grid md:grid-cols-2 gap-8 md:gap-12 items-center">
-                   <motion.div className="order-2 md:order-1 mb-8 md:mb-0 bg-card p-4 rounded-2xl shadow-xl border border-border relative z-10 overflow-hidden">
+                   <div className="order-2 md:order-1 mb-8 md:mb-0 bg-card p-4 rounded-2xl shadow-xl border border-border relative z-10 overflow-hidden">
                       <div className="absolute inset-0 bg-gradient-to-br from-green-500/30 to-green-500/10 opacity-30 pointer-events-none"></div>
                       <Card className="overflow-hidden bg-transparent shadow-none border-none">
                          <CardContent className="p-4 sm:p-6 relative z-10">
@@ -518,49 +506,45 @@ const HomePage: FC = () => {
                             </div>
                         </CardContent>
                       </Card>
-                   </motion.div>
-                   <motion.div className="md:text-left md:pl-12 order-1 md:order-2">
+                   </div>
+                   <div className="md:text-left md:pl-12 order-1 md:order-2">
                       <div className="flex items-center justify-start mb-4">
-                        <motion.div className="flex-shrink-0 inline-flex items-center justify-center h-12 w-12 rounded-full bg-green-600 text-white text-xl font-bold z-10 shadow-md" >4</motion.div>
+                        <div className="flex-shrink-0 inline-flex items-center justify-center h-12 w-12 rounded-full bg-green-600 text-white text-xl font-bold z-10 shadow-md" >4</div>
                         <div className="absolute left-4 md:left-1/2 top-1/2 transform -translate-y-1/2 md:-translate-x-1/2 h-4 w-4 bg-card border-4 border-green-600 rounded-full z-20 hidden md:block"></div>
                       </div>
                      <h3 className="text-2xl md:text-3xl font-semibold text-green-700 dark:text-green-400 mb-3">Vota por los reportes</h3>
                      <p className="text-muted-foreground">
                        Ayuda a la comunidad votando en los reportes. Tus votos aumentan la credibilidad y visibilidad de los incidentes, permitiendo que la información más relevante llegue a más personas y a las autoridades correspondientes.
                      </p>
-                     <motion.div className="mt-5 flex justify-start" whileTap={{ scale: 0.95 }}>
+                     <div className="mt-5 flex justify-start">
                        <Button variant="outline" className="border-green-600 text-green-700 dark:border-green-500 dark:text-green-400 hover:bg-green-600/60 flex items-center rounded-full" onClick={() => router.push('/auth')}>
                          Ver Reportes de la Comunidad
                          <ChevronRight className="ml-1 h-4 w-4" />
                        </Button>
-                     </motion.div>
-                   </motion.div>
+                     </div>
+                   </div>
                  </div>
-               </motion.div>
+               </div>
 
 
             </div>
 
-             <motion.div className="text-center mt-16 md:mt-24" initial={{ opacity: 0, y: 30 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ duration: 0.6, delay: 0.5 }}>
+             <div className="text-center mt-16 md:mt-24">
               <Button className="bg-primary hover:bg-primary/90 text-primary-foreground px-8 py-3 text-lg rounded-full shadow-lg hover:shadow-xl transition-all" onClick={() => router.push('/auth')}>
                 Únete y Reporta Ahora
               </Button>
-            </motion.div>
+            </div>
           </div>
-        </motion.section>
+        </section>
 
 
          {/* Risk Map Section */}
-          <motion.section
-            id="risk-map" // Add ID for navigation
+          <section
+            id="risk-map" 
             className="w-full py-16 md:py-24 bg-gradient-to-b from-secondary to-white"
-            initial="offscreen"
-            whileInView="onscreen"
-            viewport={{ once: true, amount: 0.2 }}
-            variants={scrollRevealVariants}
           >
             <div className="container px-4 md:px-6">
-              <motion.div className="text-center mb-12 max-w-3xl mx-auto" variants={scrollRevealVariants}>
+              <div className="text-center mb-12 max-w-3xl mx-auto">
                   <Badge className="mb-4 bg-destructive/10 text-destructive hover:bg-destructive/20">
                       ZONAS DE RIESGO
                   </Badge>
@@ -570,33 +554,29 @@ const HomePage: FC = () => {
                   <p className="mx-auto max-w-[700px] text-muted-foreground md:text-xl/relaxed">
                       Explora las áreas con mayor número de reportes para mantenerte informado y tomar precauciones
                   </p>
-              </motion.div>
-              <motion.div className="rounded-2xl overflow-hidden" variants={scrollRevealVariants} whileHover={{ scale: 1.01 }} transition={{ type: "spring", stiffness: 300 }}>
+              </div>
+              <div className="rounded-2xl overflow-hidden">
                        {/* Lottie Animation for Risk Map */}
-                       <div className="relative h-96 w-full flex items-center justify-center"> {/* Container for Lottie */}
+                       <div className="relative h-96 w-full flex items-center justify-center"> 
                           <DotLottieReact
                              src="https://lottie.host/e575a174-b6c9-45e1-86bf-f712aad9cf22/yWmVrRdEOm.lottie"
                              loop
                              autoplay
-                             className="w-full max-w-3xl h-auto object-contain" // Adjust sizing
+                             className="w-full max-w-3xl h-auto object-contain" 
                              data-ai-hint="map location risk animation"
                           />
                        </div>
-              </motion.div>
+              </div>
             </div>
-          </motion.section>
+          </section>
 
            {/* Statistics Section */}
-        <motion.section
+        <section
             id="statistics"
             className="w-full py-16 md:py-24 bg-gradient-to-b from-white to-secondary"
-            initial="offscreen"
-            whileInView="onscreen"
-            viewport={{ once: true, amount: 0.2 }}
-            variants={scrollRevealVariants}
           >
             <div className="container px-4 md:px-6">
-              <motion.div className="text-center mb-12 max-w-3xl mx-auto" variants={scrollRevealVariants}>
+              <div className="text-center mb-12 max-w-3xl mx-auto">
                   <Badge className="mb-4 bg-accent/20 text-accent hover:bg-accent/30">
                       ESTADÍSTICAS
                   </Badge>
@@ -606,35 +586,35 @@ const HomePage: FC = () => {
                   <p className="mx-auto max-w-[700px] text-muted-foreground md:text-xl/relaxed">
                       Visualiza las tendencias de reportes para entender mejor la seguridad en tu área y tomar decisiones informadas.
                   </p>
-              </motion.div>
+              </div>
 
 
 
                {/* Increase the size of the lottie animation by making the container full width */}
-               <motion.div className="relative p-0 rounded-2xl overflow-hidden w-full" variants={scrollRevealVariants}> {/* Removed padding */}
+               <div className="relative p-0 rounded-2xl overflow-hidden w-full"> 
                   {/* Lottie Animation */}
-                  <div className="relative h-96 w-full flex items-center justify-center"> {/* Container for Lottie */}
+                  <div className="relative h-96 w-full flex items-center justify-center"> 
                      <DotLottieReact
                         src="https://lottie.host/17494221-1efe-4d0d-ab48-bed230af095d/zJNz64aYIu.lottie"
                         loop={true}
                         autoplay
-                        className="w-full max-w-4xl h-auto object-contain" // Adjust size
+                        className="w-full max-w-4xl h-auto object-contain" 
                         data-ai-hint="data graph animation" />
                   </div>
-               </motion.div>
-              <motion.div className="text-center mt-10" variants={scrollRevealVariants}>
-                  <Button variant="outline" className="border-accent text-accent hover:bg-accent/10 flex items-center mx-auto rounded-full" onClick={() => router.push('/auth')}> {/* Updated hover */}
+               </div>
+              <div className="text-center mt-10">
+                  <Button variant="outline" className="border-accent text-accent hover:bg-accent/10 flex items-center mx-auto rounded-full" onClick={() => router.push('/auth')}> 
                       Explorar Estadísticas Completas
                       <ChevronRight className="ml-1 h-4 w-4" />
                   </Button>
-              </motion.div>
+              </div>
             </div>
-          </motion.section>
+          </section>
 
       </main>
 
       {/* Footer */}
-       <motion.footer className="bg-[#1C2B41] text-gray-300 py-12" initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ duration: 0.6 }}>
+       <footer className="bg-[#1C2B41] text-gray-300 py-12">
          <div className="container mx-auto px-4">
            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 items-start">
              <div className="space-y-4">
@@ -671,15 +651,15 @@ const HomePage: FC = () => {
                      </div>
 
                      <div className="flex items-center justify-start sm:justify-end space-x-3">
-                         <motion.a href="#" aria-label="Facebook" className="bg-white/10 p-2 rounded-full hover:bg-white/20 transition-colors" whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.9 }}>
+                         <a href="#" aria-label="Facebook" className="bg-white/10 p-2 rounded-full hover:bg-white/20 transition-colors">
                            <Facebook className="h-5 w-5" />
-                         </motion.a>
-                         <motion.a href="#" aria-label="Twitter" className="bg-white/10 p-2 rounded-full hover:bg-white/20 transition-colors" whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.9 }}>
+                         </a>
+                         <a href="#" aria-label="Twitter" className="bg-white/10 p-2 rounded-full hover:bg-white/20 transition-colors">
                            <Twitter className="h-5 w-5" />
-                         </motion.a>
-                         <motion.a href="#" aria-label="Instagram" className="bg-white/10 p-2 rounded-full hover:bg-white/20 transition-colors" whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.9 }}>
+                         </a>
+                         <a href="#" aria-label="Instagram" className="bg-white/10 p-2 rounded-full hover:bg-white/20 transition-colors">
                            <Instagram className="h-5 w-5" />
-                         </motion.a>
+                         </a>
                      </div>
                  </div>
              </div>
@@ -691,11 +671,9 @@ const HomePage: FC = () => {
              </p>
            </div>
          </div>
-       </motion.footer>
+       </footer>
     </div>
   );
 };
 
 export default HomePage;
-
-    

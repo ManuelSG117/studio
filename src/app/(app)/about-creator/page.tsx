@@ -5,7 +5,7 @@ import type { FC } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { ArrowLeft, Mail, MessageSquare, Facebook, ExternalLink, Briefcase } from 'lucide-react'; // Added Briefcase
+import { ArrowLeft, Mail, MessageSquare, Facebook, ExternalLink, Briefcase } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -13,31 +13,19 @@ import { Separator } from '@/components/ui/separator';
 import { Badge } from '@/components/ui/badge';
 import AnimatedTextCycle from "@/components/ui/animated-text-cycle";
 import GradientText from "@/components/ui/gradient-text";
-import { SuggestionDialog } from '@/components/suggestion-dialog'; // Import the new component
+import { SuggestionDialog } from '@/components/suggestion-dialog';
 import { useState } from 'react';
-import { useAuth } from '@/context/AuthContext'; // Import useAuth to potentially access user level
-import { useToast } from '@/hooks/use-toast'; // Import useToast
+import { useAuth } from '@/context/AuthContext';
+import { useToast } from '@/hooks/use-toast';
 
 const AboutCreatorPage: FC = () => {
   const router = useRouter();
-  const { user } = useAuth(); // Get user from AuthContext
-  const { toast } = useToast(); // Get toast function
+  const { user } = useAuth();
+  const { toast } = useToast();
   const [isSuggestionDialogOpen, setIsSuggestionDialogOpen] = useState(false);
 
   const handleOpenSuggestionDialog = () => {
     // TODO: Implement user level check here.
-    // This is a placeholder. In a real implementation, you'd fetch/check user.level.
-    // For example:
-    // const userLevel = user?.level; // Assuming 'level' is part of your AuthUser type
-    // if (userLevel && userLevel >= 3) {
-    //   setIsSuggestionDialogOpen(true);
-    // } else {
-    //   toast({
-    //     title: "Acceso Restringido",
-    //     description: "Necesitas ser nivel 3 o superior para enviar sugerencias.",
-    //     variant: "destructive",
-    //   });
-    // }
     // For now, we'll always open it for demonstration purposes.
     setIsSuggestionDialogOpen(true);
   };
@@ -121,7 +109,7 @@ const AboutCreatorPage: FC = () => {
                     </a>
                   </Button>
                   <Button asChild variant="outline" className="w-full justify-start text-left h-auto py-3 rounded-lg">
-                    <Link href="#"> {/* Placeholder for +Seguro Facebook page */}
+                    <Link href="#"> 
                       <Facebook className="h-5 w-5 mr-3 text-blue-600 flex-shrink-0" />
                       <div>
                         <span className="font-medium text-foreground">+Seguro en Facebook</span>
@@ -138,7 +126,7 @@ const AboutCreatorPage: FC = () => {
               <section>
                 <div className="flex flex-col items-center text-center mb-6">
                   <Avatar className="w-32 h-32 border-4 border-primary mb-4 shadow-lg">
-                    <AvatarImage src="https://picsum.photos/seed/manuel/200" alt="Manuel Sandoval" data-ai-hint="creator avatar" />
+                    <AvatarImage src="https://placehold.co/200x200.png" alt="Manuel Sandoval" data-ai-hint="creator avatar" />
                     <AvatarFallback className="text-4xl bg-primary text-primary-foreground">MS</AvatarFallback>
                   </Avatar>
                   <h2 className="text-3xl font-bold text-primary mb-1">Manuel Sandoval</h2> <Badge variant="secondary">25 años</Badge>
