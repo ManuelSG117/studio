@@ -36,7 +36,7 @@ const AboutCreatorPage: FC = () => {
           {/* CardHeader can be used for a generic page title if needed, or kept for styling */}
           <CardHeader className="bg-muted/30 p-4 text-center">
              {/* Intentionally left somewhat sparse as specific creator details are moved to "Sobre Mí" section */}
-             <h1 className="text-2xl font-bold text-primary">Sobre  +Seguro</h1>
+             <h1 className="text-2xl font-bold text-primary">Sobre +Seguro</h1>
           </CardHeader>
 
           <CardContent className="p-6 sm:p-8 space-y-6">
@@ -44,19 +44,19 @@ const AboutCreatorPage: FC = () => {
             <section>
               <h2 className="text-xl font-semibold text-foreground mb-3">Motivación detrás de +Seguro</h2>
               <p className="text-muted-foreground leading-relaxed">
-                La plataforma +Seguro nace de un deseo genuino de contribuir a mejorar la seguridad y la calidad de vida en Uruapan. Mi objetivo es proporcionar una herramienta útil y accesible para que los ciudadanos puedan reportar incidentes, compartir información relevante y, juntos, construir un entorno más seguro para todos.
+                La plataforma +Seguro surge con el propósito de ser una herramienta ciudadana fundamental para Uruapan. Nuestro objetivo es que puedas reportar incidentes, consultar niveles de seguridad en diferentes zonas y estar al tanto de cualquier problemática que afecte a nuestra ciudad. Buscamos fomentar la cooperación entre usuarios para utilizar la plataforma de la manera más efectiva posible.
               </p>
               <p className="text-muted-foreground leading-relaxed mt-3">
-                Es importante destacar que este proyecto es una iniciativa personal y comunitaria,{' '}
+                Mi principal motivación es mejorar la seguridad y el bienestar de nuestra comunidad, facilitando el acceso rápido a información relevante. Es importante destacar que este proyecto es una iniciativa personal y comunitaria,{' '}
                 <GradientText
-                  from="from-primary" 
-                  to="to-destructive" 
-                  size="text-base" 
+                  from="from-primary"
+                  to="to-destructive"
+                  size="text-base"
                   className="font-semibold"
                 >
-                  sin fines de lucro ni afiliaciones políticas.
+                  sin afiliaciones políticas.
                 </GradientText>
-                {' '}Mi única motivación es el bienestar de nuestra comunidad.
+                {' '}Mi compromiso es con el progreso y la tranquilidad de Uruapan.
               </p>
             </section>
 
@@ -152,3 +152,4 @@ const AboutCreatorPage: FC = () => {
 };
 
 export default AboutCreatorPage;
+
