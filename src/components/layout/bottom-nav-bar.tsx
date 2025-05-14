@@ -2,7 +2,7 @@
 "use client";
 
 import type { FC, ReactElement } from 'react';
-import React from 'react';
+import React from 'react'; // Ensured React is imported
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
@@ -102,7 +102,9 @@ export const TopNavBar: FC = () => {
 
   return (
     <header className={cn(
-        'fixed top-0 left-0 right-0 z-50 flex h-20 items-center justify-center px-4 md:px-8 transition-all duration-300',
+        'fixed top-0 left-0 right-0 z-50 flex h-20 items-center justify-between md:justify-center px-4 md:px-8 transition-all duration-300',
+        // Mobile specific background and blur, desktop transparent to let inner nav show its style
+        'bg-background/80 backdrop-blur-md shadow-sm border-b border-border/30 md:bg-transparent md:shadow-none md:border-none'
     )}>
        <div className={cn(
         "absolute left-1/2 top-1/2 transform -translate-x-1/2 -translate-y-1/2 transition-all duration-300 ease-in-out hidden md:flex",
