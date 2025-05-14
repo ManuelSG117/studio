@@ -10,6 +10,8 @@ import { useEffect, useState } from 'react';
 import { LogIn, Menu} from 'lucide-react';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
 import { ThemeToggle } from '@/components/ui/theme-toggle'; // Import ThemeToggle
+import Image from 'next/image';
+import { motion } from 'framer-motion'; // Import motion
 
 const LandingNavBar: FC = () => {
   const router = useRouter();
@@ -122,6 +124,9 @@ const LandingNavBar: FC = () => {
             )}
             aria-current={isLinkActive('top') ? 'page' : undefined}
           >
+            <motion.div whileHover={{ scale: 1.1, rotate: 3 }} transition={{ type: "spring", stiffness: 400, damping: 10 }}>
+              <Image src="/logo.png" alt="+Seguro Logo" width={24} height={24} data-ai-hint="app logo"/>
+            </motion.div>
             +Seguro
           </Link>
 
