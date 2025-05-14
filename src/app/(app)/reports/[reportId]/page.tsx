@@ -1,5 +1,4 @@
 
-
 "use client";
 
 import type { FC } from 'react';
@@ -13,7 +12,7 @@ import { doc, getDoc, Timestamp, runTransaction, collection, query, where, getDo
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
-import { CalendarDays, MapPin, UserCog, TriangleAlert, Image as ImageIcon, Loader2, ArrowLeft, ArrowUp, ArrowDown, Share2, Printer, ShieldAlert, Eye, MessageSquare, ThumbsUp, ThumbsDown } from 'lucide-react';
+import { CalendarDays, MapPin, UserCog, TriangleAlert, Image as ImageIcon, Loader2, ArrowLeft, ArrowUp, ArrowDown, Share2, ShieldAlert, Eye, MessageSquare, ThumbsUp } from 'lucide-react';
 import type { Report } from '@/app/(app)/welcome/page';
 import { format, formatDistanceToNow } from 'date-fns';
 import { es } from 'date-fns/locale';
@@ -225,6 +224,32 @@ const ReportDetailPage: FC = () => {
         }
     };
 
+    const handleShare = async () => {
+        if (!report) return;
+        const shareData = {
+          title: report.title,
+          text: `Echa un vistazo a este reporte en +Seguro: ${report.title}`,
+          url: window.location.href,
+        };
+    
+        try {
+          if (navigator.share) {
+            await navigator.share(shareData);
+            toast({ title: "Compartido", description: "El reporte se ha compartido exitosamente." });
+          } else {
+            await navigator.clipboard.writeText(window.location.href);
+            toast({ title: "Enlace Copiado", description: "El enlace del reporte se ha copiado al portapapeles." });
+          }
+        } catch (err) {
+          console.error("Error al compartir/copiar:", err);
+          toast({
+            variant: "destructive",
+            title: "Error",
+            description: "No se pudo compartir o copiar el enlace.",
+          });
+        }
+      };
+
     if (isLoading || !isClient || isLoadingReporter) {
         return (
             <main className="flex flex-col items-center p-4 sm:p-6 md:p-8 bg-secondary min-h-screen">
@@ -258,7 +283,6 @@ const ReportDetailPage: FC = () => {
                                         <Skeleton className="h-8 w-16 rounded-md" />
                                     </div>
                                     <div className="flex items-center space-x-2">
-                                        <Skeleton className="h-8 w-24 rounded-md" />
                                         <Skeleton className="h-8 w-24 rounded-md" />
                                     </div>
                                 </div>
@@ -437,11 +461,8 @@ const ReportDetailPage: FC = () => {
                                    </Button>
                                </div>
                                 <div className="flex items-center space-x-2">
-                                    <Button variant="outline" size="sm" className="rounded-full">
+                                    <Button variant="outline" size="sm" className="rounded-full" onClick={handleShare}>
                                         <Share2 className="mr-2 h-4 w-4" /> Compartir
-                                    </Button>
-                                    <Button variant="outline" size="sm" className="rounded-full">
-                                        <Printer className="mr-2 h-4 w-4" /> Imprimir
                                     </Button>
                                 </div>
                             </div>
@@ -577,4 +598,3 @@ const ReportDetailPage: FC = () => {
 };
 
 export default ReportDetailPage;
-
