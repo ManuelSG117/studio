@@ -5,7 +5,7 @@ import type { FC } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { ArrowLeft, Mail, MessageSquare, Github, Linkedin, ExternalLink } from 'lucide-react';
+import { ArrowLeft, Mail, MessageSquare, Facebook, ExternalLink } from 'lucide-react'; // Updated icons
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -33,9 +33,7 @@ const AboutCreatorPage: FC = () => {
         </div>
 
         <Card className="w-full shadow-xl border-none rounded-2xl bg-card overflow-hidden">
-          {/* CardHeader can be used for a generic page title if needed, or kept for styling */}
           <CardHeader className="bg-muted/30 p-4 text-center">
-             {/* Intentionally left somewhat sparse as specific creator details are moved to "Sobre Mí" section */}
              <h1 className="text-2xl font-bold text-primary">Sobre +Seguro</h1>
           </CardHeader>
 
@@ -72,11 +70,11 @@ const AboutCreatorPage: FC = () => {
               </p>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <Button asChild variant="outline" className="w-full justify-start text-left h-auto py-3 rounded-lg">
-                  <a href="mailto:manuel.sandoval.dev@example.com">
+                  <a href="mailto:masseguro117@gmail.com"> {/* Updated email */}
                     <Mail className="h-5 w-5 mr-3 text-primary flex-shrink-0" />
                     <div>
                       <span className="font-medium text-foreground">Correo Electrónico</span>
-                      <span className="block text-xs text-muted-foreground">manuel.sandoval.dev@example.com</span>
+                      <span className="block text-xs text-muted-foreground">masseguro117@gmail.com</span>
                     </div>
                   </a>
                 </Button>
@@ -90,46 +88,42 @@ const AboutCreatorPage: FC = () => {
                   </Link>
                 </Button>
                 <Button asChild variant="outline" className="w-full justify-start text-left h-auto py-3 rounded-lg">
-                  <a href="https://github.com/manuelsandovaldev" target="_blank" rel="noopener noreferrer">
-                    <Github className="h-5 w-5 mr-3 text-foreground flex-shrink-0" />
+                  <a href="https://www.facebook.com/manuel.sandoval.5245" target="_blank" rel="noopener noreferrer"> {/* Updated to Facebook profile */}
+                    <Facebook className="h-5 w-5 mr-3 text-blue-600 flex-shrink-0" /> {/* Changed icon */}
                      <div>
-                      <span className="font-medium text-foreground">GitHub</span>
-                      <span className="block text-xs text-muted-foreground">manuelsandovaldev <ExternalLink className="inline h-3 w-3 ml-1"/></span>
+                      <span className="font-medium text-foreground">Facebook Personal</span> {/* Updated label */}
+                      <span className="block text-xs text-muted-foreground">Manuel Sandoval <ExternalLink className="inline h-3 w-3 ml-1"/></span>
                     </div>
                   </a>
                 </Button>
                  <Button asChild variant="outline" className="w-full justify-start text-left h-auto py-3 rounded-lg">
-                  <a href="https://linkedin.com/in/manuelsandovaldev" target="_blank" rel="noopener noreferrer">
-                    <Linkedin className="h-5 w-5 mr-3 text-blue-700 flex-shrink-0" />
+                  <Link href="#"> {/* Placeholder for +Seguro Facebook page */}
+                    <Facebook className="h-5 w-5 mr-3 text-blue-600 flex-shrink-0" /> {/* Using Facebook icon */}
                      <div>
-                      <span className="font-medium text-foreground">LinkedIn</span>
-                      <span className="block text-xs text-muted-foreground">/in/manuelsandovaldev <ExternalLink className="inline h-3 w-3 ml-1"/></span>
+                      <span className="font-medium text-foreground">+Seguro en Facebook</span>
+                      <span className="block text-xs text-muted-foreground">Actualizaciones (Próximamente) <ExternalLink className="inline h-3 w-3 ml-1"/></span>
                     </div>
-                  </a>
+                  </Link>
                 </Button>
               </div>
             </section>
             
             <Separator />
 
-            {/* Section 3: Sobre Mí (Combined original CardHeader content and "Sobre Mí" paragraph) */}
+            {/* Section 3: Sobre Mí */}
             <section>
               <div className="flex flex-col items-center text-center mb-6">
                 <Avatar className="w-32 h-32 border-4 border-primary mb-4 shadow-lg">
                   <AvatarImage src="https://picsum.photos/seed/manuel/200" alt="Manuel Sandoval" data-ai-hint="creator avatar" />
                   <AvatarFallback className="text-4xl bg-primary text-primary-foreground">MS</AvatarFallback>
                 </Avatar>
-                {/* Using h2 for semantic structure, styled like CardTitle */}
                 <h2 className="text-3xl font-bold text-primary mb-1">Manuel Sandoval</h2>                  <Badge variant="secondary">25 años</Badge>
-                {/* Using p for semantic structure, styled like CardDescription */}
                 <p className="text-base text-muted-foreground mt-1">
-                  Ingeniero en Sistemas Computacionales | Desarrollador
+                    <AnimatedTextCycle texts={["Ingeniero en Sistemas", "Desarrollador Full-Stack", "Entusiasta Tecnológico"]} duration={4000} className="inline-block" />
                 </p>
              
               </div>
               
-              {/* Original "Sobre Mí" paragraph */}
-              {/* <h2 className="text-xl font-semibold text-foreground mb-3">Sobre Mí</h2> // This title might be redundant if the above serves as the main intro */}
               <p className="text-muted-foreground leading-relaxed">
                 Soy Manuel Sandoval, un Ingeniero en Sistemas Computacionales y desarrollador apasionado por la tecnología y el impacto positivo que puede tener en la sociedad. He vivido toda mi vida en la hermosa comunidad de Uruapan, Michoacán, y estoy profundamente comprometido con su bienestar.
               </p>
@@ -152,4 +146,3 @@ const AboutCreatorPage: FC = () => {
 };
 
 export default AboutCreatorPage;
-
