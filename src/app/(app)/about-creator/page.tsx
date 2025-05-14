@@ -52,7 +52,7 @@ const AboutCreatorPage: FC = () => {
 
             <CardContent className="p-6 sm:p-8 space-y-12"> {/* Increased space-y from 6 to 12 */}
               {/* Section 1: Motivación */}
-              <section>
+              <section className="pb-16 md:pb-24"> {/* Added padding-bottom */}
                 <h2 className="text-xl font-semibold text-foreground mb-3">Motivación detrás de +Seguro</h2>
                 <p className="text-muted-foreground leading-relaxed">
                   La plataforma +Seguro surge con el propósito de ser una herramienta ciudadana fundamental para Uruapan. Nuestro objetivo es que puedas reportar incidentes, consultar niveles de seguridad en diferentes zonas y estar al tanto de cualquier problemática que afecte a nuestra ciudad. Es esencial la participación activa y responsable de la comunidad: al utilizar la plataforma correctamente, garantizamos que los reportes sean legítimos y la información sea verídica, contribuyendo así a un entorno más seguro para todos.
