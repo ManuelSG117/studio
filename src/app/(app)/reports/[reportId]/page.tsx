@@ -1,4 +1,5 @@
 
+
 "use client";
 
 import type { FC } from 'react';
@@ -330,7 +331,7 @@ const ReportDetailPage: FC = () => {
                     reporter={selectedReporterForQuickView}
                 />
             )}
-             <div className="w-full max-w-4xl mb-4 ml-14 self-start"> {/* Moved back button container here */}
+             <div className="w-full max-w-4xl mb-4 self-start">
                 <Button variant="ghost" size="icon" className="text-muted-foreground hover:text-primary rounded-full" onClick={() => router.back()} aria-label="Volver">
                     <ArrowLeft className="h-5 w-5" />
                 </Button>
@@ -503,7 +504,25 @@ const ReportDetailPage: FC = () => {
                                             <AvatarImage src={reporterProfile.photoURL || undefined} alt={reporterProfile.displayName || "Avatar del reportante"} data-ai-hint="reporter avatar profile"/>
                                             <AvatarFallback>{getInitials(reporterProfile.displayName)}</AvatarFallback>
                                         </Avatar>
-                                        <div>
+                                        <div
+                                            className="cursor-pointer hover:text-primary"
+                                            onClick={() => {
+                                                if (reporterProfile) {
+                                                setSelectedReporterForQuickView(reporterProfile);
+                                                setIsQuickViewOpen(true);
+                                                }
+                                            }}
+                                            role="button"
+                                            tabIndex={0}
+                                            onKeyDown={(e) => {
+                                                if (e.key === 'Enter' || e.key === ' ') {
+                                                    if (reporterProfile) {
+                                                        setSelectedReporterForQuickView(reporterProfile);
+                                                        setIsQuickViewOpen(true);
+                                                    }
+                                                }
+                                            }}
+                                        >
                                             <p className="font-semibold text-foreground">{reporterProfile.displayName}</p>
                                             <p className="text-xs text-muted-foreground">
                                                 Miembro desde {reporterProfile.memberSince ? format(reporterProfile.memberSince, "MMMM yyyy", { locale: es }) : 'hace tiempo'}
@@ -558,3 +577,4 @@ const ReportDetailPage: FC = () => {
 };
 
 export default ReportDetailPage;
+
