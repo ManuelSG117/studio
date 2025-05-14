@@ -5,7 +5,7 @@ import type { FC } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { ArrowLeft, Mail, MessageSquare, Facebook, ExternalLink } from 'lucide-react';
+import { ArrowLeft, Mail, MessageSquare, Facebook, ExternalLink, Briefcase } from 'lucide-react'; // Added Briefcase
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -145,12 +145,20 @@ const AboutCreatorPage: FC = () => {
                   <p className="text-base text-muted-foreground mt-1">
                     <AnimatedTextCycle texts={["Ingeniero en Sistemas", "Desarrollador Full-Stack", "Entusiasta Tecnológico"]} duration={4000} className="inline-block" />
                   </p>
-
                 </div>
 
                 <p className="text-muted-foreground leading-relaxed">
                   Soy Manuel Sandoval, un Ingeniero en Sistemas Computacionales y desarrollador apasionado por la tecnología y el impacto positivo que puede tener en la sociedad. He vivido toda mi vida en la hermosa comunidad de Uruapan, Michoacán, y estoy profundamente comprometido con su bienestar.
                 </p>
+                <div className="mt-6 text-center">
+                  <Button asChild variant="outline" className="rounded-full">
+                    <a href="https://portfolio-manuel-two.vercel.app/" target="_blank" rel="noopener noreferrer">
+                      <Briefcase className="mr-2 h-4 w-4" />
+                      Ver mi Portafolio
+                      <ExternalLink className="ml-2 h-3 w-3" />
+                    </a>
+                  </Button>
+                </div>
               </section>
 
               <Separator />
