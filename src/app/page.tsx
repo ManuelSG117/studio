@@ -10,7 +10,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent} from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import {  AlertTriangle, ChevronRight, MapPin, Check, Mail, Phone, Facebook, Twitter, Instagram, Loader2, ImageIcon, UserCog, FileText, ThumbsUp, CheckCircle, ArrowUp, ArrowDown, Navigation, Heart, HelpCircle, ExternalLink } from 'lucide-react';
-import { useScroll } from 'framer-motion';
+import { useScroll, motion } from 'framer-motion';
 import Image from 'next/image';
 import { HoverCard, HoverCardTrigger, HoverCardContent } from "@/components/ui/hover-card";
 import LandingNavBar from '@/components/layout/landing-nav-bar';
@@ -48,7 +48,7 @@ const HomePage: FC = () => {
 
       <main className="flex-1 pt-0"> 
         {/* Hero Section */}
-        <section className="w-full py-16 md:py-24 lg:py-32 bg-gradient-to-b from-white to-secondary pt-24 md:pt-32 lg:pt-40"> 
+        <section className="w-full py-16 md:py-24 lg:py-32 bg-gradient-to-b from-white to-secondary dark:from-background dark:to-secondary pt-24 md:pt-32 lg:pt-40"> 
           <div className="container px-4 md:px-6">
              <div className="flex flex-col items-center justify-center space-y-8 text-center"> 
                {/* Left Side - Text Content */}
@@ -95,7 +95,15 @@ const HomePage: FC = () => {
                      </div>
                   </div>
                   {/* Lottie Animation Below Buttons */}
-                  
+                   <div className="relative h-64 w-full flex items-center justify-center mt-8"> 
+                       <DotLottieReact
+                         src="https://lottie.host/7734755b-dc79-461d-9ce9-517fc33c65b4/N7eBj4r78D.lottie"
+                         loop
+                         autoplay
+                         className="w-full max-w-md h-auto object-contain" 
+                         data-ai-hint="community safety animation"
+                       />
+                   </div>
                </div>
 
             </div>
@@ -106,7 +114,7 @@ const HomePage: FC = () => {
         {/* Report Types Section */}
          <section
             id="what-we-do" 
-            className="w-full py-16 md:py-24 bg-gradient-to-b from-secondary to-white"
+            className="w-full py-16 md:py-24 bg-gradient-to-b from-secondary to-white dark:from-secondary dark:to-background"
         >
           <div className="container px-4 md:px-6">
              <div className="text-center mb-12 max-w-3xl mx-auto">
@@ -230,7 +238,7 @@ const HomePage: FC = () => {
         {/* Enhanced How It Works Section */}
         <section
           id="how-it-works" 
-          className="w-full py-16 md:py-24 lg:py-32 bg-gradient-to-b from-white to-secondary overflow-hidden"
+          className="w-full py-16 md:py-24 lg:py-32 bg-gradient-to-b from-white to-secondary dark:from-background dark:to-secondary overflow-hidden"
         >
           <div className="container px-4 md:px-6">
             <div className="text-center mb-16 max-w-3xl mx-auto">
@@ -533,7 +541,7 @@ const HomePage: FC = () => {
          {/* Risk Map Section */}
           <section
             id="risk-map" 
-            className="w-full py-16 md:py-24 bg-gradient-to-b from-secondary to-white"
+            className="w-full py-16 md:py-24 bg-gradient-to-b from-secondary to-white dark:from-secondary dark:to-background"
           >
             <div className="container px-4 md:px-6">
               <div className="text-center mb-12 max-w-3xl mx-auto">
@@ -565,7 +573,7 @@ const HomePage: FC = () => {
            {/* Statistics Section */}
         <section
             id="statistics"
-            className="w-full py-16 md:py-24 bg-gradient-to-b from-white to-secondary"
+            className="w-full py-16 md:py-24 bg-gradient-to-b from-white to-secondary dark:from-background dark:to-secondary"
           >
             <div className="container px-4 md:px-6">
               <div className="text-center mb-12 max-w-3xl mx-auto">
@@ -606,7 +614,7 @@ const HomePage: FC = () => {
       </main>
 
       {/* Footer */}
-       <footer className="bg-[#1C2B41] text-gray-300 py-12">
+       <footer className="bg-[#1C2B41] dark:bg-slate-900 text-gray-300 dark:text-slate-300 py-12">
          <div className="container mx-auto px-4">
            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 items-start">
              <div className="space-y-4">
