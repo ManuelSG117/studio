@@ -320,10 +320,10 @@ const ReportDetailPage: FC = () => {
     if (isLoading || !isClient || isLoadingReporter) {
         return (
             <main className="flex flex-col items-center p-4 sm:p-6 md:p-8 bg-secondary min-h-screen">
-                 <div className="w-full max-w-6xl mb-4 self-start"> {/* Ensure back button is aligned to the start */}
+                 <div className="w-full max-w-7xl mb-4 self-start"> {/* Ensure back button is aligned to the start */}
                     <Skeleton className="h-9 w-9 rounded-full" />
                 </div>
-                <div className="w-full max-w-6xl grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div className="w-full max-w-7xl grid grid-cols-1 md:grid-cols-3 gap-6">
                     <div className="md:col-span-2">
                         <Card className="shadow-lg border-none rounded-xl bg-card">
                             <CardHeader className="relative pt-6 pb-4 px-6">
@@ -422,13 +422,13 @@ const ReportDetailPage: FC = () => {
                     reporter={selectedReporterForQuickView}
                 />
             )}
-             <div className="w-full max-w-6xl mb-4 self-start">
+             <div className="w-full max-w-7xl mb-4 self-start">
                 <Button variant="ghost" size="icon" className="text-muted-foreground hover:text-primary rounded-full" onClick={() => router.back()} aria-label="Volver">
                     <ArrowLeft className="h-5 w-5" />
                 </Button>
             </div>
 
-            <div className="w-full max-w-6xl grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div className="w-full max-w-7xl grid grid-cols-1 md:grid-cols-3 gap-6">
                 <div className="md:col-span-2">
                     <Card className="w-full shadow-lg border-none rounded-xl bg-card">
                         <CardHeader className="pt-6 pb-4 px-6">
