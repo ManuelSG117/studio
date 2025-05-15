@@ -1,3 +1,4 @@
+
 "use client";
 
 import type { FC } from 'react';
@@ -29,7 +30,7 @@ interface ReporterProfile {
   displayName?: string;
   photoURL?: string | null;
   memberSince?: Date;
-  reportCount?: number;
+  reportCount?: number; 
   credibility?: number; // Percentage 0-100
   dob?: Date; // Added Date of Birth
 }
@@ -464,9 +465,7 @@ const ReportDetailPage: FC = () => {
                             <div className="flex flex-row items-start justify-between w-full gap-4">
                               <h1 className="text-2xl font-bold text-foreground flex-grow">{report.title}</h1>
                               <div className="flex flex-col items-end gap-2 min-w-[90px]">
-                                <Badge variant={report.reportType === 'incidente' ? 'destructive' : 'default'} className="capitalize">
-                                  {report.reportType === 'incidente' ? 'Delito' : 'Funcionario'}
-                                </Badge>
+                                {/* Badge removed from here */}
                                 <div className="flex items-center space-x-1 bg-muted p-1 rounded-full mt-1">
                                   <Button
                                     variant="ghost" size="icon"
@@ -494,7 +493,7 @@ const ReportDetailPage: FC = () => {
                                     aria-pressed={report.userVote === 'up'}
                                     title={isOwnReport ? "No puedes votar en tus propios reportes" : "Votar positivamente"}
                                   >
-                                    {votingState && report.userVote !== 'up' && !isOwnReport ? <Loader2 className="h-4 w-4 animate-spin"/> : <ArrowUp className="h-4 w-4"/>}
+                                    {votingState && report.userVote !== 'up' && !isOwnReport ? <Loader2 className="h-4 w-4 animate-spin"/> : <ThumbsUp className="h-4 w-4"/>}
                                   </Button>
                                 </div>
                               </div>
