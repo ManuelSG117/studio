@@ -425,53 +425,51 @@ const ReportDetailPage: FC = () => {
                 <div className="md:col-span-2">
                     <Card className="w-full shadow-lg border-none rounded-xl bg-card">
                         <CardHeader className="pt-6 pb-4 px-6">
-                            <div className="flex items-start justify-between gap-4">
-                                <div className="flex-grow">
-                                    <div
-                                      className="flex items-center space-x-2 text-sm text-muted-foreground cursor-pointer hover:text-primary mb-1"
-                                      onClick={() => {
+                            <div className="flex items-center justify-between gap-4 mb-2">
+                                <div
+                                    className="flex items-center space-x-2 text-sm text-muted-foreground cursor-pointer hover:text-primary"
+                                    onClick={() => {
+                                    if (reporterProfile) {
+                                        setSelectedReporterForQuickView(reporterProfile);
+                                        setIsQuickViewOpen(true);
+                                    }
+                                    }}
+                                    role="button"
+                                    tabIndex={0}
+                                    onKeyDown={(e) => {
+                                    if (e.key === 'Enter' || e.key === ' ') {
                                         if (reporterProfile) {
-                                          setSelectedReporterForQuickView(reporterProfile);
-                                          setIsQuickViewOpen(true);
+                                        setSelectedReporterForQuickView(reporterProfile);
+                                        setIsQuickViewOpen(true);
                                         }
-                                      }}
-                                      role="button"
-                                      tabIndex={0}
-                                      onKeyDown={(e) => {
-                                        if (e.key === 'Enter' || e.key === ' ') {
-                                          if (reporterProfile) {
-                                            setSelectedReporterForQuickView(reporterProfile);
-                                            setIsQuickViewOpen(true);
-                                          }
-                                        }
-                                      }}
-                                    >
-                                      {reporterProfile && (
-                                        <Avatar className="h-6 w-6">
-                                          <AvatarImage src={reporterProfile.photoURL || undefined} alt={reporterProfile.displayName || "Avatar del reportante"} data-ai-hint="reporter avatar"/>
-                                          <AvatarFallback className="text-xs">{getInitials(reporterProfile.displayName)}</AvatarFallback>
-                                        </Avatar>
-                                      )}
-                                      <span>{reporterProfile?.displayName || 'Reporte Anónimo'}</span>
-                                      <span>&bull;</span>
-                                      <span>Publicado {formatDistanceToNow(report.createdAt, { addSuffix: true, locale: es })}</span>
+                                    }
+                                    }}
+                                >
+                                    {reporterProfile && (
+                                    <Avatar className="h-8 w-8">
+                                        <AvatarImage src={reporterProfile.photoURL || undefined} alt={reporterProfile.displayName || "Avatar del reportante"} data-ai-hint="reporter avatar"/>
+                                        <AvatarFallback className="text-xs">{getInitials(reporterProfile.displayName)}</AvatarFallback>
+                                    </Avatar>
+                                    )}
+                                    <div className="flex flex-col">
+                                       <span className="font-medium text-foreground">{reporterProfile?.displayName || 'Reporte Anónimo'}</span>
+                                       <span className="text-xs">Publicado {formatDistanceToNow(report.createdAt, { addSuffix: true, locale: es })}</span>
                                     </div>
-                                     <h1 className="text-2xl font-bold text-foreground">{report.title}</h1>
                                 </div>
-                                 <div className="flex items-center space-x-1 bg-muted p-1 rounded-full shrink-0">
+                                <div className="flex items-center space-x-1 bg-muted p-1 rounded-full">
                                        <Button
                                            variant="ghost" size="icon"
-                                           className={cn("h-6 w-6 rounded-full text-muted-foreground hover:bg-blue-500/10 hover:text-blue-500", report.userVote === 'down' && "bg-blue-600/20 text-blue-600", votingState && "opacity-50 cursor-not-allowed", isOwnReport && "cursor-not-allowed opacity-60")}
+                                           className={cn("h-7 w-7 rounded-full text-muted-foreground hover:bg-red-500/10 hover:text-red-500", report.userVote === 'down' && "bg-red-600/20 text-red-600", votingState && "opacity-50 cursor-not-allowed", isOwnReport && "cursor-not-allowed opacity-60")}
                                           onClick={() => handleVote('down')}
                                           disabled={votingState || isOwnReport}
                                           aria-pressed={report.userVote === 'down'}
                                           title={isOwnReport ? "No puedes votar en tus propios reportes" : "Votar negativamente"}
                                        >
-                                          {votingState && report.userVote !== 'down' ? <Loader2 className="h-3.5 w-3.5 animate-spin"/> : <ArrowDown className="h-4 w-4"/>}
+                                          {votingState && report.userVote !== 'down' ? <Loader2 className="h-4 w-4 animate-spin"/> : <ArrowDown className="h-4 w-4"/>}
                                        </Button>
                                        <Button
                                            variant="ghost"
-                                           className="text-sm font-medium text-foreground tabular-nums w-6 text-center p-0 h-auto hover:bg-transparent hover:text-primary"
+                                           className="text-sm font-medium text-foreground tabular-nums w-8 text-center p-0 h-auto hover:bg-transparent hover:text-primary"
                                            onClick={() => { setVotesModalOpen(true);}}
                                            title="Ver detalles de votos"
                                        >
@@ -479,25 +477,26 @@ const ReportDetailPage: FC = () => {
                                        </Button>
                                        <Button
                                           variant="ghost" size="icon"
-                                          className={cn("h-6 w-6 rounded-full text-muted-foreground hover:bg-red-500/10 hover:text-red-500", report.userVote === 'up' && "bg-red-600/20 text-red-600", votingState && "opacity-50 cursor-not-allowed", isOwnReport && "cursor-not-allowed opacity-60")}
+                                          className={cn("h-7 w-7 rounded-full text-muted-foreground hover:bg-green-500/10 hover:text-green-500", report.userVote === 'up' && "bg-green-600/20 text-green-600", votingState && "opacity-50 cursor-not-allowed", isOwnReport && "cursor-not-allowed opacity-60")}
                                           onClick={() => handleVote('up')}
                                           disabled={votingState || isOwnReport}
                                           aria-pressed={report.userVote === 'up'}
                                           title={isOwnReport ? "No puedes votar en tus propios reportes" : "Votar positivamente"}
                                        >
-                                          {votingState && report.userVote !== 'up' ? <Loader2 className="h-3.5 w-3.5 animate-spin"/> : <ArrowUp className="h-4 w-4"/>}
+                                          {votingState && report.userVote !== 'up' ? <Loader2 className="h-4 w-4 animate-spin"/> : <ArrowUp className="h-4 w-4"/>}
                                        </Button>
                                    </div>
                             </div>
+                            <h1 className="text-2xl font-bold text-foreground">{report.title}</h1>
                         </CardHeader>
-                        <CardContent className="px-6 pt-6 space-y-6">
+                        <CardContent className="px-6 pt-4 pb-6 space-y-6">
                             <div>
                                 <h3 className="text-lg font-semibold text-foreground mb-2">Descripción del incidente</h3>
                                 <p className="text-foreground/90 leading-relaxed whitespace-pre-wrap">{report.description}</p>
                             </div>
                             <Separator />
                             {report.mediaUrl && (
-                                <div className="relative aspect-video w-full overflow-hidden bg-muted">
+                                <div className="relative aspect-video w-full overflow-hidden rounded-lg bg-muted">
                                     {/\.(mp4|webm|ogg|mov)$/i.test(report.mediaUrl) ? (
                                         <video controls src={report.mediaUrl} className="absolute inset-0 w-full h-full object-cover" preload="metadata">
                                             Tu navegador no soporta videos HTML5.
@@ -508,7 +507,7 @@ const ReportDetailPage: FC = () => {
                                 </div>
                             )}
                             {!report.mediaUrl && (
-                                <div className="aspect-video w-full bg-muted flex flex-col items-center justify-center text-muted-foreground">
+                                <div className="aspect-video w-full bg-muted rounded-lg flex flex-col items-center justify-center text-muted-foreground">
                                     <ImageIcon size={48} className="opacity-50 mb-2"/>
                                     <p className="text-sm">Sin evidencia multimedia adjunta.</p>
                                 </div>
@@ -551,10 +550,7 @@ const ReportDetailPage: FC = () => {
                                             {report.reportType === 'incidente' ? 'Delito' : 'Funcionario'}
                                         </Badge>
                                     </div>
-                                    <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-primary rounded-full" onClick={handleShare}>
-                                        <Share2 className="h-4 w-4" />
-                                        <span className="sr-only">Compartir</span>
-                                    </Button>
+                                   
                                 </div>
                             </div>
                         </CardContent>
