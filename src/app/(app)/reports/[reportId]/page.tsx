@@ -21,18 +21,18 @@ import { ReportsMap } from '@/components/reports-map';
 import { useToast } from '@/hooks/use-toast';
 import { cn, formatLocation } from '@/lib/utils';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Badge } from '@/components/ui/badge'; 
+import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
-import { ReporterQuickViewDialog } from '@/components/reporter-quick-view-dialog'; // Import the new dialog
+import { ReporterQuickViewDialog } from '@/components/reporter-quick-view-dialog';
 import { getDistance } from 'geolib';
 
 interface ReporterProfile {
   displayName?: string;
   photoURL?: string | null;
   memberSince?: Date;
-  reportCount?: number; 
+  reportCount?: number;
   credibility?: number; // Percentage 0-100
-  dob?: Date; // Added Date of Birth
+  dob?: Date;
 }
 
 const ReportDetailPage: FC = () => {
@@ -113,9 +113,9 @@ const ReportDetailPage: FC = () => {
                                         setReporterProfile({
                                             displayName: reporterData.fullName || reporterData.displayName || "Usuario Anónimo",
                                             photoURL: reporterData.photoURL || null,
-                                            memberSince: reporterData.createdAt instanceof Timestamp ? reporterData.createdAt.toDate() : (reporterData.memberSince instanceof Timestamp ? reporterData.memberSince.toDate() : undefined), // Adjusted to check reporterData.memberSince first
+                                            memberSince: reporterData.createdAt instanceof Timestamp ? reporterData.createdAt.toDate() : (reporterData.memberSince instanceof Timestamp ? reporterData.memberSince.toDate() : undefined),
                                             reportCount: reportCountSnapshot.size,
-                                            credibility: Math.min(90 + reportCountSnapshot.size, 99), 
+                                            credibility: Math.min(90 + reportCountSnapshot.size, 99),
                                             dob: reporterData.dob instanceof Timestamp ? reporterData.dob.toDate() : undefined,
                                         });
                                     } else {
@@ -151,7 +151,6 @@ const ReportDetailPage: FC = () => {
         return () => unsubscribe();
     }, [router, reportId, toast, fetchUserVote]);
 
-    // Fetch similar reports within 5km
     useEffect(() => {
         const fetchSimilarReports = async () => {
             if (!report || !report.latitude || !report.longitude) {
@@ -183,7 +182,6 @@ const ReportDetailPage: FC = () => {
                         downvotes: data.downvotes || 0,
                     } as Report;
                 });
-                // Filtra los reportes que estén a 5km y no sea el actual
                 const filtered = fetchedReports.filter(r =>
                     r.id !== report.id &&
                     r.latitude != null &&
@@ -206,7 +204,7 @@ const ReportDetailPage: FC = () => {
             toast({ variant: "destructive", title: "Error", description: "Debes iniciar sesión y el reporte debe cargarse para votar." });
             return;
         }
-        if (votingState) return; 
+        if (votingState) return;
         if (user.uid === report.userId) {
             toast({ variant: "destructive", title: "Error", description: "No puedes votar en tus propios reportes." });
             return;
@@ -218,10 +216,10 @@ const ReportDetailPage: FC = () => {
         let optimisticDownvotes = report.downvotes;
         let optimisticUserVote: 'up' | 'down' | null = null;
 
-        if (currentVote === voteType) { 
+        if (currentVote === voteType) {
             optimisticUserVote = null;
             if (voteType === 'up') optimisticUpvotes--; else optimisticDownvotes--;
-        } else { 
+        } else {
             optimisticUserVote = voteType;
             if (voteType === 'up') {
                 optimisticUpvotes++;
@@ -282,19 +280,17 @@ const ReportDetailPage: FC = () => {
           text: `Echa un vistazo a este reporte en +Seguro: ${report.title}`,
           url: window.location.href,
         };
-    
+
         try {
           if (navigator.share) {
             await navigator.share(shareData);
             toast({ title: "Compartido", description: "El reporte se ha compartido exitosamente." });
           } else {
-            // Fallback if navigator.share is not supported at all
             await navigator.clipboard.writeText(window.location.href);
             toast({ title: "Enlace Copiado", description: "El enlace del reporte se ha copiado al portapapeles. La función de compartir no está disponible en tu navegador." });
           }
-        } catch (err: any) { 
+        } catch (err: any) {
           console.error("Error al compartir:", err);
-          // Attempt clipboard fallback if sharing failed (e.g., due to permission denied)
           try {
             await navigator.clipboard.writeText(window.location.href);
             let description = "El enlace del reporte se ha copiado al portapapeles.";
@@ -321,7 +317,7 @@ const ReportDetailPage: FC = () => {
     if (isLoading || !isClient || isLoadingReporter) {
         return (
             <main className="flex flex-col items-center p-4 sm:p-6 md:p-8 bg-secondary min-h-screen">
-                 <div className="w-full max-w-7xl mb-4 self-start"> {/* Ensure back button is aligned to the start */}
+                 <div className="w-full max-w-7xl mb-4 self-start">
                     <Skeleton className="h-9 w-9 rounded-full" />
                 </div>
                 <div className="w-full max-w-7xl grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -380,7 +376,7 @@ const ReportDetailPage: FC = () => {
     if (report === null) {
          return (
              <main className="flex flex-col items-center justify-center min-h-screen p-4 sm:p-8 bg-secondary">
-                 <div className="w-full max-w-md mb-4 self-start"> {/* Align back button to start */}
+                 <div className="w-full max-w-md mb-4 self-start">
                     <Button variant="ghost" size="icon" className="text-muted-foreground hover:text-primary rounded-full" onClick={() => router.back()} aria-label="Volver">
                         <ArrowLeft className="h-5 w-5" />
                     </Button>
@@ -401,15 +397,15 @@ const ReportDetailPage: FC = () => {
              </main>
          );
     }
-    
+
     const isOwnReport = user?.uid === report.userId;
 
     return (
         <main className="flex flex-col items-center p-4 sm:p-6 md:p-8 bg-secondary min-h-screen">
             {report && (
-                <VotesModal 
-                    open={votesModalOpen} 
-                    onOpenChange={setVotesModalOpen} 
+                <VotesModal
+                    open={votesModalOpen}
+                    onOpenChange={setVotesModalOpen}
                     reportId={report.id}
                     reportTitle={report.title}
                     upvotes={report.upvotes}
@@ -433,69 +429,75 @@ const ReportDetailPage: FC = () => {
                 <div className="md:col-span-2">
                     <Card className="w-full shadow-lg border-none rounded-xl bg-card">
                         <CardHeader className="pt-6 pb-4 px-6">
-                            <div 
-                              className="flex items-center space-x-2 text-sm text-muted-foreground cursor-pointer hover:text-primary mb-2"
-                              onClick={() => {
-                                if (reporterProfile) {
-                                  setSelectedReporterForQuickView(reporterProfile);
-                                  setIsQuickViewOpen(true);
-                                }
-                              }}
-                              role="button"
-                              tabIndex={0}
-                              onKeyDown={(e) => {
-                                if (e.key === 'Enter' || e.key === ' ') {
-                                  if (reporterProfile) {
-                                    setSelectedReporterForQuickView(reporterProfile);
-                                    setIsQuickViewOpen(true);
-                                  }
-                                }
-                              }}
-                            >
-                              {reporterProfile && (
-                                <Avatar className="h-6 w-6">
-                                  <AvatarImage src={reporterProfile.photoURL || undefined} alt={reporterProfile.displayName || "Avatar del reportante"} data-ai-hint="reporter avatar"/>
-                                  <AvatarFallback className="text-xs">{getInitials(reporterProfile.displayName)}</AvatarFallback>
-                                </Avatar>
-                              )}
-                              <span>{reporterProfile?.displayName || 'Reporte Anónimo'}</span>
-                              <span>&bull;</span>
-                              <span>Publicado {formatDistanceToNow(report.createdAt, { addSuffix: true, locale: es })}</span>
-                            </div>
-                            <div className="flex flex-row items-start justify-between w-full gap-4">
-                              <h1 className="text-2xl font-bold text-foreground flex-grow">{report.title}</h1>
-                              <div className="flex flex-col items-end gap-2 min-w-[90px]">
-                                <div className="flex items-center space-x-1 bg-muted p-1 rounded-full mt-1">
-                                  <Button
-                                    variant="ghost" size="icon"
-                                    className={cn("h-8 w-8 rounded-full", report.userVote === 'down' && "bg-destructive/20 text-destructive", votingState && "opacity-50", isOwnReport && "cursor-not-allowed opacity-60")}
-                                    onClick={() => handleVote('down')}
-                                    disabled={votingState || isOwnReport}
-                                    aria-pressed={report.userVote === 'down'}
-                                    title={isOwnReport ? "No puedes votar en tus propios reportes" : "Votar negativamente"}
-                                  >
-                                    {votingState && report.userVote !== 'down' && !isOwnReport ? <Loader2 className="h-4 w-4 animate-spin"/> : <ArrowDown className="h-4 w-4"/>}
-                                  </Button>
-                                  <Button 
-                                    variant="ghost" 
-                                    className="text-sm font-medium text-foreground tabular-nums w-10 text-center p-0 h-auto hover:bg-transparent hover:text-primary"
-                                    onClick={() => setVotesModalOpen(true)}
-                                    title="Ver detalles de votos"
-                                  >
-                                    {report.upvotes - report.downvotes}
-                                  </Button>
-                                  <Button
-                                    variant="ghost" size="icon"
-                                    className={cn("h-8 w-8 rounded-full", report.userVote === 'up' && "bg-primary/20 text-primary", votingState && "opacity-50", isOwnReport && "cursor-not-allowed opacity-60")}
-                                    onClick={() => handleVote('up')}
-                                    disabled={votingState || isOwnReport}
-                                    aria-pressed={report.userVote === 'up'}
-                                    title={isOwnReport ? "No puedes votar en tus propios reportes" : "Votar positivamente"}
-                                  >
-                                    {votingState && report.userVote !== 'up' && !isOwnReport ? <Loader2 className="h-4 w-4 animate-spin"/> : <ThumbsUp className="h-4 w-4"/>}
-                                  </Button>
+                            <div className="flex items-start justify-between gap-4">
+                                <div className="flex-grow">
+                                    <div
+                                      className="flex items-center space-x-2 text-sm text-muted-foreground cursor-pointer hover:text-primary mb-2"
+                                      onClick={() => {
+                                        if (reporterProfile) {
+                                          setSelectedReporterForQuickView(reporterProfile);
+                                          setIsQuickViewOpen(true);
+                                        }
+                                      }}
+                                      role="button"
+                                      tabIndex={0}
+                                      onKeyDown={(e) => {
+                                        if (e.key === 'Enter' || e.key === ' ') {
+                                          if (reporterProfile) {
+                                            setSelectedReporterForQuickView(reporterProfile);
+                                            setIsQuickViewOpen(true);
+                                          }
+                                        }
+                                      }}
+                                    >
+                                      {reporterProfile && (
+                                        <Avatar className="h-6 w-6">
+                                          <AvatarImage src={reporterProfile.photoURL || undefined} alt={reporterProfile.displayName || "Avatar del reportante"} data-ai-hint="reporter avatar"/>
+                                          <AvatarFallback className="text-xs">{getInitials(reporterProfile.displayName)}</AvatarFallback>
+                                        </Avatar>
+                                      )}
+                                      <span>{reporterProfile?.displayName || 'Reporte Anónimo'}</span>
+                                      <span>&bull;</span>
+                                      <span>Publicado {formatDistanceToNow(report.createdAt, { addSuffix: true, locale: es })}</span>
+                                    </div>
+                                     <h1 className="text-2xl font-bold text-foreground">{report.title}</h1>
                                 </div>
-                              </div>
+                                <div className="flex flex-col items-end gap-2 min-w-[90px] shrink-0">
+                                    <div className="flex items-center space-x-1 bg-muted p-1 rounded-full mt-1">
+                                      <Button
+                                        variant="ghost" size="icon"
+                                        className={cn("h-8 w-8 rounded-full", report.userVote === 'down' && "bg-destructive/20 text-destructive", votingState && "opacity-50", isOwnReport && "cursor-not-allowed opacity-60")}
+                                        onClick={() => handleVote('down')}
+                                        disabled={votingState || isOwnReport}
+                                        aria-pressed={report.userVote === 'down'}
+                                        title={isOwnReport ? "No puedes votar en tus propios reportes" : "Votar negativamente"}
+                                      >
+                                        {votingState && report.userVote !== 'down' && !isOwnReport ? <Loader2 className="h-4 w-4 animate-spin"/> : <ArrowDown className="h-4 w-4"/>}
+                                      </Button>
+                                      <Button
+                                        variant="ghost"
+                                        className="text-sm font-medium text-foreground tabular-nums w-10 text-center p-0 h-auto hover:bg-transparent hover:text-primary"
+                                        onClick={() => setVotesModalOpen(true)}
+                                        title="Ver detalles de votos"
+                                      >
+                                        {report.upvotes - report.downvotes}
+                                      </Button>
+                                      <Button
+                                        variant="ghost" size="icon"
+                                        className={cn("h-8 w-8 rounded-full", report.userVote === 'up' && "bg-primary/20 text-primary", votingState && "opacity-50", isOwnReport && "cursor-not-allowed opacity-60")}
+                                        onClick={() => handleVote('up')}
+                                        disabled={votingState || isOwnReport}
+                                        aria-pressed={report.userVote === 'up'}
+                                        title={isOwnReport ? "No puedes votar en tus propios reportes" : "Votar positivamente"}
+                                      >
+                                        {votingState && report.userVote !== 'up' && !isOwnReport ? <Loader2 className="h-4 w-4 animate-spin"/> : <ThumbsUp className="h-4 w-4"/>}
+                                      </Button>
+                                    </div>
+                                    <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-primary rounded-full" onClick={handleShare}>
+                                        <Share2 className="h-4 w-4" />
+                                        <span className="sr-only">Compartir</span>
+                                    </Button>
+                                </div>
                             </div>
                         </CardHeader>
                         <CardContent className="px-6 pt-6 space-y-6">
@@ -553,9 +555,11 @@ const ReportDetailPage: FC = () => {
                                         <span className="text-foreground font-medium">{format(report.createdAt, "p", { locale: es })}</span>
                                     </div>
                                     <div className="flex items-center">
-                                        {report.reportType === 'incidente' ? <TriangleAlert className="h-4 w-4 mr-2 text-muted-foreground" /> : <UserCog className="h-4 w-4 mr-2 text-muted-foreground" />}
+                                        {report.reportType === 'incidente' ? <TriangleAlert className="h-4 w-4 mr-2 text-destructive" /> : <UserCog className="h-4 w-4 mr-2 text-primary" />}
                                         <span className="text-muted-foreground mr-1">Tipo:</span>
-                                        <span className="text-foreground font-medium capitalize">{report.reportType === 'incidente' ? 'Delito' : 'Funcionario'}</span>
+                                        <Badge variant={report.reportType === 'incidente' ? 'destructive' : 'default'} className="text-xs capitalize">
+                                            {report.reportType === 'incidente' ? 'Delito' : 'Funcionario'}
+                                        </Badge>
                                     </div>
                                 </div>
                             </div>
