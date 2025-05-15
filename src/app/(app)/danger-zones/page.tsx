@@ -1,5 +1,4 @@
 
-
 "use client";
 
 import type { FC } from 'react';
@@ -30,7 +29,7 @@ const DangerZonesPage: FC = () => {
   const [user, setUser] = useState<User | null>(null);
   const [reports, setReports] = useState<Report[]>([]);
   const [isClient, setIsClient] = useState(false);
-  const [mapViewMode, setMapViewMode] = useState<MapViewMode>('heatmap');
+  const [mapViewMode, setMapViewMode] = useState<MapViewMode>('heatmap'); // Default to heatmap
   const [reportTypeFilter, setReportTypeFilter] = useState<ReportTypeFilter>('Todos');
   const [filterModalOpen, setFilterModalOpen] = useState(false); // State for mobile filter modal
 
@@ -100,7 +99,7 @@ const DangerZonesPage: FC = () => {
 
   const handleClearMobileFilters = () => {
     setReportTypeFilter('Todos');
-    setMapViewMode('heatmap'); // Optionally reset map view mode or keep current
+    setMapViewMode('heatmap'); // Reset map view mode to heatmap
     setFilterModalOpen(false);
   };
 
@@ -146,10 +145,10 @@ const DangerZonesPage: FC = () => {
     );
   }
 
-  const mapCardTitle = `Mapa de ${mapViewMode === 'heatmap' ? 'Densidad' : 'Reportes Individuales'} ${reportTypeFilter !== 'Todos' ? `(${reportTypeFilter}s)` : ''}`;
+  const mapCardTitle = `Mapa de ${mapViewMode === 'heatmap' ? 'Densidad de Reportes' : 'Reportes Individuales'} ${reportTypeFilter !== 'Todos' ? `(${reportTypeFilter}s)` : ''}`;
   const mapCardDescription = `${mapViewMode === 'heatmap'
-                           ? 'Visualización de densidad. Zonas más cálidas indican mayor concentración.'
-                           : 'Ubicación de cada reporte individual.'}
+                           ? 'Visualización de densidad. Las zonas más cálidas indican una mayor concentración de reportes.'
+                           : 'Ubicación de cada reporte individual en el mapa.'}
                          ${reportTypeFilter !== 'Todos' ? ` Filtrado por: ${reportTypeFilter}.` : ''}`;
 
   return (
