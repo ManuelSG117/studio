@@ -432,7 +432,7 @@ const ReportDetailPage: FC = () => {
                             <div className="flex items-start justify-between gap-4">
                                 <div className="flex-grow">
                                     <div
-                                      className="flex items-center space-x-2 text-sm text-muted-foreground cursor-pointer hover:text-primary mb-2"
+                                      className="flex items-center space-x-2 text-sm text-muted-foreground cursor-pointer hover:text-primary mb-1"
                                       onClick={() => {
                                         if (reporterProfile) {
                                           setSelectedReporterForQuickView(reporterProfile);
@@ -493,10 +493,6 @@ const ReportDetailPage: FC = () => {
                                         {votingState && report.userVote !== 'up' && !isOwnReport ? <Loader2 className="h-4 w-4 animate-spin"/> : <ThumbsUp className="h-4 w-4"/>}
                                       </Button>
                                     </div>
-                                    <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-primary rounded-full" onClick={handleShare}>
-                                        <Share2 className="h-4 w-4" />
-                                        <span className="sr-only">Compartir</span>
-                                    </Button>
                                 </div>
                             </div>
                         </CardHeader>
@@ -543,7 +539,7 @@ const ReportDetailPage: FC = () => {
                             <Separator />
                             <div>
                                 <h3 className="text-lg font-semibold text-foreground mb-3">Detalles adicionales</h3>
-                                <div className="grid grid-cols-1 sm:grid-cols-3 gap-x-6 gap-y-3 text-sm">
+                                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-x-6 gap-y-3 text-sm items-center">
                                     <div className="flex items-center">
                                         <CalendarDays className="h-4 w-4 mr-2 text-muted-foreground" />
                                         <span className="text-muted-foreground mr-1">Fecha:</span>
@@ -561,6 +557,10 @@ const ReportDetailPage: FC = () => {
                                             {report.reportType === 'incidente' ? 'Delito' : 'Funcionario'}
                                         </Badge>
                                     </div>
+                                    <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-primary rounded-full" onClick={handleShare}>
+                                        <Share2 className="h-4 w-4" />
+                                        <span className="sr-only">Compartir</span>
+                                    </Button>
                                 </div>
                             </div>
                         </CardContent>
