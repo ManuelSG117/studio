@@ -465,7 +465,6 @@ const ReportDetailPage: FC = () => {
                             <div className="flex flex-row items-start justify-between w-full gap-4">
                               <h1 className="text-2xl font-bold text-foreground flex-grow">{report.title}</h1>
                               <div className="flex flex-col items-end gap-2 min-w-[90px]">
-                                {/* Badge removed from here */}
                                 <div className="flex items-center space-x-1 bg-muted p-1 rounded-full mt-1">
                                   <Button
                                     variant="ghost" size="icon"
@@ -542,20 +541,20 @@ const ReportDetailPage: FC = () => {
                             <Separator />
                             <div>
                                 <h3 className="text-lg font-semibold text-foreground mb-3">Detalles adicionales</h3>
-                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-3 text-sm">
+                                <div className="grid grid-cols-1 sm:grid-cols-3 gap-x-6 gap-y-3 text-sm">
                                     <div className="flex items-center">
                                         <CalendarDays className="h-4 w-4 mr-2 text-muted-foreground" />
-                                        <span className="text-muted-foreground mr-1">Fecha del incidente:</span>
+                                        <span className="text-muted-foreground mr-1">Fecha:</span>
                                         <span className="text-foreground font-medium">{format(report.createdAt, "PPP", { locale: es })}</span>
                                     </div>
                                     <div className="flex items-center">
                                         <Eye className="h-4 w-4 mr-2 text-muted-foreground" />
-                                        <span className="text-muted-foreground mr-1">Hora aproximada:</span>
+                                        <span className="text-muted-foreground mr-1">Hora:</span>
                                         <span className="text-foreground font-medium">{format(report.createdAt, "p", { locale: es })}</span>
                                     </div>
-                                    <div className="flex items-center sm:col-span-2">
+                                    <div className="flex items-center">
                                         {report.reportType === 'incidente' ? <TriangleAlert className="h-4 w-4 mr-2 text-muted-foreground" /> : <UserCog className="h-4 w-4 mr-2 text-muted-foreground" />}
-                                        <span className="text-muted-foreground mr-1">Tipo de incidente:</span>
+                                        <span className="text-muted-foreground mr-1">Tipo:</span>
                                         <span className="text-foreground font-medium capitalize">{report.reportType === 'incidente' ? 'Delito' : 'Funcionario'}</span>
                                     </div>
                                 </div>
