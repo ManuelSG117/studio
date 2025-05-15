@@ -12,7 +12,7 @@ import { doc, getDoc, Timestamp, runTransaction, collection, query, where, getDo
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
-import { CalendarDays, MapPin, UserCog, TriangleAlert, Image as ImageIcon, Loader2, ArrowLeft, ArrowUp, ArrowDown, Share2, ShieldAlert, Eye, MessageSquare, ThumbsUp } from 'lucide-react';
+import { CalendarDays, MapPin, UserCog, TriangleAlert, Image as ImageIcon, Loader2, ArrowLeft, ArrowUp, ArrowDown, Share2, ShieldAlert, Eye, MessageSquare } from 'lucide-react';
 import type { Report } from '@/app/(app)/welcome/page';
 import { format, formatDistanceToNow } from 'date-fns';
 import { es } from 'date-fns/locale';
@@ -44,7 +44,7 @@ const ReportDetailPage: FC = () => {
     const [isLoading, setIsLoading] = useState(true);
     const [user, setUser] = useState<User | null>(null);
     const [isClient, setIsClient] = useState(false);
-    const [votingState, setVotingState] = useState<boolean>(false);
+    const [votingState, setVotingState] = useState<boolean>(false); // Simplified voting state for the single report
     const [votesModalOpen, setVotesModalOpen] = useState(false);
     const [reporterProfile, setReporterProfile] = useState<ReporterProfile | null>(null);
     const [isLoadingReporter, setIsLoadingReporter] = useState(true);
@@ -324,13 +324,18 @@ const ReportDetailPage: FC = () => {
                     <div className="md:col-span-2">
                         <Card className="shadow-lg border-none rounded-xl bg-card">
                             <CardHeader className="relative pt-6 pb-4 px-6">
-                                <Skeleton className="h-8 w-3/4 mb-2" />
-                                <div className="flex items-center gap-2">
-                                    <Skeleton className="h-8 w-8 rounded-full" />
-                                    <div className="space-y-1">
-                                        <Skeleton className="h-4 w-24" />
-                                        <Skeleton className="h-3 w-20" />
+                                <div className="flex items-start justify-between gap-4">
+                                    <div className="flex-grow">
+                                        <div className="flex items-center gap-2">
+                                            <Skeleton className="h-8 w-8 rounded-full" />
+                                            <div className="space-y-1">
+                                                <Skeleton className="h-4 w-24" />
+                                                <Skeleton className="h-3 w-20" />
+                                            </div>
+                                        </div>
+                                        <Skeleton className="h-7 w-3/4 mt-2" /> {/* Title skeleton */}
                                     </div>
+                                    <Skeleton className="h-10 w-24 rounded-full" /> {/* Votes skeleton */}
                                 </div>
                             </CardHeader>
                             <Skeleton className="aspect-video w-full" />
@@ -340,15 +345,6 @@ const ReportDetailPage: FC = () => {
                                     <Skeleton className="h-3 w-full" />
                                     <Skeleton className="h-3 w-full" />
                                     <Skeleton className="h-3 w-2/3" />
-                                </div>
-                                <div className="flex items-center justify-between">
-                                    <div className="flex items-center space-x-2">
-                                        <Skeleton className="h-8 w-16 rounded-md" />
-                                        <Skeleton className="h-8 w-16 rounded-md" />
-                                    </div>
-                                    <div className="flex items-center space-x-2">
-                                        <Skeleton className="h-8 w-24 rounded-md" />
-                                    </div>
                                 </div>
                                 <div className="space-y-2">
                                     <Skeleton className="h-5 w-1/4" />
@@ -376,7 +372,7 @@ const ReportDetailPage: FC = () => {
     if (report === null) {
          return (
              <main className="flex flex-col items-center justify-center min-h-screen p-4 sm:p-8 bg-secondary">
-                 <div className="w-full max-w-md mb-4 self-start">
+                 <div className="w-full max-w-md mb-4 self-start"> {/* Moved back button to match loading state */}
                     <Button variant="ghost" size="icon" className="text-muted-foreground hover:text-primary rounded-full" onClick={() => router.back()} aria-label="Volver">
                         <ArrowLeft className="h-5 w-5" />
                     </Button>
@@ -420,7 +416,7 @@ const ReportDetailPage: FC = () => {
                 />
             )}
              <div className="w-full max-w-7xl mb-4 self-start">
-                <Button variant="ghost" size="icon" className="text-muted-foreground hover:text-primary rounded-full" onClick={() => router.back()} aria-label="Volver">
+                <Button variant="ghost" size="icon" className="text-muted-foreground hover:text-primary rounded-full h-9 w-9" onClick={() => router.back()} aria-label="Volver">
                     <ArrowLeft className="h-5 w-5" />
                 </Button>
             </div>
@@ -462,38 +458,36 @@ const ReportDetailPage: FC = () => {
                                     </div>
                                      <h1 className="text-2xl font-bold text-foreground">{report.title}</h1>
                                 </div>
-                                <div className="flex flex-col items-end gap-2 min-w-[90px] shrink-0">
-                                    <div className="flex items-center space-x-1 bg-muted p-1 rounded-full mt-1">
-                                      <Button
-                                        variant="ghost" size="icon"
-                                        className={cn("h-8 w-8 rounded-full", report.userVote === 'down' && "bg-destructive/20 text-destructive", votingState && "opacity-50", isOwnReport && "cursor-not-allowed opacity-60")}
-                                        onClick={() => handleVote('down')}
-                                        disabled={votingState || isOwnReport}
-                                        aria-pressed={report.userVote === 'down'}
-                                        title={isOwnReport ? "No puedes votar en tus propios reportes" : "Votar negativamente"}
-                                      >
-                                        {votingState && report.userVote !== 'down' && !isOwnReport ? <Loader2 className="h-4 w-4 animate-spin"/> : <ArrowDown className="h-4 w-4"/>}
-                                      </Button>
-                                      <Button
-                                        variant="ghost"
-                                        className="text-sm font-medium text-foreground tabular-nums w-10 text-center p-0 h-auto hover:bg-transparent hover:text-primary"
-                                        onClick={() => setVotesModalOpen(true)}
-                                        title="Ver detalles de votos"
-                                      >
-                                        {report.upvotes - report.downvotes}
-                                      </Button>
-                                      <Button
-                                        variant="ghost" size="icon"
-                                        className={cn("h-8 w-8 rounded-full", report.userVote === 'up' && "bg-primary/20 text-primary", votingState && "opacity-50", isOwnReport && "cursor-not-allowed opacity-60")}
-                                        onClick={() => handleVote('up')}
-                                        disabled={votingState || isOwnReport}
-                                        aria-pressed={report.userVote === 'up'}
-                                        title={isOwnReport ? "No puedes votar en tus propios reportes" : "Votar positivamente"}
-                                      >
-                                        {votingState && report.userVote !== 'up' && !isOwnReport ? <Loader2 className="h-4 w-4 animate-spin"/> : <ThumbsUp className="h-4 w-4"/>}
-                                      </Button>
-                                    </div>
-                                </div>
+                                 <div className="flex items-center space-x-1 bg-muted p-1 rounded-full shrink-0">
+                                       <Button
+                                           variant="ghost" size="icon"
+                                           className={cn("h-6 w-6 rounded-full text-muted-foreground hover:bg-blue-500/10 hover:text-blue-500", report.userVote === 'down' && "bg-blue-600/20 text-blue-600", votingState && "opacity-50 cursor-not-allowed", isOwnReport && "cursor-not-allowed opacity-60")}
+                                          onClick={() => handleVote('down')}
+                                          disabled={votingState || isOwnReport}
+                                          aria-pressed={report.userVote === 'down'}
+                                          title={isOwnReport ? "No puedes votar en tus propios reportes" : "Votar negativamente"}
+                                       >
+                                          {votingState && report.userVote !== 'down' ? <Loader2 className="h-3.5 w-3.5 animate-spin"/> : <ArrowDown className="h-4 w-4"/>}
+                                       </Button>
+                                       <Button
+                                           variant="ghost"
+                                           className="text-sm font-medium text-foreground tabular-nums w-6 text-center p-0 h-auto hover:bg-transparent hover:text-primary"
+                                           onClick={() => { setVotesModalOpen(true);}}
+                                           title="Ver detalles de votos"
+                                       >
+                                           {report.upvotes - report.downvotes}
+                                       </Button>
+                                       <Button
+                                          variant="ghost" size="icon"
+                                          className={cn("h-6 w-6 rounded-full text-muted-foreground hover:bg-red-500/10 hover:text-red-500", report.userVote === 'up' && "bg-red-600/20 text-red-600", votingState && "opacity-50 cursor-not-allowed", isOwnReport && "cursor-not-allowed opacity-60")}
+                                          onClick={() => handleVote('up')}
+                                          disabled={votingState || isOwnReport}
+                                          aria-pressed={report.userVote === 'up'}
+                                          title={isOwnReport ? "No puedes votar en tus propios reportes" : "Votar positivamente"}
+                                       >
+                                          {votingState && report.userVote !== 'up' ? <Loader2 className="h-3.5 w-3.5 animate-spin"/> : <ArrowUp className="h-4 w-4"/>}
+                                       </Button>
+                                   </div>
                             </div>
                         </CardHeader>
                         <CardContent className="px-6 pt-6 space-y-6">
@@ -539,7 +533,7 @@ const ReportDetailPage: FC = () => {
                             <Separator />
                             <div>
                                 <h3 className="text-lg font-semibold text-foreground mb-3">Detalles adicionales</h3>
-                                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-x-6 gap-y-3 text-sm items-center">
+                                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-x-6 gap-y-3 text-sm items-center">
                                     <div className="flex items-center">
                                         <CalendarDays className="h-4 w-4 mr-2 text-muted-foreground" />
                                         <span className="text-muted-foreground mr-1">Fecha:</span>
