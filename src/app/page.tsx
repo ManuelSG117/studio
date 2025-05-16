@@ -9,7 +9,7 @@ import { useAuth } from '@/context/AuthContext';
 import { Button } from "@/components/ui/button";
 import { Card, CardContent} from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { AlertTriangle, ChevronRight, MapPin, Check, Mail, Phone, Facebook, Twitter, Instagram, Loader2, ImageIcon, UserCog, FileText, ThumbsUp, CheckCircle, ArrowUp, ArrowDown, Navigation, Heart, HelpCircle, ExternalLink } from 'lucide-react';
+import { AlertTriangle, ChevronRight, MapPin, Check, Mail, Phone, Facebook , Instagram, Loader2, ImageIcon, UserCog, FileText, ThumbsUp, CheckCircle, ArrowUp, ArrowDown, Navigation, Heart, HelpCircle, ExternalLink } from 'lucide-react';
 import { useScroll, motion } from 'framer-motion';
 import Image from 'next/image';
 import { HoverCard, HoverCardTrigger, HoverCardContent } from "@/components/ui/hover-card";
@@ -582,10 +582,10 @@ const HomePage: FC = () => {
                       ESTADÍSTICAS
                   </Badge>
                   <h3 className="text-3xl md:text-5xl font-bold tracking-tight mb-4 text-foreground">
-                      Tendencias de Seguridad en Uruapan
+                      Tendencias de Reportes
                   </h3>
                   <p className="mx-auto max-w-[700px] text-muted-foreground md:text-xl/relaxed">
-                      Visualiza las tendencias de reportes para entender mejor la seguridad en tu área y tomar decisiones informadas.
+                      Visualiza las tendencias de reportes para entender mejor la seguridad en tu localidad y tomar decisiones informadas.
                   </p>
               </div>
 
@@ -605,7 +605,7 @@ const HomePage: FC = () => {
                </div>
               <div className="text-center mt-10">
                   <Button variant="outline" className="border-accent text-accent hover:bg-accent hover:text-accent-foreground flex items-center mx-auto rounded-full" onClick={() => router.push('/auth')}>
-                      Explorar Estadísticas Completas
+                      Explorar Estadísticas 
                       <ChevronRight className="ml-1 h-4 w-4" />
                   </Button>
               </div>
@@ -623,23 +623,21 @@ const HomePage: FC = () => {
                    <span className="text-primary">+</span>Seguro
                  </h3>
                  <p className="text-sm leading-relaxed">
-                   Plataforma ciudadana para reportar incidentes y crear una ciudad más segura para todos. Tu participación es clave para el cambio y la transformación de nuestra comunidad.
+                 Tu plataforma ciudadana para reportar incidentes y crear un Uruapan más seguro para todos. Tu participación es clave para el cambio y la transformación de nuestro Uruapan.
                  </p>
                  <div className="flex flex-wrap gap-x-4 gap-y-1 text-xs">
                    <Link href="#" className="hover:text-white transition-colors">Preguntas frecuentes</Link>
-                   <Link href="#" className="hover:text-white transition-colors">Términos</Link>
                    <Link href="#" className="hover:text-white transition-colors">Privacidad</Link>
-                   <Link href="#" className="hover:text-white transition-colors">Cookies</Link>
                  </div>
              </div>
 
              <div className="space-y-4 md:col-span-1 lg:col-span-2">
-                 <h3 className="text-lg font-semibold text-white">Contacto y Redes Sociales</h3>
+                 <h3 className="text-lg font-semibold text-white">Contacto</h3>
                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                      <div className="space-y-2 text-sm">
                        <a href="mailto:contacto@masseguro.com" className="flex items-center gap-2 hover:text-white transition-colors">
                          <Mail className="h-4 w-4 text-primary" />
-                         contacto@masseguro.com
+                         masseguro117@gmail.com
                        </a>
                        <a href="tel:+524521234567" className="flex items-center gap-2 hover:text-white transition-colors">
                          <Phone className="h-4 w-4 text-primary" />
@@ -655,12 +653,10 @@ const HomePage: FC = () => {
                          <a href="#" aria-label="Facebook" className="bg-white/10 p-2 rounded-full hover:bg-white/20 transition-colors">
                            <Facebook className="h-5 w-5" />
                          </a>
-                         <a href="#" aria-label="Twitter" className="bg-white/10 p-2 rounded-full hover:bg-white/20 transition-colors">
-                           <Twitter className="h-5 w-5" />
-                         </a>
                          <a href="#" aria-label="Instagram" className="bg-white/10 p-2 rounded-full hover:bg-white/20 transition-colors">
                            <Instagram className="h-5 w-5" />
                          </a>
+                        
                      </div>
                  </div>
              </div>
@@ -668,7 +664,7 @@ const HomePage: FC = () => {
 
            <div className="border-t border-white/10 mt-8 pt-6 text-center text-xs text-gray-400">
              <p>
-               © {new Date().getFullYear()} +Seguro. Todos los derechos reservados.
+               © {new Date().getFullYear()} +Seguro. Casi todos los derechos reservados.
              </p>
            </div>
          </div>
