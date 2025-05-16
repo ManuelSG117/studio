@@ -649,9 +649,9 @@ const HomePage: FC = () => {
                  </div>
              </div>
              <div className="space-y-4">
-                <h3 className="text-lg font-semibold text-white">Nuestras Redes</h3>
+                <h3 className="text-lg font-semibold text-white">Nuestras Redes Sociales</h3>
                 <div className="flex items-center space-x-3">
-                    <a href="#" aria-label="Facebook" className="bg-white/10 p-2 rounded-full hover:bg-white/20 transition-colors">
+                    <a href="#" aria-label="Facebook" className="bg-white/10 p-2 rounded-full hover:bg-white/20  transition-colors">
                       <Facebook className="h-5 w-5" />
                     </a>
                     <a href="#" aria-label="Instagram" className="bg-white/10 p-2 rounded-full hover:bg-white/20 transition-colors">
