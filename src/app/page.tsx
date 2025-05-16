@@ -290,19 +290,19 @@ const HomePage: FC = () => {
                             {/* Simulated form content */}
                             <div className="space-y-3 mb-4">
                                 <div className="space-y-1">
-                                   <label className="h-3 w-1/4 bg-muted rounded mb-1 text-xs text-muted-foreground/70 block">Correo</label>
+                                   <label className="text-xs text-muted-foreground/80 block mb-0.5">Correo</label>
                                    <div className="h-9 w-full bg-muted/70 rounded border border-input flex items-center px-2">
                                       <span className="text-sm text-muted-foreground/70">usuario@ejemplo.com</span>
                                    </div>
                                 </div>
                                 <div className="space-y-1">
-                                  <label className="h-3 w-1/3 bg-muted rounded mb-1 text-xs text-muted-foreground/70 block">Contraseña</label>
+                                  <label className="text-xs text-muted-foreground/80 block mb-0.5">Contraseña</label>
                                   <div className="h-9 w-full bg-muted/70 rounded border border-input flex items-center px-2">
                                       <span className="text-sm text-muted-foreground/70">••••••••</span>
                                   </div>
                                 </div>
                                 <div className="space-y-1">
-                                  <label className="h-3 w-2/5 bg-muted rounded mb-1 text-xs text-muted-foreground/70 block">Confirmar</label>
+                                  <label className="text-xs text-muted-foreground/80 block mb-0.5">Confirmar Contraseña</label>
                                   <div className="h-9 w-full bg-muted/70 rounded border border-input flex items-center px-2">
                                       <span className="text-sm text-muted-foreground/70">••••••••</span>
                                   </div>
@@ -343,19 +343,19 @@ const HomePage: FC = () => {
                                   </div>
                               </div>
                               <div className="space-y-1">
-                                 <label className="h-3 w-1/4 bg-muted rounded mb-1 text-xs block">Título</label>
+                                 <label className="text-xs text-muted-foreground/80 block mb-0.5">Título</label>
                                  <div className="h-9 w-full bg-muted/70 rounded border border-input flex items-center px-2">
                                      <span className="text-sm text-muted-foreground/70">Robo en Calle Principal</span>
                                  </div>
                               </div>
                                <div className="space-y-1">
-                                 <label className="h-3 w-1/3 bg-muted rounded mb-1 text-xs block">Descripción</label>
+                                 <label className="text-xs text-muted-foreground/80 block mb-0.5">Descripción</label>
                                  <div className="h-16 w-full bg-muted/70 rounded border border-input p-2">
                                      <p className="text-xs text-muted-foreground/70 leading-snug">Ocurrió un asalto a mano armada cerca de la esquina...</p>
                                  </div>
                               </div>
                               <div className="space-y-1">
-                                  <label className="h-3 w-1/4 bg-muted rounded mb-1 text-xs block">Ubicación</label>
+                                  <label className="text-xs text-muted-foreground/80 block mb-0.5">Ubicación</label>
                                  <div className="h-9 w-full bg-muted/70 rounded border border-input flex items-center px-2 gap-1">
                                      <MapPin className="h-3 w-3 text-muted-foreground/50"/>
                                      <span className="text-sm text-muted-foreground/70">Calle Principal #123, Col. Centro</span>
@@ -631,34 +631,33 @@ const HomePage: FC = () => {
                  </div>
              </div>
 
-             <div className="space-y-4 md:col-span-1 lg:col-span-2">
+             <div className="space-y-4">
                  <h3 className="text-lg font-semibold text-white">Contacto</h3>
-                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                     <div className="space-y-2 text-sm">
-                       <a href="mailto:contacto@masseguro.com" className="flex items-center gap-2 hover:text-white transition-colors">
-                         <Mail className="h-4 w-4 text-primary" />
-                         masseguro117@gmail.com
-                       </a>
-                       <a href="tel:+524521234567" className="flex items-center gap-2 hover:text-white transition-colors">
-                         <Phone className="h-4 w-4 text-primary" />
-                         +52 (452) 123-4567
-                       </a>
-                       <p className="flex items-center gap-2">
-                         <MapPin className="h-4 w-4 text-primary" />
-                         Uruapan, Michoacán, México
-                       </p>
-                     </div>
-
-                     <div className="flex items-center justify-start sm:justify-end space-x-3">
-                         <a href="#" aria-label="Facebook" className="bg-white/10 p-2 rounded-full hover:bg-white/20 transition-colors">
-                           <Facebook className="h-5 w-5" />
-                         </a>
-                         <a href="#" aria-label="Instagram" className="bg-white/10 p-2 rounded-full hover:bg-white/20 transition-colors">
-                           <Instagram className="h-5 w-5" />
-                         </a>
-                        
-                     </div>
+                 <div className="space-y-2 text-sm">
+                   <a href="mailto:contacto@masseguro.com" className="flex items-center gap-2 hover:text-white transition-colors">
+                     <Mail className="h-4 w-4 text-primary" />
+                     masseguro117@gmail.com
+                   </a>
+                   <a href="tel:+524521234567" className="flex items-center gap-2 hover:text-white transition-colors">
+                     <Phone className="h-4 w-4 text-primary" />
+                     +52 (452) 123-4567
+                   </a>
+                   <p className="flex items-center gap-2">
+                     <MapPin className="h-4 w-4 text-primary" />
+                     Uruapan, Michoacán, México
+                   </p>
                  </div>
+             </div>
+             <div className="space-y-4">
+                <h3 className="text-lg font-semibold text-white">Nuestras Redes</h3>
+                <div className="flex items-center space-x-3">
+                    <a href="#" aria-label="Facebook" className="bg-white/10 p-2 rounded-full hover:bg-white/20 transition-colors">
+                      <Facebook className="h-5 w-5" />
+                    </a>
+                    <a href="#" aria-label="Instagram" className="bg-white/10 p-2 rounded-full hover:bg-white/20 transition-colors">
+                      <Instagram className="h-5 w-5" />
+                    </a>
+                </div>
              </div>
            </div>
 
