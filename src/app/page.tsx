@@ -79,16 +79,7 @@ const HomePage: FC = () => {
                        Tu plataforma para reportar incidentes y construir un Uruapan más seguro.
                     </p>
                   </div>
-                   {/* Lottie Animation for Hero */}
-                  <div className="relative h-64 w-full flex items-center justify-center my-6">
-                      <DotLottieReact
-                        src="https://lottie.host/7734755b-dc79-461d-9ce9-517fc33c65b4/N7eBj4r78D.lottie"
-                        loop
-                        autoplay
-                        className="w-full max-w-md h-auto object-contain"
-                        data-ai-hint="security community animation"
-                      />
-                  </div>
+                
             
 
                    <div className="w-full max-w-xs sm:max-w-sm mx-auto space-y-2">
