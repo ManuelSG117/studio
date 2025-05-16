@@ -1,4 +1,3 @@
-
 "use client";
 
 import type { FC } from 'react';
@@ -33,7 +32,7 @@ interface ReportsMapProps {
 const GOOGLE_MAPS_API_KEY = "AIzaSyDtuGQXVRNzK0N7_5R5iMFLuRMPxCFG5cs";
 
 // Define map libraries including visualization for heatmap
-const libraries: ('maps' | 'visualization')[] = ["maps", "visualization"];
+const libraries: ('maps' | 'visualization' | 'places')[] = ["maps", "visualization", "places"];
 
 export const ReportsMap: FC<ReportsMapProps> = ({
   reports, // Receive the (potentially filtered) reports directly

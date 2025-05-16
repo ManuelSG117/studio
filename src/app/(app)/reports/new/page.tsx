@@ -24,6 +24,8 @@ import Image from "next/image";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog"; 
 import { ReportsMap } from '@/components/reports-map';
 import { RecentCommunityReports } from '@/components/reports/recent-community-reports'; // Import the new component
+import { Autocomplete, useJsApiLoader } from "@react-google-maps/api";
+import { useCallback } from "react";
 
 type ReportType = 'incidente' | 'funcionario';
 
@@ -51,6 +53,12 @@ const NewReportPage: FC = () => {
   const [previewUrl, setPreviewUrl] = useState<string | null>(null); 
   const [selectedReportType, setSelectedReportType] = useState<ReportType | null>(null); 
   const [fetchedCoordinates, setFetchedCoordinates] = useState<{ lat: number; lng: number } | null>(null); // State for fetched coordinates
+  const { isLoaded: isMapsLoaded } = useJsApiLoader({
+    googleMapsApiKey: "AIzaSyDtuGQXVRNzK0N7_5R5iMFLuRMPxCFG5cs",
+    id: 'google-map-script-reports',
+    libraries: ["maps", "visualization", "places"],
+  });
+  const autocompleteRef = useRef<google.maps.places.Autocomplete | null>(null);
 
   const form = useForm<ReportFormData>({
     resolver: zodResolver(reportFormSchema),
@@ -186,7 +194,7 @@ const NewReportPage: FC = () => {
                     .finally(() => {
                          form.setValue("latitude", latitude);
                          form.setValue("longitude", longitude);
-                         setFetchedCoordinates({ lat: latitude, lng: longitude }); // Update coordinates for map
+                         setFetchedCoordinates({ lat: latitude ?? 0, lng: longitude ?? 0 }); // Update coordinates for map
                          setIsFetchingLocation(false);
                     });
             },
@@ -211,6 +219,19 @@ const NewReportPage: FC = () => {
        }
        fetchAndSetLocation(); 
     };
+
+  const handlePlaceChanged = useCallback(() => {
+    if (autocompleteRef.current) {
+      const place = autocompleteRef.current.getPlace();
+      if (!place.geometry || !place.formatted_address) return;
+      const lat = place.geometry.location?.lat();
+      const lng = place.geometry.location?.lng();
+      form.setValue("location", place.formatted_address, { shouldValidate: true });
+      form.setValue("latitude", lat, { shouldValidate: true });
+      form.setValue("longitude", lng, { shouldValidate: true });
+      setFetchedCoordinates({ lat: lat ?? 0, lng: lng ?? 0 });
+    }
+  }, [form, setFetchedCoordinates]);
 
   const onSubmit = async (values: ReportFormData) => {
     if (!selectedReportType) {
@@ -380,7 +401,40 @@ const NewReportPage: FC = () => {
                      <FormLabel>Ubicación</FormLabel>
                      <div className="flex items-center gap-2">
                         <FormControl>
-                            <Input placeholder="Dirección del incidente" {...field} disabled={disableForm} aria-required="true" className="h-11 flex-grow"/>
+                          {isMapsLoaded ? (
+                            <Autocomplete
+                              onLoad={ac => (autocompleteRef.current = ac)}
+                              onPlaceChanged={handlePlaceChanged}
+                              options={{
+                                componentRestrictions: { country: "mx" },
+                                types: ["address"],
+                                bounds: {
+                                  east: -102.0,
+                                  north: 19.5,
+                                  south: 19.3,
+                                  west: -102.2,
+                                },
+                                strictBounds: true,
+                              }}
+                            >
+                              <Input
+                                placeholder="Dirección del incidente"
+                                {...field}
+                                disabled={disableForm}
+                                aria-required="true"
+                                className="h-11 flex-grow min-w-[220px] sm:min-w-[350px] md:min-w-[500px] lg:min-w-[1000px] max-w-full text-base px-4"
+                                autoComplete="off"
+                              />
+                            </Autocomplete>
+                          ) : (
+                            <Input
+                              placeholder="Dirección del incidente"
+                              {...field}
+                              disabled={true}
+                              aria-required="true"
+                              className="h-11 flex-grow min-w-[220px] sm:min-w-[350px] md:min-w-[500px] lg:min-w-[1000px] max-w-full text-base px-4"
+                            />
+                          )}
                         </FormControl>
                         <AlertDialog>
                             <AlertDialogTrigger asChild>
