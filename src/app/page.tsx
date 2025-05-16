@@ -80,16 +80,7 @@ const HomePage: FC = () => {
                     </p>
                   </div>
                   
-                   {/* Lottie Animation under subtitle */}
-                    <div className="w-full max-w-md mx-auto h-48 sm:h-64 md:h-72 flex items-center justify-center">
-                        <DotLottieReact
-                        src="https://lottie.host/7734755b-dc79-461d-9ce9-517fc33c65b4/N7eBj4r78D.lottie"
-                        loop
-                        autoplay
-                        className="w-full h-full object-contain"
-                        data-ai-hint="security shield animation"
-                        />
-                    </div>
+            
 
                    <div className="w-full max-w-xs sm:max-w-sm mx-auto space-y-2">
                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
