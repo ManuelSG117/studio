@@ -370,7 +370,7 @@ const CommunityReportsPage: FC = () => {
             </div>
             <Button asChild size="lg" className="w-full sm:w-auto rounded-full shadow-md hover:shadow-lg transition-shadow">
                 <Link href="/reports/new">
-                    <Plus className="mr-2 h-5 w-5" /> Crear Reporte
+                    <Plus className="mr-2 h-5 w-5" />Reportar
                 </Link>
             </Button>
         </div>

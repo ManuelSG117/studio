@@ -322,7 +322,7 @@ const WelcomePage: FC = () => {
             </div>
             <Button asChild className="w-full sm:w-auto rounded-full shadow hover:shadow-md transition-shadow">
               <Link href="/reports/new">
-                <Plus className="mr-2 h-4 w-4" /> Crear Nuevo Reporte
+                <Plus className="mr-2 h-4 w-4" />Reportar
               </Link>
             </Button>
         </div>
