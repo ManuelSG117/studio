@@ -106,11 +106,11 @@ const AboutCreatorPage: FC = () => {
                       </div>
                     </a>
                   </Button>
-                  <Button variant="outline" className="w-full justify-start text-left h-auto py-3 rounded-lg" onClick={handleOpenSuggestionDialog}>
-                    <MessageSquare className="h-5 w-5 mr-3 text-primary flex-shrink-0" />
+                  <Button variant="outline" className="w-full justify-start text-left h-auto py-3 rounded-lg" onClick={handleOpenSuggestionDialog} disabled>
+                    <MessageSquare className="h-5 w-5 mr-3 text-muted-foreground flex-shrink-0" />
                     <div>
-                      <span className="font-medium text-foreground">Buzón de Sugerencias</span>
-                      <span className="block text-xs text-muted-foreground">Comparte tus ideas (Nivel 3+)</span>
+                      <span className="font-medium text-muted-foreground">Buzón de Sugerencias</span>
+                      <span className="block text-xs text-muted-foreground">Disponible Próximamente</span>
                     </div>
                   </Button>
                   <Button asChild variant="outline" className="w-full justify-start text-left h-auto py-3 rounded-lg">
@@ -127,7 +127,7 @@ const AboutCreatorPage: FC = () => {
                       <Facebook className="h-5 w-5 mr-3 text-blue-600 flex-shrink-0" />
                       <div>
                         <span className="font-medium text-foreground">+Seguro en Facebook</span>
-                        <span className="block text-xs text-muted-foreground">Actualizaciones (Próximamente) <ExternalLink className="inline h-3 w-3 ml-1" /></span>
+                        <span className="block text-xs text-muted-foreground">Actualizaciones o Contacto <ExternalLink className="inline h-3 w-3 ml-1" /></span>
                       </div>
                     </a>
                   </Button>
@@ -176,7 +176,7 @@ const AboutCreatorPage: FC = () => {
           <footer
             className="mt-8 text-center text-xs text-muted-foreground"
           >
-            © {new Date().getFullYear()} +SEGURO - Una iniciativa ciudadana para Uruapan.
+            © {new Date().getFullYear()} +SEGURO - Una iniciativa de Manuel Sandoval para Uruapan.
           </footer>
         </div>
       </main>
