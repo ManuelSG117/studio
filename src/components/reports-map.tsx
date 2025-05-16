@@ -29,7 +29,7 @@ interface ReportsMapProps {
   viewMode?: MapViewMode; // Add prop for view mode control
 }
 
-const GOOGLE_MAPS_API_KEY = "AIzaSyDtuGQXVRNzK0N7_5R5iMFLuRMPxCFG5cs";
+const GOOGLE_MAPS_API_KEY = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY!;
 
 // Define map libraries including visualization for heatmap
 const libraries: ('maps' | 'visualization' | 'places')[] = ["maps", "visualization", "places"];

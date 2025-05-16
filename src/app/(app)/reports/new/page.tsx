@@ -54,7 +54,7 @@ const NewReportPage: FC = () => {
   const [selectedReportType, setSelectedReportType] = useState<ReportType | null>(null); 
   const [fetchedCoordinates, setFetchedCoordinates] = useState<{ lat: number; lng: number } | null>(null); // State for fetched coordinates
   const { isLoaded: isMapsLoaded } = useJsApiLoader({
-    googleMapsApiKey: "AIzaSyDtuGQXVRNzK0N7_5R5iMFLuRMPxCFG5cs",
+    googleMapsApiKey: process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY!,
     id: 'google-map-script-reports',
     libraries: ["maps", "visualization", "places"],
   });
