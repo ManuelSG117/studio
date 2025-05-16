@@ -150,7 +150,7 @@ const AboutCreatorPage: FC = () => {
                 </div>
 
                 <p className="text-muted-foreground leading-relaxed">
-                  Soy Manuel Sandoval, un Ingeniero en Sistemas Computacionales originario y residente de Uruapan, Michoacán. Esta ciudad, con su vibrante cultura y gente trabajadora, es el lugar que llamo hogar y por el cual siento un profundo cariño y compromiso. Desde siempre, me ha apasionado la tecnología, no solo como una herramienta, sino como un medio para generar un impacto positivo real en la sociedad.
+                  Soy Manuel Sandoval, un Ingeniero en Sistemas Computacionales originario y residente de Uruapan, Michoacán. Esta ciudad es el lugar que llamo hogar y por el cual siento un profundo cariño y compromiso. Desde siempre, me ha apasionado la tecnología, no solo como una herramienta, sino como un medio para generar un impacto positivo real en la sociedad.
                 </p>
                 <p className="text-muted-foreground leading-relaxed mt-3">
                   Mi trayectoria como desarrollador full-stack me ha permitido explorar cómo las soluciones digitales pueden abordar problemáticas cotidianas. Fue esta pasión, combinada con mi deseo de ver a Uruapan prosperar en un ambiente de mayor tranquilidad, lo que me impulsó a crear +Seguro. Esta plataforma es mi contribución personal para fortalecer el tejido social, ofreciendo un espacio donde la información y la colaboración ciudadana se unen para fomentar un entorno más seguro y protegido para todos los que vivimos aquí.
