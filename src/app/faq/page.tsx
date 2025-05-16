@@ -24,10 +24,11 @@ const faqData: FAQItem[] = [
     question: "¿Qué es +Seguro?",
     answer: (
       <>
-        +Seguro es una plataforma cívica desarrollada por Manuel Sandoval para los habitantes de Uruapan, Michoacán.
-        El objetivo principal es mejorar el entorno y la seguridad de nuestra comunidad, permitiendo a los ciudadanos
-        reportar incidentes y consultar información relevante sobre la seguridad en diferentes zonas.
-        Es importante destacar que +Seguro es una iniciativa personal sin afiliaciones políticas de ningún tipo.
+        +Seguro es una plataforma digital enfocada en fortalecer la seguridad de nuestra ciudad, Uruapan, Michoacán.
+        Desarrollada íntegramente por mí, Manuel Sandoval, esta iniciativa personal busca ofrecer a los habitantes de Uruapan una herramienta
+        directa y efectiva para reportar incidentes y consultar información crucial sobre la seguridad en diversas zonas.
+        El objetivo primordial es mejorar nuestro entorno y calidad de vida. Es fundamental subrayar que +Seguro opera de manera
+        independiente, sin ningún tipo de afiliación política.
       </>
     ),
   },
@@ -86,11 +87,7 @@ const faqData: FAQItem[] = [
     answer:
       "No, actualmente +Seguro es una plataforma completamente gratuita para todos los usuarios.",
   },
-  {
-    question: "¿Cómo se protege mi información personal?",
-    answer:
-      "Nos tomamos muy en serio la privacidad y seguridad de tus datos. Utilizamos las mejores prácticas y las medidas de seguridad que ofrece Firebase para proteger tu información. Puedes consultar nuestra Política de Privacidad (próximamente) para más detalles.",
-  },
+  
 ];
 
 const FaqPage: FC = () => {
