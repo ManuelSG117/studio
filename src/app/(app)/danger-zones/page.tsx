@@ -1,4 +1,3 @@
-
 "use client";
 
 import type { FC } from 'react';
@@ -102,6 +101,21 @@ const DangerZonesPage: FC = () => {
     setMapViewMode('heatmap'); // Reset map view mode to heatmap
     setFilterModalOpen(false);
   };
+
+  // Agrupar por colonia (segundo fragmento de location)
+  const topColonias = useMemo(() => {
+    const counts: Record<string, number> = {};
+    filteredReports.forEach((report) => {
+      // Extraer colonia usando formatLocation, pero tomar el segundo fragmento si existe
+      const parts = report.location.split(',').map(p => p.trim());
+      let colonia = parts.length >= 2 ? parts[1] : (parts[0] || 'Desconocida');
+      if (/^Lat: .+ Lon: .+$/.test(parts[0])) colonia = 'Coordenadas';
+      counts[colonia] = (counts[colonia] || 0) + 1;
+    });
+    return Object.entries(counts)
+      .sort((a, b) => b[1] - a[1])
+      .slice(0, 5);
+  }, [filteredReports]);
 
   if (isLoading || !isClient) {
     return (
@@ -269,30 +283,62 @@ const DangerZonesPage: FC = () => {
 
 
              {/* Map Card */}
-             <Card className="w-full shadow-sm rounded-lg overflow-hidden border border-border bg-card">
-                <CardHeader className="pb-2 pt-4 px-4 sm:px-5">
-                    <CardTitle className="text-lg font-semibold text-foreground flex items-center">
-                         {mapViewMode === 'heatmap' ? (
-                            <Waves className="h-5 w-5 mr-2 text-primary"/>
-                         ) : (
-                            <Map className="h-5 w-5 mr-2 text-primary"/>
-                         )}
-                        {mapCardTitle}
-                    </CardTitle>
+             <div className="flex flex-col md:flex-row gap-6">
+               {/* Mapa y ranking lado a lado */}
+               <div className="flex-1 min-w-0">
+                 <Card className="w-full shadow-sm rounded-lg overflow-hidden border border-border bg-card">
+                   <CardHeader className="pb-2 pt-4 px-4 sm:px-5">
+                     <CardTitle className="text-lg font-semibold text-foreground flex items-center">
+                       {mapViewMode === 'heatmap' ? (
+                         <Waves className="h-5 w-5 mr-2 text-primary" />
+                       ) : (
+                         <Map className="h-5 w-5 mr-2 text-primary" />
+                       )}
+                       {mapCardTitle}
+                     </CardTitle>
                      <CardDescription className="text-sm text-muted-foreground">
-                          {mapCardDescription}
+                       {mapCardDescription}
                      </CardDescription>
-                </CardHeader>
-                <CardContent className="p-0 sm:p-0 h-[50vh] sm:h-[60vh]">
+                   </CardHeader>
+                   <CardContent className="p-0 sm:p-0 h-[50vh] sm:h-[60vh]">
                      {isClient && (
-                        <ReportsMap
-                            reports={filteredReports}
-                            viewMode={mapViewMode}
-                            defaultZoom={13}
-                         />
+                       <ReportsMap
+                         reports={filteredReports}
+                         viewMode={mapViewMode}
+                         defaultZoom={13}
+                       />
                      )}
-                </CardContent>
-            </Card>
+                   </CardContent>
+                 </Card>
+               </div>
+               {/* Ranking de colonias (solo md+) */}
+               <div className="hidden md:block w-80 flex-shrink-0" style={{height: 'calc(60vh + 64px)'}}>
+                 <Card className="h-full shadow-sm rounded-lg border border-border bg-card flex flex-col">
+                   <CardHeader className="pb-2 pt-4 px-4">
+                     <CardTitle className="text-lg font-semibold text-primary">5 Colonias con Más Reportes</CardTitle>
+                   </CardHeader>
+                   <CardContent className="flex-1 flex flex-col gap-2 justify-center">
+                     {topColonias.length === 0 ? (
+                       <div className="text-muted-foreground text-sm text-center py-8">No hay datos suficientes.</div>
+                     ) : (
+                       <ul className="space-y-2">
+                         {topColonias.map(([colonia, count], idx) => (
+                           <li key={colonia}>
+                             <div className={cn(
+                               "flex items-center justify-between rounded-lg px-4 py-2 transition-colors cursor-pointer group",
+                               "hover:bg-primary/10 hover:text-primary"
+                             )}>
+                               <span className="font-medium group-hover:text-primary">{idx + 1}. {colonia}</span>
+                               <span className="text-xs font-semibold bg-primary/10 text-primary px-2 py-0.5 rounded-full group-hover:bg-primary group-hover:text-white transition-colors">{count} reporte{count > 1 ? 's' : ''}</span>
+                             </div>
+                           </li>
+                         ))}
+                       </ul>
+                     )}
+                   </CardContent>
+                 </Card>
+               </div>
+             </div>
 
               {/* Report List Card */}
               <Card className="w-full shadow-sm rounded-lg border border-border bg-card">
@@ -305,7 +351,7 @@ const DangerZonesPage: FC = () => {
                  <CardContent>
                      {filteredReports.length > 0 ? (
                          <ul className="space-y-4 max-h-[40vh] overflow-y-auto pr-2">
-                             {filteredReports.map(report => (
+                             {filteredReports.slice(0, 5).map(report => (
                                 <Link key={report.id} href={`/reports/${report.id}`} className="block hover:bg-muted/50 p-3 rounded-lg transition-colors duration-150 border-b last:border-b-0">
                                  <li >
                                      <div className="flex justify-between items-center mb-1">
