@@ -9,19 +9,27 @@ import { cn } from '@/lib/utils';
 import { useEffect, useState } from 'react';
 import { LogIn, Menu} from 'lucide-react';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
-import { ThemeToggle } from '@/components/ui/theme-toggle'; // Import ThemeToggle
+import { ThemeToggle } from '@/components/ui/theme-toggle';
 import Image from 'next/image';
-import { motion } from 'framer-motion'; // Import motion
+import { motion } from 'framer-motion';
+import { useTheme } from "next-themes"; // Import useTheme
 
 const LandingNavBar: FC = () => {
   const router = useRouter();
   const [scrolled, setScrolled] = useState(false);
-  const [activeSection, setActiveSection] = useState<string | null>(null); // State for active section
+  const [activeSection, setActiveSection] = useState<string | null>(null);
+  const { resolvedTheme } = useTheme(); // Get the resolved theme
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
 
   // Function to calculate section offsets
   const getSectionOffsets = () => {
     // Include 'top' for the +Seguro link
-    const sections = ['top', 'what-we-do', 'how-it-works', 'risk-map', 'statistics']; // Added 'statistics'
+    const sections = ['top', 'what-we-do', 'how-it-works', 'risk-map', 'statistics'];
     const offsets: { [key: string]: number } = {};
     sections.forEach(id => {
       if (id === 'top') {
@@ -72,7 +80,7 @@ const LandingNavBar: FC = () => {
 
     window.addEventListener('scroll', handleScroll);
     return () => window.removeEventListener('scroll', handleScroll);
-  }, []); // Empty dependency array ensures this runs only on mount and unmount
+  }, []);
 
   const handleScrollTo = (id: string) => (e: React.MouseEvent<HTMLAnchorElement>) => {
     e.preventDefault();
@@ -88,12 +96,17 @@ const LandingNavBar: FC = () => {
           });
         }
     }
-     // Update hash in URL without triggering full navigation (optional)
-     // history.pushState(null, '', `#${id}`);
   };
 
   // Helper to determine if a link is active
   const isLinkActive = (id: string) => activeSection === id;
+
+  if (!mounted) { // Prevent rendering until theme is resolved on client
+    return null;
+  }
+
+  const logoSrc = resolvedTheme === 'dark' ? '/logo_dark.webp' : '/logo.webp';
+
 
   return (
     <header
@@ -107,7 +120,7 @@ const LandingNavBar: FC = () => {
         scrolled ? "opacity-100 translate-y-0 pointer-events-auto" : "opacity-0 -translate-y-full pointer-events-none"
       )}>
         <nav className={cn(
-          "flex items-center gap-2 text-sm font-medium rounded-full px-3 py-2.5 transition-all duration-300 ease-in-out", // Reduced gap from gap-3 to gap-2
+          "flex items-center gap-2 text-sm font-medium rounded-full px-3 py-2.5 transition-all duration-300 ease-in-out",
           scrolled
             ? "bg-background/70 backdrop-blur-lg shadow-xl border border-border/50 scale-100"
             : "bg-white/5 backdrop-blur-md scale-95 shadow-lg border border-white/20"
@@ -125,7 +138,7 @@ const LandingNavBar: FC = () => {
             aria-current={isLinkActive('top') ? 'page' : undefined}
           >
             <motion.div whileHover={{ scale: 1.1, rotate: 3 }} transition={{ type: "spring", stiffness: 400, damping: 10 }}>
-              <Image src="/logo.webp" alt="+Seguro Logo" width={24} height={24} data-ai-hint="app logo"/>
+              <Image src={logoSrc} alt="+Seguro Logo" width={24} height={24} data-ai-hint="app logo"/>
             </motion.div>
             +Seguro
           </Link>
@@ -135,7 +148,7 @@ const LandingNavBar: FC = () => {
             { href: '#what-we-do', label: '¿Qué hacemos?' },
             { href: '#how-it-works', label: '¿Cómo funciona?' },
             { href: '#risk-map', label: 'Zonas de Riesgo' },
-            { href: '#statistics', label: 'Estadísticas' }, // Added statistics link
+            { href: '#statistics', label: 'Estadísticas' },
           ].map(({ href, label }) => (
             <Link
               key={href}
@@ -160,12 +173,12 @@ const LandingNavBar: FC = () => {
           >
             Iniciar Sesión
           </Link>
-          <ThemeToggle /> {/* Added ThemeToggle for desktop */}
+          <ThemeToggle />
         </nav>
       </div>
 
       {/* Mobile Menu with enhanced styles */}
-      <div className="absolute right-4 top-1/2 transform -translate-y-1/2 md:hidden pointer-events-auto flex items-center gap-2"> {/* Reduced gap from gap-3 */}
+      <div className="absolute right-4 top-1/2 transform -translate-y-1/2 md:hidden pointer-events-auto flex items-center gap-2">
         <Button
           asChild
           size="icon"
@@ -178,7 +191,7 @@ const LandingNavBar: FC = () => {
           </Link>
         </Button>
 
-        <ThemeToggle /> {/* Added ThemeToggle for mobile */}
+        <ThemeToggle />
 
         <Sheet>
           <SheetTrigger asChild>
@@ -201,7 +214,7 @@ const LandingNavBar: FC = () => {
                 { href: '#what-we-do', label: '¿Qué hacemos?' },
                 { href: '#how-it-works', label: '¿Cómo funciona?' },
                 { href: '#risk-map', label: 'Zonas de Riesgo' },
-                { href: '#statistics', label: 'Estadísticas' }, // Added statistics link
+                { href: '#statistics', label: 'Estadísticas' },
               ].map(({ href, label }) => (
                 <Link
                   key={href}

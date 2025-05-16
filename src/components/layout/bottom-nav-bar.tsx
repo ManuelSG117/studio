@@ -2,14 +2,14 @@
 "use client";
 
 import type { FC, ReactElement } from 'react';
-import React from 'react'; // Ensured React is imported
+import React from 'react';
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { Home, User, FileText, ShieldAlert, Globe, BarChart3, Menu, X, LogOut, Settings, Info } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
-import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger, SheetClose } from '@/components/ui/sheet';
+import { Sheet, SheetContent, SheetClose, SheetTrigger } from '@/components/ui/sheet';
 import { useAuth } from '@/context/AuthContext';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { signOut } from 'firebase/auth';
@@ -17,6 +17,7 @@ import { auth } from '@/lib/firebase/client';
 import { useToast } from '@/hooks/use-toast';
 import { ThemeToggle } from '@/components/ui/theme-toggle';
 import Image from 'next/image';
+import { useTheme } from "next-themes"; // Import useTheme
 
 interface NavLinkItem {
   href: string;
@@ -37,7 +38,7 @@ const DesktopNavItem: FC<NavLinkItem & { isActive: boolean }> = ({ href, label, 
     <Link
       href={href}
       className={cn(
-        "transition-all duration-300 px-4 py-2 rounded-full flex items-center gap-1.5 hover:scale-105 text-sm font-medium whitespace-nowrap", // Added whitespace-nowrap
+        "transition-all duration-300 px-4 py-2 rounded-full flex items-center gap-1.5 hover:scale-105 text-sm font-medium whitespace-nowrap",
         isActive
           ? "bg-primary/15 text-primary ring-1 ring-primary/20 shadow-inner"
           : "text-muted-foreground hover:text-primary hover:bg-primary/10"
@@ -59,6 +60,12 @@ export const TopNavBar: FC = () => {
   const [userName, setUserName] = useState<string | null>(null);
   const [userEmail, setUserEmail] = useState<string | null>(null);
   const [userPhotoURL, setUserPhotoURL] = useState<string | null>(null);
+  const { resolvedTheme } = useTheme(); // Get the resolved theme
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   useEffect(() => {
     if (isAuthenticated && user) {
@@ -78,7 +85,7 @@ export const TopNavBar: FC = () => {
     if (names.length === 1) return names[0][0]?.toUpperCase() || "?";
     return (names[0][0]?.toUpperCase() || "") + (names[names.length - 1][0]?.toUpperCase() || "");
   };
-  
+
   const handleLogout = async () => {
     try {
       await signOut(auth);
@@ -100,13 +107,34 @@ export const TopNavBar: FC = () => {
 
   const isLogoActive = pathname === "/about-creator";
 
+  if (!mounted) { // Prevent rendering until theme is resolved on client
+    return ( // Render a placeholder or simplified navbar during server-side rendering
+      <header className="fixed top-0 left-0 right-0 z-50 flex h-20 items-center justify-between md:justify-center px-4 md:px-8 bg-background/80 backdrop-blur-md shadow-sm border-b border-border/30 md:bg-transparent md:shadow-none md:border-none md:backdrop-blur-none">
+        {/* Placeholder for mobile logo */}
+        <div className="md:hidden flex items-center">
+          <div className="h-7 w-7 bg-muted rounded-full mr-2 animate-pulse"></div>
+          <div className="h-5 w-20 bg-muted rounded animate-pulse"></div>
+        </div>
+        {/* Placeholder for desktop nav */}
+        <div className="hidden md:flex">
+          <div className="h-10 w-64 bg-muted rounded-full animate-pulse"></div>
+        </div>
+        {/* Placeholder for mobile menu button */}
+        <div className="md:hidden flex items-center gap-2">
+          <div className="w-9 h-9 bg-muted rounded-full animate-pulse"></div>
+          <div className="w-9 h-9 bg-muted rounded-full animate-pulse"></div>
+        </div>
+      </header>
+    );
+  }
+
+  const logoSrc = resolvedTheme === 'dark' ? '/logo_dark.webp' : '/logo.webp';
+
+
   return (
     <header className={cn(
         'fixed top-0 left-0 right-0 z-50 flex h-20 items-center justify-between md:justify-center px-4 md:px-8 transition-all duration-300',
-      //en view mobile: fondo, blur, sombra, borde, solo en view mobile
-      'bg-background/80 backdrop-blur-md shadow-sm border-b border-border/30 md:bg-transparent md:shadow-none md:border-none',
-      //quita el fondo, sombra, borde en view desktop
-      'md:bg-transparent md:shadow-none md:border-none md:backdrop-blur-none'
+      'bg-background/80 backdrop-blur-md shadow-sm border-b border-border/30 md:bg-transparent md:shadow-none md:border-none md:backdrop-blur-none'
     )}>
        <div className={cn(
         "absolute left-1/2 top-1/2 transform -translate-x-1/2 -translate-y-1/2 transition-all duration-300 ease-in-out hidden md:flex",
@@ -118,12 +146,12 @@ export const TopNavBar: FC = () => {
                 className={cn(
                 "transition-all duration-300 px-3 py-2.5 rounded-full flex items-center gap-2 hover:scale-105 font-semibold",
                 isLogoActive
-                    ? "bg-primary/20 text-primary shadow-inner ring-1 ring-primary/30" 
+                    ? "bg-primary/20 text-primary shadow-inner ring-1 ring-primary/30"
                     : "text-muted-foreground hover:text-primary hover:bg-primary/10"
                 )}
                 aria-current={isLogoActive ? 'page' : undefined}
             >
-                 <Image src="/logo.webp" alt="+Seguro Logo" width={24} height={24} data-ai-hint="app logo"/>
+                 <Image src={logoSrc} alt="+Seguro Logo" width={24} height={24} data-ai-hint="app logo"/>
                  +Seguro
             </Link>
 
@@ -139,7 +167,7 @@ export const TopNavBar: FC = () => {
       {/* Mobile View: Logo on left, Menu button on right */}
       <div className="md:hidden flex items-center justify-between w-full">
          <Link href="/about-creator" className="text-xl font-bold text-primary flex items-center">
-            <Image src="/logo.webp" alt="+Seguro Logo" width={28} height={28} className="mr-2" data-ai-hint="app logo small"/>
+            <Image src={logoSrc} alt="+Seguro Logo" width={28} height={28} className="mr-2" data-ai-hint="app logo small"/>
             +Seguro
         </Link>
         <div className="flex items-center gap-2">

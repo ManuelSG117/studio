@@ -4,25 +4,28 @@
 import type { FC } from 'react';
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import Link from 'next/link'; 
+import Link from 'next/link';
 import { useAuth } from '@/context/AuthContext';
 import { Button } from "@/components/ui/button";
 import { Card, CardContent} from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import {  AlertTriangle, ChevronRight, MapPin, Check, Mail, Phone, Facebook, Twitter, Instagram, Loader2, ImageIcon, UserCog, FileText, ThumbsUp, CheckCircle, ArrowUp, ArrowDown, Navigation, Heart, HelpCircle, ExternalLink } from 'lucide-react';
+import { AlertTriangle, ChevronRight, MapPin, Check, Mail, Phone, Facebook, Twitter, Instagram, Loader2, ImageIcon, UserCog, FileText, ThumbsUp, CheckCircle, ArrowUp, ArrowDown, Navigation, Heart, HelpCircle, ExternalLink } from 'lucide-react';
 import { useScroll, motion } from 'framer-motion';
 import Image from 'next/image';
 import { HoverCard, HoverCardTrigger, HoverCardContent } from "@/components/ui/hover-card";
 import LandingNavBar from '@/components/layout/landing-nav-bar';
 import { DotLottieReact } from '@lottiefiles/dotlottie-react';
+import { useTheme } from "next-themes"; // Import useTheme
 
 const HomePage: FC = () => {
   const router = useRouter();
   const { isAuthenticated, user, loading } = useAuth();
   const { scrollYProgress } = useScroll();
-  
+  const { resolvedTheme } = useTheme(); // Get the resolved theme
+  const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
+    setMounted(true); // Ensure component is mounted before using theme
     if (!loading && isAuthenticated) {
       if (user?.isProfileComplete) {
         router.replace('/welcome');
@@ -32,7 +35,7 @@ const HomePage: FC = () => {
     }
   }, [isAuthenticated, user, loading, router]);
 
-  if (loading) {
+  if (loading || !mounted) { // Also wait for mounted to avoid hydration issues with theme
     return (
       <main className="flex min-h-screen flex-col items-center justify-center p-4 sm:p-8 bg-secondary">
         <Loader2 className="h-12 w-12 animate-spin text-primary" />
@@ -41,43 +44,59 @@ const HomePage: FC = () => {
     );
   }
 
-  return (
-    <div className="min-h-screen flex flex-col bg-background"> 
-       <LandingNavBar /> 
-       
+  const logoSrc = resolvedTheme === 'dark' ? '/logo_dark.webp' : '/logo.webp';
 
-      <main className="flex-1 pt-0"> 
+  return (
+    <div className="min-h-screen flex flex-col bg-background">
+       <LandingNavBar />
+
+
+      <main className="flex-1 pt-0">
         {/* Hero Section */}
-        <section className="w-full py-16 md:py-24 lg:py-32 bg-gradient-to-b from-white to-secondary dark:from-background dark:to-secondary pt-24 md:pt-32 lg:pt-40"> 
+        <section className="w-full py-16 md:py-24 lg:py-32 bg-gradient-to-b from-white to-secondary dark:from-background dark:to-secondary pt-24 md:pt-32 lg:pt-40">
           <div className="container px-4 md:px-6">
-             <div className="flex flex-col items-center justify-center space-y-8 text-center"> 
+             <div className="flex flex-col items-center justify-center space-y-8 text-center">
                {/* Left Side - Text Content */}
-               <div className="flex-1 space-y-4 text-center"> 
+               <div className="flex-1 space-y-4 text-center">
                   <div className="space-y-2">
                      <Image
-                        src="/logo.webp"
+                        src={logoSrc} // Use dynamic logoSrc
                         alt="App Logo"
-                        width={200} 
+                        width={200}
                         height={200}
-                        className="mx-auto mb-4 " 
+                        className="mx-auto mb-4"
                         priority
                         data-ai-hint="app logo safety shield"
+                        style={{
+                          maskImage: 'radial-gradient(circle at center, black 70%, transparent 100%)',
+                          WebkitMaskImage: 'radial-gradient(circle at center, black 70%, transparent 100%)',
+                        }}
                      />
                     <h1 className="text-4xl font-bold tracking-tighter sm:text-5xl md:text-6xl">
                       <span className="text-primary">+Seguro</span>
                     </h1>
-                    <p className="mx-auto max-w-[700px] text-muted-foreground md:text-xl/relaxed lg:text-base/relaxed xl:text-xl/relaxed"> 
+                    <p className="mx-auto max-w-[700px] text-muted-foreground md:text-xl/relaxed lg:text-base/relaxed xl:text-xl/relaxed">
                        Tu plataforma para reportar incidentes y construir un Uruapan más seguro.
                     </p>
                   </div>
+                   {/* Lottie Animation placeholder */}
+                   <div className="relative h-64 w-full flex items-center justify-center -mt-8 -mb-8 sm:-mt-4 sm:-mb-4">
+                      <DotLottieReact
+                        src="https://lottie.host/7734755b-dc79-461d-9ce9-517fc33c65b4/N7eBj4r78D.lottie"
+                        loop
+                        autoplay
+                        className="w-full max-w-lg h-auto object-contain"
+                        data-ai-hint="security safety animation"
+                      />
+                    </div>
 
-                   <div className="w-full max-w-xs sm:max-w-sm mx-auto space-y-2"> 
+                   <div className="w-full max-w-xs sm:max-w-sm mx-auto space-y-2">
                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                       <div>
                           <Button
-                            onClick={() => router.push('/auth')} 
+                            onClick={() => router.push('/auth')}
                             variant="outline"
-                            className="w-full transition-all border-2 border-primary text-primary hover:bg-primary/60 h-11 rounded-full"
+                            className="w-full transition-all border-2 border-primary text-primary hover:bg-primary hover:text-primary-foreground h-11 rounded-full"
                             size="lg"
                            >
                             Iniciar Sesión
@@ -85,7 +104,7 @@ const HomePage: FC = () => {
                        </div>
                        <div>
                           <Button
-                            onClick={() => router.push('/auth')} 
+                            onClick={() => router.push('/auth')}
                             className="w-full transition-all bg-primary hover:bg-primary/90 text-primary-foreground h-11 rounded-full"
                             size="lg"
                            >
@@ -94,7 +113,7 @@ const HomePage: FC = () => {
                        </div>
                      </div>
                   </div>
-                 
+
                </div>
 
             </div>
@@ -104,7 +123,7 @@ const HomePage: FC = () => {
 
         {/* Report Types Section */}
          <section
-            id="what-we-do" 
+            id="what-we-do"
             className="w-full py-16 md:py-24 bg-gradient-to-b from-secondary to-white dark:from-secondary dark:to-background"
         >
           <div className="container px-4 md:px-6">
@@ -127,7 +146,7 @@ const HomePage: FC = () => {
                    <CardContent className="p-8">
                      <div className="flex justify-between items-start mb-6">
                        <div className="inline-flex items-center justify-center h-16 w-16 rounded-full bg-primary/10 group-hover:bg-primary/20 transition-colors duration-300">
-                         <UserCog className="h-8 w-8 text-primary" /> 
+                         <UserCog className="h-8 w-8 text-primary" />
                        </div>
                        <Badge variant="outline" className="bg-primary/10 text-primary border-primary/20">
                          Funcionarios
@@ -141,7 +160,7 @@ const HomePage: FC = () => {
                      </p>
                       <HoverCard>
                           <HoverCardTrigger asChild>
-                            
+
                             <div>
                               <Button
                                 variant="outline"
@@ -193,7 +212,7 @@ const HomePage: FC = () => {
                      </p>
                       <HoverCard>
                         <HoverCardTrigger asChild>
-                           
+
                            <div>
                             <Button
                               variant="outline"
@@ -228,7 +247,7 @@ const HomePage: FC = () => {
 
         {/* Enhanced How It Works Section */}
         <section
-          id="how-it-works" 
+          id="how-it-works"
           className="w-full py-16 md:py-24 lg:py-32 bg-gradient-to-b from-white to-secondary dark:from-background dark:to-secondary overflow-hidden"
         >
           <div className="container px-4 md:px-6">
@@ -261,7 +280,7 @@ const HomePage: FC = () => {
                       Regístrate rápidamente con tu correo electrónico o usa tu cuenta de Google. En pocos minutos podrás añadir tu información y personalizar tu perfil, además de obtener mayor confianza al verificarlo.
                     </p>
                     <div className="mt-5 flex justify-start md:justify-end">
-                      <Button variant="outline" className="border-primary text-primary hover:bg-primary/60 flex items-center rounded-full" onClick={() => router.push('/auth')}>
+                      <Button variant="outline" className="border-primary text-primary hover:bg-primary hover:text-primary-foreground flex items-center rounded-full" onClick={() => router.push('/auth')}>
                         Crear cuenta
                         <ChevronRight className="ml-1 h-4 w-4" />
                       </Button>
@@ -280,19 +299,19 @@ const HomePage: FC = () => {
                             {/* Simulated form content */}
                             <div className="space-y-3 mb-4">
                                 <div className="space-y-1">
-                                   <div className="h-3 w-1/4 bg-muted rounded mb-1 text-xs text-muted-foreground/70">Correo</div>
+                                   <label className="h-3 w-1/4 bg-muted rounded mb-1 text-xs text-muted-foreground/70 block">Correo</label>
                                    <div className="h-9 w-full bg-muted/70 rounded border border-input flex items-center px-2">
                                       <span className="text-sm text-muted-foreground/70">usuario@ejemplo.com</span>
                                    </div>
                                 </div>
                                 <div className="space-y-1">
-                                  <div className="h-3 w-1/3 bg-muted rounded mb-1 text-xs text-muted-foreground/70">Contraseña</div>
+                                  <label className="h-3 w-1/3 bg-muted rounded mb-1 text-xs text-muted-foreground/70 block">Contraseña</label>
                                   <div className="h-9 w-full bg-muted/70 rounded border border-input flex items-center px-2">
                                       <span className="text-sm text-muted-foreground/70">••••••••</span>
                                   </div>
                                 </div>
                                 <div className="space-y-1">
-                                  <div className="h-3 w-2/5 bg-muted rounded mb-1 text-xs text-muted-foreground/70">Confirmar</div>
+                                  <label className="h-3 w-2/5 bg-muted rounded mb-1 text-xs text-muted-foreground/70 block">Confirmar</label>
                                   <div className="h-9 w-full bg-muted/70 rounded border border-input flex items-center px-2">
                                       <span className="text-sm text-muted-foreground/70">••••••••</span>
                                   </div>
@@ -323,9 +342,9 @@ const HomePage: FC = () => {
                             {/* Simulated report form content */}
                            <div className="space-y-3 mb-4">
                               <div className="flex justify-between gap-2">
-                                  <div className="p-2 w-1/2 border border-destructive/30 rounded-md bg-destructive/5 text-center">
+                                  <div className="p-2 w-1/2 border-2 border-destructive/50 rounded-md bg-destructive/10 text-center ring-1 ring-destructive/30">
                                        <AlertTriangle className="h-4 w-4 text-destructive mx-auto mb-1" />
-                                       <span className="text-xs text-destructive">Incidente</span>
+                                       <span className="text-xs text-destructive font-medium">Incidente</span>
                                   </div>
                                    <div className="p-2 w-1/2 border border-input rounded-md bg-muted/50 text-center opacity-60">
                                        <UserCog className="h-4 w-4 text-muted-foreground mx-auto mb-1" />
@@ -333,19 +352,19 @@ const HomePage: FC = () => {
                                   </div>
                               </div>
                               <div className="space-y-1">
-                                 <div className="h-3 w-1/4 bg-muted rounded mb-1 text-xs">Título</div>
+                                 <label className="h-3 w-1/4 bg-muted rounded mb-1 text-xs block">Título</label>
                                  <div className="h-9 w-full bg-muted/70 rounded border border-input flex items-center px-2">
                                      <span className="text-sm text-muted-foreground/70">Robo en Calle Principal</span>
                                  </div>
                               </div>
                                <div className="space-y-1">
-                                 <div className="h-3 w-1/3 bg-muted rounded mb-1 text-xs">Descripción</div>
+                                 <label className="h-3 w-1/3 bg-muted rounded mb-1 text-xs block">Descripción</label>
                                  <div className="h-16 w-full bg-muted/70 rounded border border-input p-2">
                                      <p className="text-xs text-muted-foreground/70 leading-snug">Ocurrió un asalto a mano armada cerca de la esquina...</p>
                                  </div>
                               </div>
                               <div className="space-y-1">
-                                  <div className="h-3 w-1/4 bg-muted rounded mb-1 text-xs">Ubicación</div>
+                                  <label className="h-3 w-1/4 bg-muted rounded mb-1 text-xs block">Ubicación</label>
                                  <div className="h-9 w-full bg-muted/70 rounded border border-input flex items-center px-2 gap-1">
                                      <MapPin className="h-3 w-3 text-muted-foreground/50"/>
                                      <span className="text-sm text-muted-foreground/70">Calle Principal #123, Col. Centro</span>
@@ -374,7 +393,7 @@ const HomePage: FC = () => {
                       Describe el incidente con precisión, añade la ubicación exacta en el mapa, adjunta fotografías o videos como evidencia y clasifica correctamente el tipo de incidente. Cuanto más detallado sea tu reporte, más útil será para la comunidad.
                     </p>
                     <div className="mt-5 flex justify-start">
-                      <Button variant="outline" className="border-destructive text-destructive hover:bg-destructive/60 flex items-center rounded-full" onClick={() => router.push('/auth')}>
+                      <Button variant="outline" className="border-destructive text-destructive hover:bg-destructive hover:text-destructive-foreground flex items-center rounded-full" onClick={() => router.push('/auth')}>
                         Crear reporte
                         <ChevronRight className="ml-1 h-4 w-4" />
                       </Button>
@@ -396,7 +415,7 @@ const HomePage: FC = () => {
                       Visualiza los reportes de otros usuarios en el mapa comunitario. Revisa la información y valida los reportes que consideres precisos para ayudar a otros a mantenerse informados.
                     </p>
                      <div className="mt-5 flex justify-start md:justify-end">
-                      <Button variant="outline" className="border-accent text-accent hover:bg-accent/60 flex items-center rounded-full" onClick={() => router.push('/auth')}> 
+                      <Button variant="outline" className="border-accent text-accent hover:bg-accent hover:text-accent-foreground flex items-center rounded-full" onClick={() => router.push('/auth')}>
                         Explorar Reportes
                         <ChevronRight className="ml-1 h-4 w-4" />
                       </Button>
@@ -409,7 +428,7 @@ const HomePage: FC = () => {
                            <div className="flex justify-between items-center mb-4">
                              <h4 className="text-base font-medium text-accent">Reportes Comunitarios</h4>
                              <span className="inline-flex items-center justify-center h-6 w-6 rounded-full bg-accent/10 text-accent">
-                                <FileText className="h-3 w-3" /> 
+                                <FileText className="h-3 w-3" />
                               </span>
                            </div>
                            {/* Simulated list of reports */}
@@ -477,13 +496,13 @@ const HomePage: FC = () => {
                                      Dos sujetos en motocicleta intentaron arrebatar un bolso en la esquina...
                                   </p>
                                    <div className="flex justify-end items-center space-x-1 bg-muted p-1 rounded-full">
-                                       <div className="h-6 w-6 rounded-full flex items-center justify-center cursor-pointer bg-destructive/10 text-destructive hover:bg-destructive/20">
+                                       <div className="h-6 w-6 rounded-full flex items-center justify-center cursor-pointer bg-red-600/20 text-red-600 hover:bg-red-600/30">
                                           <ArrowDown className="h-3.5 w-3.5" />
                                        </div>
                                        <span className="text-sm font-medium text-foreground tabular-nums w-6 text-center">
                                           12
                                        </span>
-                                       <div className="h-6 w-6 rounded-full flex items-center justify-center cursor-pointer bg-blue-600/10 text-blue-600 hover:bg-blue-600/20">
+                                       <div className="h-6 w-6 rounded-full flex items-center justify-center cursor-pointer bg-green-600/20 text-green-600 hover:bg-green-600/30">
                                           <ArrowUp className="h-3.5 w-3.5" />
                                        </div>
                                    </div>
@@ -508,7 +527,7 @@ const HomePage: FC = () => {
                        Ayuda a la comunidad votando en los reportes. Tus votos aumentan la credibilidad y visibilidad de los incidentes, permitiendo que la información más relevante llegue a más personas y a las autoridades correspondientes.
                      </p>
                      <div className="mt-5 flex justify-start">
-                       <Button variant="outline" className="border-green-600 text-green-700 dark:border-green-500 dark:text-green-400 hover:bg-green-600/60 flex items-center rounded-full" onClick={() => router.push('/auth')}>
+                       <Button variant="outline" className="border-green-600 text-green-700 dark:border-green-500 dark:text-green-400 hover:bg-green-600 hover:text-white flex items-center rounded-full" onClick={() => router.push('/auth')}>
                          Ver Reportes de la Comunidad
                          <ChevronRight className="ml-1 h-4 w-4" />
                        </Button>
@@ -531,7 +550,7 @@ const HomePage: FC = () => {
 
          {/* Risk Map Section */}
           <section
-            id="risk-map" 
+            id="risk-map"
             className="w-full py-16 md:py-24 bg-gradient-to-b from-secondary to-white dark:from-secondary dark:to-background"
           >
             <div className="container px-4 md:px-6">
@@ -548,12 +567,12 @@ const HomePage: FC = () => {
               </div>
               <div className="rounded-2xl overflow-hidden">
                        {/* Lottie Animation for Risk Map */}
-                       <div className="relative h-96 w-full flex items-center justify-center"> 
+                       <div className="relative h-96 w-full flex items-center justify-center">
                           <DotLottieReact
                              src="https://lottie.host/e575a174-b6c9-45e1-86bf-f712aad9cf22/yWmVrRdEOm.lottie"
                              loop
                              autoplay
-                             className="w-full max-w-3xl h-auto object-contain" 
+                             className="w-full max-w-3xl h-auto object-contain"
                              data-ai-hint="map location risk animation"
                           />
                        </div>
@@ -582,19 +601,19 @@ const HomePage: FC = () => {
 
 
                {/* Increase the size of the lottie animation by making the container full width */}
-               <div className="relative p-0 rounded-2xl overflow-hidden w-full"> 
+               <div className="relative p-0 rounded-2xl overflow-hidden w-full">
                   {/* Lottie Animation */}
-                  <div className="relative h-96 w-full flex items-center justify-center"> 
+                  <div className="relative h-96 w-full flex items-center justify-center">
                      <DotLottieReact
                         src="https://lottie.host/17494221-1efe-4d0d-ab48-bed230af095d/zJNz64aYIu.lottie"
                         loop={true}
                         autoplay
-                        className="w-full max-w-4xl h-auto object-contain" 
+                        className="w-full max-w-4xl h-auto object-contain"
                         data-ai-hint="data graph animation" />
                   </div>
                </div>
               <div className="text-center mt-10">
-                  <Button variant="outline" className="border-accent text-accent hover:bg-accent/10 flex items-center mx-auto rounded-full" onClick={() => router.push('/auth')}> 
+                  <Button variant="outline" className="border-accent text-accent hover:bg-accent hover:text-accent-foreground flex items-center mx-auto rounded-full" onClick={() => router.push('/auth')}>
                       Explorar Estadísticas Completas
                       <ChevronRight className="ml-1 h-4 w-4" />
                   </Button>
