@@ -9,7 +9,7 @@ import { useAuth } from '@/context/AuthContext';
 import { Button } from "@/components/ui/button";
 import { Card, CardContent} from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { AlertTriangle, ChevronRight, MapPin, Check, Mail, Phone, Facebook , Instagram, Loader2, ImageIcon, UserCog, FileText, ThumbsUp, CheckCircle, ArrowUp, ArrowDown, Navigation, Heart, HelpCircle, ExternalLink } from 'lucide-react';
+import { AlertTriangle, ChevronRight, MapPin, Check, Mail, Phone, Facebook , Instagram, Loader2, ImageIcon, UserCog, FileText, ThumbsUp, CheckCircle, ArrowUp, ArrowDown, Navigation, Heart, HelpCircle, ExternalLink, ShieldCheck } from 'lucide-react';
 import { useScroll, motion } from 'framer-motion';
 import Image from 'next/image';
 import { HoverCard, HoverCardTrigger, HoverCardContent } from "@/components/ui/hover-card";
@@ -79,7 +79,16 @@ const HomePage: FC = () => {
                        Tu plataforma para reportar incidentes y construir un Uruapan más seguro.
                     </p>
                   </div>
-                  
+                   {/* Lottie Animation for Hero */}
+                  <div className="relative h-64 w-full flex items-center justify-center my-6">
+                      <DotLottieReact
+                        src="https://lottie.host/7734755b-dc79-461d-9ce9-517fc33c65b4/N7eBj4r78D.lottie"
+                        loop
+                        autoplay
+                        className="w-full max-w-md h-auto object-contain"
+                        data-ai-hint="security community animation"
+                      />
+                  </div>
             
 
                    <div className="w-full max-w-xs sm:max-w-sm mx-auto space-y-2">
@@ -626,10 +635,6 @@ const HomePage: FC = () => {
                  <p className="text-sm leading-relaxed">
                  Tu plataforma ciudadana para reportar incidentes y crear un Uruapan más seguro para todos. Tu participación es clave para el cambio y la transformación de nuestro Uruapan.
                  </p>
-                 <div className="flex flex-wrap gap-x-4 gap-y-1 text-xs">
-                   <Link href="/faq" className="hover:text-white transition-colors">Preguntas frecuentes</Link>
-                   <Link href="#" className="hover:text-white transition-colors">Privacidad</Link>
-                 </div>
              </div>
 
              <div className="space-y-4">
@@ -660,6 +665,10 @@ const HomePage: FC = () => {
                     </a>
                 </div>
              </div>
+           </div>
+            <div className="flex flex-wrap gap-x-4 gap-y-1 text-xs mt-8 border-t border-white/10 pt-6">
+               <Link href="/faq" className="hover:text-white transition-colors">Preguntas frecuentes</Link>
+               <Link href="/privacy-policy" className="hover:text-white transition-colors">Política de Privacidad</Link>
            </div>
 
            <div className="border-t border-white/10 mt-8 pt-6 text-center text-xs text-gray-400">
