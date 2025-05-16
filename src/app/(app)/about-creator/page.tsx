@@ -24,7 +24,7 @@ const AboutCreatorPage: FC = () => {
   const [isSuggestionDialogOpen, setIsSuggestionDialogOpen] = useState(false);
 
   const handleOpenSuggestionDialog = () => {
-    // TODO: Implement user level check here.
+    // TODO: Implement user level check here. (e.g., if user.level >= 3)
     // For now, we'll always open it for demonstration purposes.
     setIsSuggestionDialogOpen(true);
   };
@@ -140,12 +140,12 @@ const AboutCreatorPage: FC = () => {
               <section>
                 <div className="flex flex-col items-center text-center mb-6">
                   <Avatar className="w-32 h-32 border-4 border-primary mb-4 shadow-lg">
-                    <AvatarImage src="https://placehold.co/200x200.png" alt="Manuel Sandoval" data-ai-hint="creator avatar"/>
+                    <AvatarImage src="/me.webp" alt="Manuel Sandoval" data-ai-hint="creator avatar"/>
                     <AvatarFallback className="text-4xl bg-primary text-primary-foreground">MS</AvatarFallback>
                   </Avatar>
-                  <h2 className="text-3xl font-bold text-primary mb-1">Manuel Sandoval</h2>
+                  <h2 className="text-3xl font-bold text-primary mb-1">Manuel Sandoval González</h2>
                   <p className="text-base text-muted-foreground mt-1">
-                    <AnimatedTextCycle texts={["Ingeniero en Sistemas", "Desarrollador Full-Stack"]} duration={4000} className="inline-block" />
+                    <AnimatedTextCycle texts={["Ingeniero en Sistemas", "Desarrollador Full-Stack"]} duration={2500} className="inline-block whitespace-nowrap" />
                   </p>
                 </div>
 
