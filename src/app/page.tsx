@@ -80,6 +80,16 @@ const HomePage: FC = () => {
                     </p>
                   </div>
                   
+                   {/* Lottie Animation under subtitle */}
+                    <div className="w-full max-w-md mx-auto h-48 sm:h-64 md:h-72 flex items-center justify-center">
+                        <DotLottieReact
+                        src="https://lottie.host/7734755b-dc79-461d-9ce9-517fc33c65b4/N7eBj4r78D.lottie"
+                        loop
+                        autoplay
+                        className="w-full h-full object-contain"
+                        data-ai-hint="security shield animation"
+                        />
+                    </div>
 
                    <div className="w-full max-w-xs sm:max-w-sm mx-auto space-y-2">
                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
@@ -617,7 +627,7 @@ const HomePage: FC = () => {
       {/* Footer */}
        <footer className="bg-[#1C2B41] dark:bg-slate-900 text-gray-300 dark:text-slate-300 py-12">
          <div className="container mx-auto px-4">
-           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 items-start">
+           <div className="grid grid-cols-1 md:grid-cols-3 gap-8 items-start">
              <div className="space-y-4">
                  <h3 className="text-xl font-semibold text-white flex items-center">
                    <span className="text-primary">+</span>Seguro
@@ -626,7 +636,7 @@ const HomePage: FC = () => {
                  Tu plataforma ciudadana para reportar incidentes y crear un Uruapan más seguro para todos. Tu participación es clave para el cambio y la transformación de nuestro Uruapan.
                  </p>
                  <div className="flex flex-wrap gap-x-4 gap-y-1 text-xs">
-                   <Link href="#" className="hover:text-white transition-colors">Preguntas frecuentes</Link>
+                   <Link href="/faq" className="hover:text-white transition-colors">Preguntas frecuentes</Link>
                    <Link href="#" className="hover:text-white transition-colors">Privacidad</Link>
                  </div>
              </div>
@@ -634,7 +644,7 @@ const HomePage: FC = () => {
              <div className="space-y-4">
                  <h3 className="text-lg font-semibold text-white">Contacto</h3>
                  <div className="space-y-2 text-sm">
-                   <a href="mailto:contacto@masseguro.com" className="flex items-center gap-2 hover:text-white transition-colors">
+                   <a href="mailto:masseguro117@gmail.com" className="flex items-center gap-2 hover:text-white transition-colors">
                      <Mail className="h-4 w-4 text-primary" />
                      masseguro117@gmail.com
                    </a>
@@ -649,9 +659,9 @@ const HomePage: FC = () => {
                  </div>
              </div>
              <div className="space-y-4">
-                <h3 className="text-lg font-semibold text-white">Nuestras Redes Sociales</h3>
+                <h3 className="text-lg font-semibold text-white">Nuestras Redes</h3>
                 <div className="flex items-center space-x-3">
-                    <a href="#" aria-label="Facebook" className="bg-white/10 p-2 rounded-full hover:bg-white/20  transition-colors">
+                    <a href="https://www.facebook.com/profile.php?id=61576643662120" target="_blank" rel="noopener noreferrer" aria-label="Facebook" className="bg-white/10 p-2 rounded-full hover:bg-white/20  transition-colors">
                       <Facebook className="h-5 w-5" />
                     </a>
                     <a href="#" aria-label="Instagram" className="bg-white/10 p-2 rounded-full hover:bg-white/20 transition-colors">
@@ -673,3 +683,4 @@ const HomePage: FC = () => {
 };
 
 export default HomePage;
+    
