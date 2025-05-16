@@ -1,3 +1,4 @@
+
 "use client";
 
 import type { FC } from 'react';
@@ -122,13 +123,13 @@ const AboutCreatorPage: FC = () => {
                     </a>
                   </Button>
                   <Button asChild variant="outline" className="w-full justify-start text-left h-auto py-3 rounded-lg">
-                    <Link href="#">
+                    <a href="https://www.facebook.com/profile.php?id=61576643662120" target="_blank" rel="noopener noreferrer">
                       <Facebook className="h-5 w-5 mr-3 text-blue-600 flex-shrink-0" />
                       <div>
                         <span className="font-medium text-foreground">+Seguro en Facebook</span>
                         <span className="block text-xs text-muted-foreground">Actualizaciones (Próximamente) <ExternalLink className="inline h-3 w-3 ml-1" /></span>
                       </div>
-                    </Link>
+                    </a>
                   </Button>
                 </div>
               </section>
