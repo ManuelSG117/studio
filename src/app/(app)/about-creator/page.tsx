@@ -65,10 +65,10 @@ const AboutCreatorPage: FC = () => {
               >
                 <h2 className="text-xl font-semibold text-foreground mb-3">Motivación detrás de +Seguro</h2>
                 <p className="text-muted-foreground leading-relaxed">
-                  La plataforma +Seguro surge con el propósito de ser una herramienta ciudadana fundamental para Uruapan. Nuestro objetivo es que puedas reportar incidentes, consultar niveles de seguridad en diferentes zonas y estar al tanto de cualquier problemática que afecte a nuestra ciudad. Es esencial la participación activa y responsable de la comunidad: al utilizar la plataforma correctamente, garantizamos que los reportes sean legítimos y la información sea verídica, contribuyendo así a un entorno más seguro para todos.
+                  La plataforma +Seguro nace con la convicción de que una comunidad unida es una comunidad más fuerte. Surge como una herramienta fundamental para Uruapan, con el objetivo de que todos podamos contribuir a un entorno más seguro. Aquí puedes reportar incidentes, consultar niveles de seguridad en diferentes zonas y estar al tanto de cualquier problemática que afecte a nuestra ciudad. Cada reporte, cada voto, es un granito de arena esencial. Es crucial la participación activa y responsable de todos: al utilizar la plataforma correctamente, garantizamos que los reportes sean legítimos y la información sea verídica, logrando juntos un Uruapan mejor y más seguro para todos.
                 </p>
                 <p className="text-muted-foreground leading-relaxed mt-3">
-                  Mi principal motivación es mejorar la seguridad y el bienestar de nuestra comunidad, facilitando el acceso rápido a información relevante. Es importante destacar que este proyecto es una iniciativa personal y comunitaria,{' '}
+                  Mi principal motivación es mejorar la seguridad y el bienestar de nuestra comunidad, facilitando el acceso rápido a información relevante. Es importante destacar que este proyecto es una iniciativa personal,{' '}
                   <GradientText
                     from="from-primary"
                     to="to-destructive"
