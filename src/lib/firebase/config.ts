@@ -1,3 +1,4 @@
+
 // Import the functions you need from the SDKs you need
 import { initializeApp, getApps, type FirebaseOptions } from "firebase/app";
 // TODO: Add SDKs for Firebase products that you want to use
@@ -14,6 +15,13 @@ const firebaseConfig: FirebaseOptions = {
   appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID!,
   measurementId: process.env.NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID,
 };
+
+// Log the API key being used (ONLY FOR DEBUGGING - REMOVE IN PRODUCTION)
+console.log("Firebase API Key Used:", process.env.NEXT_PUBLIC_FIREBASE_API_KEY);
+if (!process.env.NEXT_PUBLIC_FIREBASE_API_KEY) {
+  console.error("Firebase API Key is missing! Check your .env.local file and ensure NEXT_PUBLIC_FIREBASE_API_KEY is set.");
+}
+
 
 // Initialize Firebase
 function initializeFirebaseApp() {
