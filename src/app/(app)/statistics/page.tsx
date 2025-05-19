@@ -9,7 +9,7 @@ import { auth, db } from '@/lib/firebase/client';
 import { collection, getDocs, query, orderBy, Timestamp, where } from "firebase/firestore";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
-import { LineChart as LineChartIcon, Loader2, CalendarRange, Hash, TrendingUp, AlertTriangle, UserCog, Filter, MapPin, TrendingDown, CalendarCheck, List, ThumbsDown, AtSign, CheckCircle, SlidersHorizontal, Search, RotateCcw, Activity } from 'lucide-react'; // Added MapPin
+import { LineChart as LineChartIcon, Loader2, CalendarRange, Hash, TrendingUp, AlertTriangle, UserCog, Filter, MapPin, TrendingDown, CalendarCheck, List, ThumbsDown, AtSign, CheckCircle, SlidersHorizontal, Search, RotateCcw, Activity } from 'lucide-react';
 import { Button } from "@/components/ui/button";
 import type { Report } from '@/app/(app)/welcome/page';
 import {
@@ -138,7 +138,7 @@ const StatisticsPage: FC = () => {
 
     // Calculate most reported colonia
     const coloniaCounts: Record<string, number> = {};
-    filteredReportsForCards.forEach((report) => { // Use the already filtered reports
+    filteredReportsForCards.forEach((report) => {
       const locationString = report.location || "";
       const parts = locationString.split(',').map(p => p.trim());
       let colonia = 'Desconocida';
@@ -176,7 +176,6 @@ const StatisticsPage: FC = () => {
       return;
     }
 
-    // Filter reports for the chart based on typeFilter (same as cards for consistency in average calc)
     const reportsForChartAndAverage = reports.filter(report =>
         typeFilter === 'Todos' ||
         (typeFilter === 'Funcionario' && report.reportType === 'funcionario') ||
@@ -185,7 +184,6 @@ const StatisticsPage: FC = () => {
 
 
     const reportsByPeriod: Record<string, { total: number, incident: number, officer: number }> = {};
-    // Ensure reportsForChartAndAverage is not empty before accessing createdAt
     const firstReportDate = reportsForChartAndAverage.length > 0 ? reportsForChartAndAverage[0].createdAt : new Date();
     const lastReportDate = reportsForChartAndAverage.length > 0 ? reportsForChartAndAverage[reportsForChartAndAverage.length - 1].createdAt : new Date();
 
@@ -223,9 +221,9 @@ const StatisticsPage: FC = () => {
         reportsByPeriod[periodKey] = { total: 0, incident: 0, officer: 0 };
     });
 
-    reports.forEach(report => { // Iterate through ALL reports for chart data, not filtered ones
+    reports.forEach(report => {
        const periodKey = formatKey(report.createdAt);
-       if (reportsByPeriod[periodKey]) { // Check if periodKey exists
+       if (reportsByPeriod[periodKey]) {
           reportsByPeriod[periodKey].total++;
             if (report.reportType === 'incidente') {
               reportsByPeriod[periodKey].incident++;
@@ -233,11 +231,13 @@ const StatisticsPage: FC = () => {
               reportsByPeriod[periodKey].officer++;
             }
        }
-       // For "most active day", use the filtered reports to match card context
-       if (filteredReportsForCards.includes(report)) {
-           const dayName = format(report.createdAt, 'EEEE', { locale: es });
-           dayOfWeekCounter[dayName] = (dayOfWeekCounter[dayName] || 0) + 1;
-       }
+    });
+
+    // Calculate most active day using filteredReportsForCards for context relevance
+    dayOfWeekCounter = {}; // Reset counter
+    filteredReportsForCards.forEach(report => {
+        const dayName = format(report.createdAt, 'EEEE', { locale: es });
+        dayOfWeekCounter[dayName] = (dayOfWeekCounter[dayName] || 0) + 1;
     });
 
     let maxCount = 0;
@@ -265,7 +265,7 @@ const StatisticsPage: FC = () => {
     const avg = numberOfPeriods > 0 ? totalForAverage / numberOfPeriods : 0;
     setAverageReports(avg);
 
-  }, [reports]); // Removed filteredReportsForCards from dependencies as it's derived from reports
+  }, [reports]);
 
   useEffect(() => {
     processReportsForChart(filterPeriod, reportTypeFilter);
@@ -283,11 +283,11 @@ const StatisticsPage: FC = () => {
   const chartConfig = {
     incidentCount: {
       label: "Incidentes",
-      color: "hsl(var(--chart-2))", // Blue
+      color: "hsl(var(--chart-2))",
     },
     officerCount: {
       label: "Funcionarios",
-      color: "hsl(var(--chart-1))", // Red
+      color: "hsl(var(--chart-1))",
     },
   } satisfies ChartConfig;
 
@@ -301,52 +301,46 @@ const StatisticsPage: FC = () => {
           case 'week':
             const partsW = value.split(/-W?/);
             if (partsW.length === 2) {
-                // Using just 'Sem W, YY' for brevity
                 return `Sem ${partsW[1]}, '${partsW[0].substring(2)}`;
             }
-            return value; // Fallback
+            return value;
           case 'month':
           default:
-             // Ensure a day is appended if not present for parseISO
              const dateM = parseISO(value.includes('-') ? value : value + '-01');
             return format(dateM, 'MMM yy', { locale: es });
         }
     } catch (e) {
         console.warn("Error formatting X-axis tick:", value, e);
-        return value; // Return original value on error
+        return value;
     }
   };
 
     const formatTooltipLabel = (label: string) => {
         try {
-            if (typeof label !== 'string') return String(label); // Ensure label is a string
+            if (typeof label !== 'string') return String(label);
             switch (filterPeriod) {
                 case 'day':
-                    return format(parseISO(label), 'PPP', { locale: es }); // Format: 2 de may. de 2024
+                    return format(parseISO(label), 'PPP', { locale: es });
                  case 'week':
-                    // Assuming label is 'YYYY-WW'
-                    const partsW = label.split(/-W?/); // Supports "YYYY-WW" or "YYYYWW"
+                    const partsW = label.split(/-W?/);
                     if (partsW.length === 2) {
                         const yearW = parseInt(partsW[0]);
                         const weekNum = parseInt(partsW[1]);
-                        // Calculate start of the week
-                        const firstDayOfYear = new Date(yearW, 0, 1); // January 1st of the year
-                        const daysOffset = (weekNum - 1) * 7; // Offset for the week number
-                        // Get an approximate date within that week
+                        const firstDayOfYear = new Date(yearW, 0, 1);
+                        const daysOffset = (weekNum - 1) * 7;
                         const approxWeekStart = new Date(firstDayOfYear.setDate(firstDayOfYear.getDate() + daysOffset));
-                        const weekStartDate = startOfWeek(approxWeekStart, { locale: es, weekStartsOn: 1 /* Monday */ });
-                        const weekEndDate = endOfWeek(approxWeekStart, { locale: es, weekStartsOn: 1 /* Monday */ });
+                        const weekStartDate = startOfWeek(approxWeekStart, { locale: es, weekStartsOn: 1 });
+                        const weekEndDate = endOfWeek(approxWeekStart, { locale: es, weekStartsOn: 1 });
                         return `Semana ${weekNum} (${format(weekStartDate, 'd MMM', { locale: es })} - ${format(weekEndDate, 'd MMM yyyy', { locale: es })})`;
                     }
-                    return label; // Fallback
+                    return label;
                 case 'month':
                 default:
-                    // Ensure a day is appended if not present for parseISO
                     return format(parseISO(label.includes('-') ? label : label + '-01'), 'MMMM yyyy', { locale: es });
             }
         } catch (e) {
             console.warn("Error formatting tooltip label:", label, e);
-            return label; // Return original label on error
+            return label;
         }
     };
 
@@ -363,22 +357,18 @@ const StatisticsPage: FC = () => {
     return (
       <main className="flex flex-col p-4 sm:p-6 bg-secondary min-h-screen">
          <div className="w-full max-w-7xl mx-auto space-y-6">
-            {/* Header Skeleton */}
             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-2 gap-2">
                 <div className="flex-1">
-                    <Skeleton className="h-8 w-48 sm:w-64" /> {/* Title */}
-                    <Skeleton className="h-4 w-full mt-2 sm:w-80 md:hidden" /> {/* Subtitle mobile */}
+                    <Skeleton className="h-8 w-48 sm:w-64" />
+                    <Skeleton className="h-4 w-full mt-2 sm:w-80 md:hidden" />
                 </div>
-                 {/* Filters Skeleton - Mobile */}
                  <div className="md:hidden flex self-end">
                      <Skeleton className="h-10 w-10 rounded-full" />
                  </div>
-                 {/* Filters Skeleton - Desktop */}
                  <div className="hidden md:flex flex-wrap justify-end gap-2 w-auto">
-                     <Skeleton className="h-9 w-36 rounded-md" /> {/* Example filter */}
+                     <Skeleton className="h-9 w-36 rounded-md" />
                  </div>
             </div>
-             {/* Stats Cards Skeleton */}
              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 mb-4">
                  {[...Array(4)].map((_, i) => (
                      <Card key={i} className="bg-card rounded-lg dark:bg-card/80">
@@ -393,7 +383,6 @@ const StatisticsPage: FC = () => {
                      </Card>
                  ))}
             </div>
-            {/* Chart Card Skeleton */}
             <Card className="w-full shadow-sm rounded-lg border border-border bg-card dark:bg-card/80">
                <CardHeader className="bg-muted/30 dark:bg-muted/40">
                    <Skeleton className="h-6 w-1/3 mb-2" />
@@ -411,7 +400,6 @@ const StatisticsPage: FC = () => {
   return (
     <main className="flex flex-col p-4 sm:p-6 bg-secondary min-h-screen">
          <div className="w-full max-w-7xl mx-auto space-y-8">
-              {/* Header Section */}
               <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-0 gap-4">
                   <div className="flex-1">
                       <h1 className="text-2xl md:text-3xl font-semibold text-foreground flex items-center">
@@ -422,9 +410,7 @@ const StatisticsPage: FC = () => {
                            Visualización de datos de reportes ciudadanos
                        </CardDescription>
                   </div>
-                  {/* Filters Section */}
                   <div className="w-full sm:w-auto">
-                        {/* Mobile Filter Button */}
                         <div className="md:hidden flex items-center justify-end gap-2 w-full">
                             <Button
                                 variant="outline"
@@ -439,7 +425,6 @@ const StatisticsPage: FC = () => {
                                 <SlidersHorizontal className={cn("h-5 w-5", isAnyFilterActive && "text-primary")} />
                             </Button>
                         </div>
-                        {/* Desktop Filters */}
                         <div className="hidden md:flex flex-row items-center gap-3 p-2 bg-card dark:bg-card/80 rounded-full shadow-md border border-border">
                             <span className="text-sm font-medium text-muted-foreground pl-2 pr-1 hidden md:inline">Filtrar por:</span>
                             <Select value={reportTypeFilter} onValueChange={(value) => setReportTypeFilter(value as ReportTypeFilter)}>
@@ -473,7 +458,6 @@ const StatisticsPage: FC = () => {
                                 </SelectContent>
                             </Select>
                         </div>
-                        {/* Mobile Filter Dialog */}
                         <Dialog open={filterModalOpen} onOpenChange={setFilterModalOpen}>
                             <DialogContent className="p-0 max-w-sm w-full rounded-2xl bg-card dark:bg-card/95">
                             <DialogHeader className="flex flex-row items-center justify-between px-4 pt-4 pb-2">
@@ -526,9 +510,8 @@ const StatisticsPage: FC = () => {
                     </div>
              </div>
 
-             {/* Stats Cards */}
              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
-                 <Card className="group rounded-lg shadow-sm overflow-hidden border border-border bg-green-100 dark:bg-green-900/30 dark:border-green-800/60">
+                 <Card className="group rounded-lg shadow-sm overflow-hidden border border-border bg-green-100 dark:bg-green-900/30 dark:border-green-800/60 dark:bg-green-900/25 dark:border-green-700/50">
                      <div className="p-3 flex flex-col justify-between h-full">
                          <div className="flex justify-between items-start">
                             <p className="text-xs font-medium text-green-900 dark:text-green-200 flex items-center">
@@ -539,9 +522,9 @@ const StatisticsPage: FC = () => {
                             </span>
                          </div>
                          <div className="mt-2">
-                            <AnimatedNumber 
-                               value={totalReports} 
-                               className="text-2xl sm:text-3xl font-bold text-green-900 dark:text-green-100 block" 
+                            <AnimatedNumber
+                               value={totalReports}
+                               className="text-2xl sm:text-3xl font-bold text-green-900 dark:text-green-100 block"
                             />
                             <p className="text-xs text-green-700 dark:text-green-300 mt-1 flex items-center">
                                <TrendingUp className="h-3 w-3 mr-0.5"/> {averageReports.toFixed(1)} {averageLabel}
@@ -550,7 +533,7 @@ const StatisticsPage: FC = () => {
                      </div>
                  </Card>
 
-                 <Card className="group rounded-lg shadow-sm overflow-hidden border border-border bg-red-100 dark:bg-red-900/30 dark:border-red-800/60">
+                 <Card className="group rounded-lg shadow-sm overflow-hidden border border-border bg-red-100 dark:bg-red-900/30 dark:border-red-800/60 dark:bg-red-900/25 dark:border-red-700/50">
                      <div className="p-3 flex flex-col justify-between h-full">
                          <div className="flex justify-between items-start">
                             <p className="text-xs font-medium text-red-900 dark:text-red-200 flex items-center">
@@ -561,19 +544,18 @@ const StatisticsPage: FC = () => {
                             </span>
                          </div>
                          <div className="mt-2">
-                            <AnimatedNumber 
-                               value={officerReportsCount} 
-                               className="text-2xl sm:text-3xl font-bold text-red-900 dark:text-red-100 block" 
+                            <AnimatedNumber
+                               value={officerReportsCount}
+                               className="text-2xl sm:text-3xl font-bold text-red-900 dark:text-red-100 block"
                             />
-                            {/* Placeholder for trend, can be dynamic later */}
                             <p className="text-xs text-red-700 dark:text-red-300 mt-1 flex items-center">
-                               <Activity className="h-3 w-3 mr-0.5"/> Ver detalle
+                               <CalendarCheck className="h-3 w-3 mr-0.5"/> {mostActiveDay || 'N/A'} día más común
                             </p>
                          </div>
                      </div>
                  </Card>
 
-                 <Card className="group rounded-lg shadow-sm overflow-hidden border border-border bg-blue-100 dark:bg-blue-900/30 dark:border-blue-800/60">
+                 <Card className="group rounded-lg shadow-sm overflow-hidden border border-border bg-blue-100 dark:bg-blue-900/30 dark:border-blue-800/60 dark:bg-blue-900/25 dark:border-blue-700/50">
                      <div className="p-3 flex flex-col justify-between h-full">
                          <div className="flex justify-between items-start">
                             <p className="text-xs font-medium text-blue-900 dark:text-blue-200 flex items-center">
@@ -584,9 +566,9 @@ const StatisticsPage: FC = () => {
                             </span>
                          </div>
                          <div className="mt-2">
-                            <AnimatedNumber 
-                               value={incidentReportsCount} 
-                               className="text-2xl sm:text-3xl font-bold text-blue-900 dark:text-blue-100 block" 
+                            <AnimatedNumber
+                               value={incidentReportsCount}
+                               className="text-2xl sm:text-3xl font-bold text-blue-900 dark:text-blue-100 block"
                             />
                             <p className="text-xs text-blue-700 dark:text-blue-300 mt-1 flex items-center">
                                <CalendarCheck className="h-3 w-3 mr-0.5"/> {mostActiveDay || 'N/A'} día más común
@@ -595,7 +577,7 @@ const StatisticsPage: FC = () => {
                      </div>
                  </Card>
 
-                 <Card className="group rounded-lg shadow-sm overflow-hidden border border-border bg-orange-100 dark:bg-orange-900/30 dark:border-orange-800/60">
+                 <Card className="group rounded-lg shadow-sm overflow-hidden border border-border bg-orange-100 dark:bg-orange-900/30 dark:border-orange-800/60 dark:bg-orange-900/25 dark:border-orange-700/50">
                      <div className="p-3 flex flex-col justify-between h-full">
                          <div className="flex justify-between items-start">
                             <p className="text-xs font-medium text-orange-900 dark:text-orange-200 flex items-center">
@@ -606,7 +588,7 @@ const StatisticsPage: FC = () => {
                             </span>
                          </div>
                          <div className="mt-2">
-                            <div className="text-xl sm:text-2xl font-bold text-orange-900 dark:text-orange-100 block truncate" title={mostReportedColonia || 'Calculando...'}>
+                            <div className="text-xl sm:text-2xl font-bold text-orange-900 dark:text-orange-100 block break-words" title={mostReportedColonia || 'Calculando...'}>
                                 {mostReportedColonia || 'Calculando...'}
                             </div>
                             <p className="text-xs text-orange-800 dark:text-orange-300 mt-1 flex items-center">
@@ -617,7 +599,6 @@ const StatisticsPage: FC = () => {
                  </Card>
              </div>
 
-             {/* Chart Section */}
              <Card className="w-full shadow-lg rounded-xl border border-border bg-card dark:bg-card/80 overflow-hidden">
                 <CardHeader className="bg-muted/30 dark:bg-muted/40 p-4 sm:p-5 border-b border-border/50 flex flex-col md:flex-row items-start md:items-center justify-between">
                      <div>
@@ -638,7 +619,7 @@ const StatisticsPage: FC = () => {
                                   top: 10,
                                   right: 30,
                                   left: 5,
-                                  bottom: filterPeriod === 'day' && chartData.length > 7 ? 50 : 30, // Increased bottom margin for angled labels
+                                  bottom: filterPeriod === 'day' && chartData.length > 7 ? 50 : 30,
                                 }}
                             >
                                 <defs>
@@ -658,7 +639,7 @@ const StatisticsPage: FC = () => {
                                    axisLine={false}
                                    tickMargin={10}
                                    tickFormatter={formatXAxisTick}
-                                   interval={chartData.length > 10 ? Math.floor(chartData.length / (filterPeriod === 'day' ? 5 : 7)) : 0} // Adjust interval based on data length and period
+                                   interval={chartData.length > 10 ? Math.floor(chartData.length / (filterPeriod === 'day' ? 5 : 7)) : 0}
                                    angle={filterPeriod === 'day' && chartData.length > 7 ? -45 : 0}
                                    textAnchor={filterPeriod === 'day' && chartData.length > 7 ? 'end' : 'middle'}
                                    height={filterPeriod === 'day' && chartData.length > 7 ? 60 : 40}
@@ -676,7 +657,6 @@ const StatisticsPage: FC = () => {
                                     cursor={{ fill: "hsl(var(--accent) / 0.1)" }}
                                     content={<ChartTooltipContent indicator="dot" labelFormatter={formatTooltipLabel} />}
                                 />
-                                 {/* Render Officer Reports Area first (Red) */}
                                  <Area
                                    dataKey="officerCount"
                                    type="monotone"
@@ -687,13 +667,12 @@ const StatisticsPage: FC = () => {
                                    strokeWidth={2}
                                    dot={chartData.length < 30}
                                  />
-                                {/* Render Incident Reports Area second (Blue) */}
                                 <Area
                                    dataKey="incidentCount"
                                    type="monotone"
                                    fill="url(#fillIncident)"
                                    stroke={chartConfig.incidentCount.color}
-                                   stackId="b" // Different stackId to overlay if needed, or same to stack
+                                   stackId="b"
                                    name={chartConfig.incidentCount.label}
                                    strokeWidth={2}
                                    dot={chartData.length < 30}
