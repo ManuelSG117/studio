@@ -106,12 +106,12 @@ const DangerZonesPage: FC = () => {
   }, [reports, reportTypeFilter]);
 
   useEffect(() => {
-    if (!isLoading && isClient && filteredReports.length === 0 && viewMode === 'markers') {
+    if (!isLoading && isClient && filteredReports.length === 0 && mapViewMode === 'markers') {
       setShowNoReportsMapAlert(true);
     } else {
       setShowNoReportsMapAlert(false);
     }
-  }, [isLoading, isClient, filteredReports, viewMode]);
+  }, [isLoading, isClient, filteredReports, mapViewMode]);
 
   const isReportTypeFilterActive = reportTypeFilter !== 'Todos';
   const isMapViewModeFilterActive = mapViewMode !== 'heatmap'; // Assuming heatmap is default
