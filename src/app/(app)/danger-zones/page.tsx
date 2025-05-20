@@ -2,23 +2,23 @@
 "use client";
 
 import type { FC } from 'react';
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { onAuthStateChanged, type User } from 'firebase/auth';
 import { auth, db } from '@/lib/firebase/client';
 import { collection, getDocs, query, orderBy, Timestamp } from "firebase/firestore";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Button } from '@/components/ui/button';
-import { MapPin, AlertTriangle, Loader2, List, Map, Waves, Filter, SlidersHorizontal, RotateCcw } from 'lucide-react'; // Added SlidersHorizontal, RotateCcw
-import { ReportsMap } from '@/components/reports-map';
+import { cn, formatLocation } from "@/lib/utils";
+import { MapPin, AlertTriangle, Loader2, List, Map, Waves, Filter, SlidersHorizontal, RotateCcw } from 'lucide-react'; 
+import { ReportsMap, type ReportsMapRef } from '@/components/reports-map';
 import type { Report } from '@/app/(app)/welcome/page';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
 import Link from 'next/link';
-import { cn, formatLocation } from "@/lib/utils";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog'; // Import Dialog components
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog'; 
 import {
   AlertDialog,
   AlertDialogAction,
@@ -42,6 +42,7 @@ const DangerZonesPage: FC = () => {
   const [reportTypeFilter, setReportTypeFilter] = useState<ReportTypeFilter>('Todos');
   const [filterModalOpen, setFilterModalOpen] = useState(false);
   const [showNoReportsMapAlert, setShowNoReportsMapAlert] = useState(false);
+  const mapRef = useRef<ReportsMapRef>(null);
 
    useEffect(() => {
     setIsClient(true);
@@ -105,6 +106,35 @@ const DangerZonesPage: FC = () => {
     });
   }, [reports, reportTypeFilter]);
 
+  // Function to zoom to a specific colonia
+  const handleZoomToColonia = (colonia: string, index: number) => {
+    // Find all reports for this colonia
+    const coloniaReports = filteredReports.filter(report => {
+      const parts = report.location.split(',').map(p => p.trim());
+      const reportColonia = parts.length >= 2 ? parts[1] : (parts[0] || 'Desconocida');
+      return reportColonia === colonia && report.latitude && report.longitude;
+    });
+
+    if (coloniaReports.length > 0) {
+      // Get the first report's coordinates for this colonia
+      const { latitude, longitude } = coloniaReports[0];
+      if (latitude && longitude && window.google) {
+        // Scroll to map
+        document.getElementById('map-container')?.scrollIntoView({ behavior: 'smooth' });
+        
+        // Zoom to the location with a small delay to ensure the map is in view
+        setTimeout(() => {
+          const map = mapRef.current?.getMapInstance();
+          if (map) {
+            const center = new window.google.maps.LatLng(latitude, longitude);
+            map.setCenter(center);
+            map.setZoom(15 - Math.min(index, 2) * 2); // More zoom for higher ranks
+          }
+        }, 300);
+      }
+    }
+  };
+
   useEffect(() => {
     if (!isLoading && isClient && filteredReports.length === 0 && mapViewMode === 'markers') {
       setShowNoReportsMapAlert(true);
@@ -128,11 +158,14 @@ const DangerZonesPage: FC = () => {
       const parts = report.location.split(',').map(p => p.trim());
       let colonia = parts.length >= 2 ? parts[1] : (parts[0] || 'Desconocida');
       if (/^Lat: .+ Lon: .+$/.test(parts[0])) colonia = 'Coordenadas';
-      counts[colonia] = (counts[colonia] || 0) + 1;
+      if (colonia) { // Only count if we have a valid colonia name
+        counts[colonia] = (counts[colonia] || 0) + 1;
+      }
     });
     return Object.entries(counts)
       .sort((a, b) => b[1] - a[1])
-      .slice(0, 5);
+      .slice(0, 5)
+      .filter(([colonia]) => colonia !== 'Desconocida' && colonia !== 'Coordenadas');
   }, [filteredReports]);
 
   if (isLoading || !isClient) {
@@ -348,40 +381,116 @@ const DangerZonesPage: FC = () => {
                      </CardDescription>
                    </CardHeader>
                    <CardContent className="p-0 sm:p-0 h-[50vh] sm:h-[60vh]">
-                     {isClient && (
-                       <ReportsMap
-                         reports={filteredReports}
+                     <div id="map-container" className="w-full h-full rounded-lg overflow-hidden border border-border">
+                       <ReportsMap 
+                         ref={mapRef}
+                         reports={filteredReports} 
                          viewMode={mapViewMode}
-                         defaultZoom={13}
                        />
-                     )}
+                     </div>
                    </CardContent>
                  </Card>
                </div>
-               <div className="hidden md:block w-80 flex-shrink-0" style={{height: 'calc(60vh + 64px)'}}>
-                 <Card className="h-full shadow-sm rounded-lg border border-border bg-card flex flex-col">
-                   <CardHeader className="pb-2 pt-4 px-4">
-                     <CardTitle className="text-lg font-semibold text-primary">5 Colonias con Más Reportes</CardTitle>
+               <div className="hidden md:block w-96 flex-shrink-0" style={{height: 'calc(60vh + 64px)'}}>
+                 <Card className="h-full shadow-sm rounded-xl border border-border bg-card flex flex-col overflow-hidden">
+                   <CardHeader className="pb-3 pt-4 px-5 bg-gradient-to-r from-primary/5 to-primary/10 border-b">
+                     <div className="flex items-center justify-between">
+                       <CardTitle className="text-lg font-bold text-foreground flex items-center gap-2">
+                         <MapPin className="h-5 w-5 text-primary" />
+                         Top 5 Colonias
+                       </CardTitle>
+                       <span className="text-xs bg-primary/10 text-primary px-2 py-1 rounded-full font-medium">
+                         {filteredReports.length} reportes totales
+                       </span>
+                     </div>
+                     <p className="text-xs text-muted-foreground mt-1">
+                       Zonas con mayor actividad de reportes
+                     </p>
                    </CardHeader>
-                   <CardContent className="flex-1 flex flex-col"> {/* Removed justify-center and gap-2 */}
+                   <CardContent className="flex-1 flex flex-col p-0">
                      {topColonias.length === 0 ? (
-                       <div className="text-muted-foreground text-sm text-center py-8">No hay datos suficientes.</div>
+                       <div className="flex-1 flex flex-col items-center justify-center p-6 text-center">
+                         <AlertTriangle className="h-8 w-8 text-muted-foreground/50 mb-2" />
+                         <p className="text-muted-foreground text-sm">No hay suficientes datos para mostrar</p>
+                         <p className="text-xs text-muted-foreground/70 mt-1">Los reportes aparecerán aquí</p>
+                       </div>
                      ) : (
-                       <ul className="flex-1 flex flex-col justify-around py-2"> {/* Added flex-1, flex-col, justify-around, py-2 */}
-                         {topColonias.map(([colonia, count], idx) => (
-                           <li key={colonia}>
-                             <div className={cn(
-                               "flex items-center justify-between rounded-lg px-4 py-2 transition-colors cursor-pointer group",
-                               "hover:bg-primary/10 hover:text-primary"
-                             )}>
-                               <span className="font-medium group-hover:text-primary">{idx + 1}. {colonia}</span>
-                               <span className="text-xs font-semibold bg-primary/10 text-primary px-2 py-0.5 rounded-full group-hover:bg-primary group-hover:text-white transition-colors">{count} reporte{count > 1 ? 's' : ''}</span>
+                       <div className="divide-y divide-border/50">
+                         {topColonias.map(([colonia, count], idx) => {
+                           const maxCount = Math.max(...topColonias.map(([_, c]) => c as number));
+                           const percentage = Math.round(((count as number) / maxCount) * 100);
+                           const rankColors = [
+                             'from-yellow-500 to-amber-400', // 1st
+                             'from-slate-400 to-slate-300', // 2nd
+                             'from-amber-600 to-amber-400', // 3rd
+                             'from-slate-500 to-slate-400', // 4th
+                             'from-slate-600 to-slate-500'  // 5th
+                           ];
+
+                           return (
+                             <div 
+                               key={colonia}
+                               className={cn(
+                                 "group relative p-4 transition-all hover:bg-primary/5 cursor-pointer",
+                                 "hover:pl-5 hover:pr-3"
+                               )}
+                             >
+                               <div className="flex items-start justify-between gap-3">
+                                 <div className="flex items-center gap-3">
+                                   <div className={cn(
+                                     "flex-shrink-0 h-8 w-8 rounded-full flex items-center justify-center text-white font-bold text-sm",
+                                     idx < 3 ? 'bg-gradient-to-br' : 'bg-slate-600',
+                                     idx < 3 && rankColors[idx]
+                                   )}>
+                                     {idx + 1}
+                                   </div>
+                                   <div className="min-w-0">
+                                     <h4 className="font-medium text-foreground group-hover:text-primary line-clamp-1">
+                                       {colonia}
+                                     </h4>
+                                     <div className="w-full mt-1.5">
+                                       <div className="h-1.5 bg-muted rounded-full overflow-hidden">
+                                         <div 
+                                           className={cn(
+                                             "h-full rounded-full bg-gradient-to-r transition-all duration-500",
+                                             idx < 3 ? 'from-primary to-primary/70' : 'from-slate-400 to-slate-300'
+                                           )}
+                                           style={{ width: `${percentage}%` }}
+                                         />
+                                       </div>
+                                     </div>
+                                   </div>
+                                 </div>
+                                 <span className="inline-flex items-center justify-center h-6 px-2.5 rounded-full text-xs font-semibold bg-primary/10 text-primary group-hover:bg-primary group-hover:text-white transition-colors">
+                                   {count} {count === 1 ? 'reporte' : 'reportes'}
+                                 </span>
+                               </div>
+                               {idx === 0 && (
+                                 <div className="mt-3 pt-3 border-t border-border/50">
+                                   <Button 
+                                     variant="outline" 
+                                     size="sm" 
+                                     className="w-full text-xs h-8 gap-1.5"
+                                     onClick={() => handleZoomToColonia(colonia, idx)}
+                                   >
+                                     <MapPin className="h-3.5 w-3.5" />
+                                     Ver {colonia} en el mapa
+                                   </Button>
+                                 </div>
+                               )}
                              </div>
-                           </li>
-                         ))}
-                       </ul>
+                           );
+                         })}
+                       </div>
                      )}
                    </CardContent>
+                   {topColonias.length > 0 && (
+                     <CardFooter className="p-3 bg-muted/20 border-t border-border/50">
+                       <p className="text-xs text-muted-foreground text-center">
+                         Actualizado {new Date().toLocaleTimeString('es-MX', { hour: '2-digit', minute: '2-digit' })}
+                       </p>
+                     </CardFooter>
+                   )}
                  </Card>
                </div>
              </div>
