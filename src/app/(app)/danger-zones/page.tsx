@@ -420,11 +420,11 @@ const DangerZonesPage: FC = () => {
                            // Calculate max count once for all items
                            const maxCount = Math.max(...topColonias.map(([_, c]) => c as number));
                            const rankColors = [
-                             'from-yellow-500 to-amber-400', // 1st
-                             'from-slate-400 to-slate-300', // 2nd
-                             'from-amber-600 to-amber-400', // 3rd
-                             'from-slate-500 to-slate-400', // 4th
-                             'from-slate-600 to-slate-500'  // 5th
+                             'from-red-600 to-red-500',    // 1st (darkest red)
+                             'from-red-500 to-orange-500',  // 2nd
+                             'from-orange-500 to-amber-400', // 3rd
+                             'from-amber-400 to-yellow-400', // 4th
+                             'from-yellow-400 to-yellow-300' // 5th (lightest yellow)
                            ];
                            
                            return topColonias.map(([colonia, count], idx) => {
@@ -458,10 +458,11 @@ const DangerZonesPage: FC = () => {
                                            <div 
                                              className={cn(
                                                "h-full rounded-full transition-all duration-500",
-                                               idx === 0 ? 'bg-gradient-to-r from-yellow-500 to-amber-400' :
-                                               idx === 1 ? 'bg-gradient-to-r from-slate-400 to-slate-300' :
-                                               idx === 2 ? 'bg-gradient-to-r from-amber-600 to-amber-400' :
-                                               'bg-gradient-to-r from-slate-500 to-slate-400'
+                                               idx === 0 ? 'bg-gradient-to-r from-red-600 to-red-500' :
+                                               idx === 1 ? 'bg-gradient-to-r from-red-500 to-orange-500' :
+                                               idx === 2 ? 'bg-gradient-to-r from-orange-500 to-amber-400' :
+                                               idx === 3 ? 'bg-gradient-to-r from-amber-400 to-yellow-400' :
+                                               'bg-gradient-to-r from-yellow-400 to-yellow-300'
                                              )}
                                              style={{ width: `${percentage}%` }}
                                              title={`${count} ${count === 1 ? 'reporte' : 'reportes'}`}
