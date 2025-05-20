@@ -419,10 +419,35 @@ const ProfilePage: FC = () => {
               )}
               
               {(!userProfile?.address || !userProfile?.phoneNumber || !userProfile.dob) && (
-                  <p className="text-xs text-muted-foreground italic text-center pt-2">
-                    Completa tu perfil para una mejor experiencia.
-                  </p>
-                )}
+                <p className="text-xs text-muted-foreground italic text-center pt-2">
+                  Completa tu perfil para una mejor experiencia.
+                </p>
+              )}
+            </div>
+            
+            {/* Logout Button - Desktop Only - Moved to bottom of sidebar */}
+            <div className="hidden md:block mt-auto pt-6 border-t border-border/50">
+              <Button 
+                variant="ghost" 
+                size="sm" 
+                className="w-full justify-start gap-2 text-foreground/80 hover:text-foreground hover:bg-destructive/10 hover:text-destructive"
+                onClick={async () => {
+                  try {
+                    await signOut(auth);
+                    router.push('/auth');
+                  } catch (error) {
+                    console.error('Error al cerrar sesión:', error);
+                    toast({
+                      title: "Error",
+                      description: "No se pudo cerrar la sesión. Intenta de nuevo.",
+                      variant: "destructive",
+                    });
+                  }
+                }}
+              >
+                <LogOut className="h-4 w-4" />
+                Cerrar sesión
+              </Button>
             </div>
           </div>
 
