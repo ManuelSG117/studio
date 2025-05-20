@@ -416,9 +416,9 @@ const DangerZonesPage: FC = () => {
                        </div>
                      ) : (
                        <div className="divide-y divide-border/50">
-                         {topColonias.map(([colonia, count], idx) => {
+                         {(() => {
+                           // Calculate max count once for all items
                            const maxCount = Math.max(...topColonias.map(([_, c]) => c as number));
-                           const percentage = Math.round(((count as number) / maxCount) * 100);
                            const rankColors = [
                              'from-yellow-500 to-amber-400', // 1st
                              'from-slate-400 to-slate-300', // 2nd
@@ -426,61 +426,74 @@ const DangerZonesPage: FC = () => {
                              'from-slate-500 to-slate-400', // 4th
                              'from-slate-600 to-slate-500'  // 5th
                            ];
+                           
+                           return topColonias.map(([colonia, count], idx) => {
+                             // Calculate percentage relative to the max count
+                             const percentage = Math.round(((count as number) / maxCount) * 100);
 
-                           return (
-                             <div 
-                               key={colonia}
-                               className={cn(
-                                 "group relative p-4 transition-all hover:bg-primary/5 cursor-pointer",
-                                 "hover:pl-5 hover:pr-3"
-                               )}
-                             >
-                               <div className="flex items-start justify-between gap-3">
-                                 <div className="flex items-center gap-3">
-                                   <div className={cn(
-                                     "flex-shrink-0 h-8 w-8 rounded-full flex items-center justify-center text-white font-bold text-sm",
-                                     idx < 3 ? 'bg-gradient-to-br' : 'bg-slate-600',
-                                     idx < 3 && rankColors[idx]
-                                   )}>
-                                     {idx + 1}
-                                   </div>
-                                   <div className="min-w-0">
-                                     <h4 className="font-medium text-foreground group-hover:text-primary line-clamp-1">
-                                       {colonia}
-                                     </h4>
-                                     <div className="w-full mt-1.5">
-                                       <div className="h-1.5 bg-muted rounded-full overflow-hidden">
-                                         <div 
-                                           className={cn(
-                                             "h-full rounded-full bg-gradient-to-r transition-all duration-500",
-                                             idx < 3 ? 'from-primary to-primary/70' : 'from-slate-400 to-slate-300'
-                                           )}
-                                           style={{ width: `${percentage}%` }}
-                                         />
+                             return (
+                               <div 
+                                 key={colonia}
+                                 className={cn(
+                                   "group relative p-4 transition-all hover:bg-primary/5 cursor-pointer",
+                                   "hover:pl-5 hover:pr-3"
+                                 )}
+                                 onClick={() => handleZoomToColonia(colonia, idx)}
+                               >
+                                 <div className="flex items-center justify-between gap-3">
+                                   <div className="flex items-center gap-3 flex-1 min-w-0">
+                                     <div className={cn(
+                                       "flex-shrink-0 h-8 w-8 rounded-full flex items-center justify-center text-white font-bold text-sm",
+                                       idx < 3 ? 'bg-gradient-to-br' : 'bg-slate-600',
+                                       idx < 3 ? rankColors[idx] : ''
+                                     )}>
+                                       {idx + 1}
+                                     </div>
+                                     <div className="min-w-0 flex-1">
+                                       <h4 className="font-medium text-foreground line-clamp-1">
+                                         {colonia}
+                                       </h4>
+                                       <div className="w-full mt-1.5">
+                                         <div className="h-2 bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden">
+                                           <div 
+                                             className={cn(
+                                               "h-full rounded-full transition-all duration-500",
+                                               idx === 0 ? 'bg-gradient-to-r from-yellow-500 to-amber-400' :
+                                               idx === 1 ? 'bg-gradient-to-r from-slate-400 to-slate-300' :
+                                               idx === 2 ? 'bg-gradient-to-r from-amber-600 to-amber-400' :
+                                               'bg-gradient-to-r from-slate-500 to-slate-400'
+                                             )}
+                                             style={{ width: `${percentage}%` }}
+                                             title={`${count} ${count === 1 ? 'reporte' : 'reportes'}`}
+                                           />
+                                         </div>
                                        </div>
                                      </div>
                                    </div>
+                                   <span className="text-sm font-medium text-muted-foreground whitespace-nowrap ml-2">
+                                     {count} {count === 1 ? 'reporte' : 'reportes'}
+                                   </span>
                                  </div>
-                                 <span className="inline-flex items-center justify-center h-6 px-2.5 rounded-full text-xs font-semibold bg-primary/10 text-primary group-hover:bg-primary group-hover:text-white transition-colors">
-                                   {count} {count === 1 ? 'reporte' : 'reportes'}
-                                 </span>
+                                 {idx === 0 && (
+                                   <div className="mt-3 pt-3 border-t border-border/50">
+                                     <Button 
+                                       variant="outline" 
+                                       size="sm" 
+                                       className="w-full text-xs h-8 gap-1.5"
+                                       onClick={(e) => {
+                                         e.stopPropagation();
+                                         handleZoomToColonia(colonia, idx);
+                                       }}
+                                     >
+                                       <MapPin className="h-3.5 w-3.5" />
+                                       Ver {colonia} en el mapa
+                                     </Button>
+                                   </div>
+                                 )}
                                </div>
-                               {idx === 0 && (
-                                 <div className="mt-3 pt-3 border-t border-border/50">
-                                   <Button 
-                                     variant="outline" 
-                                     size="sm" 
-                                     className="w-full text-xs h-8 gap-1.5"
-                                     onClick={() => handleZoomToColonia(colonia, idx)}
-                                   >
-                                     <MapPin className="h-3.5 w-3.5" />
-                                     Ver {colonia} en el mapa
-                                   </Button>
-                                 </div>
-                               )}
-                             </div>
-                           );
-                         })}
+                             );
+                           });
+                         })()}
                        </div>
                      )}
                    </CardContent>
