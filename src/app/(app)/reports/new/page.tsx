@@ -7,7 +7,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import { onAuthStateChanged, type User } from "firebase/auth";
-import { collection, addDoc, Timestamp } from "firebase/firestore"; 
+import { collection, addDoc, Timestamp, query, where, getDocs } from "firebase/firestore"; 
 import { getStorage, ref as storageRef, uploadBytes, getDownloadURL } from "@firebase/storage";
 import imageCompression from 'browser-image-compression'; 
 import { auth, db, storage } from "@/lib/firebase/client";
@@ -60,6 +60,8 @@ const NewReportPage: FC = () => {
     libraries: ["maps", "visualization", "places"],
   });
   const autocompleteRef = useRef<google.maps.places.Autocomplete | null>(null);
+  const [showLimitDialog, setShowLimitDialog] = useState(false);
+  const [checkingLimit, setCheckingLimit] = useState(true);
 
   const form = useForm<ReportFormData>({
     resolver: zodResolver(reportFormSchema),
@@ -74,11 +76,29 @@ const NewReportPage: FC = () => {
 
   useEffect(() => {
     setIsAuthLoading(true);
-    const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
+    setCheckingLimit(true);
+    const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
       if (!currentUser) {
         router.replace("/login");
       } else {
         setUser(currentUser);
+        // Verifica el límite de reportes
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+        const tomorrow = new Date(today);
+        tomorrow.setDate(today.getDate() + 1);
+        const reportsRef = collection(db, "reports");
+        const q = query(
+          reportsRef,
+          where("userId", "==", currentUser.uid),
+          where("createdAt", ">=", Timestamp.fromDate(today)),
+          where("createdAt", "<", Timestamp.fromDate(tomorrow))
+        );
+        const snapshot = await getDocs(q);
+        if (snapshot.size >= 2) {
+          setShowLimitDialog(true);
+        }
+        setCheckingLimit(false);
         setIsAuthLoading(false);
       }
     });
@@ -303,7 +323,28 @@ const NewReportPage: FC = () => {
     }
   };
 
-   if (isAuthLoading) {
+   if (showLimitDialog) {
+      return (
+        <AlertDialog open>
+          <AlertDialogContent className="max-w-md text-center">
+            <AlertDialogHeader>
+              <AlertDialogTitle className="text-2xl text-destructive">Límite de Reportes Alcanzado</AlertDialogTitle>
+              <AlertDialogDescription className="text-base mt-2">
+                Solo puedes crear <b>2 reportes por día</b> para evitar abusos y mejorar la calidad de la información.<br/><br/>
+                Por favor, inténtalo de nuevo <b>mañana</b>.<br/>
+                ¡Gracias por ayudar a mantener la comunidad segura!
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogAction onClick={() => router.push("/welcome")}>Volver al inicio</AlertDialogAction>
+          </AlertDialogContent>
+        </AlertDialog>
+      );
+    }
+    if (checkingLimit) {
+      return null;
+    }
+
+    if (isAuthLoading) {
       return (
         <main className="flex min-h-screen flex-col items-center justify-center py-8 px-4 sm:px-8 bg-secondary">
            <Card className="w-full max-w-7xl shadow-lg border-none rounded-xl">

@@ -33,6 +33,7 @@ import {
   PaginationPrevious,
 } from "@/components/ui/pagination"
 import { VotesModal } from "@/components/votes-modal";
+import { AlertDialog, AlertDialogContent, AlertDialogHeader, AlertDialogTitle, AlertDialogDescription, AlertDialogAction } from "@/components/ui/alert-dialog";
 
 // Add window.FB type declaration
 declare global {
@@ -71,6 +72,8 @@ const WelcomePage: FC = () => {
   const [votesModalOpen, setVotesModalOpen] = useState(false);
   const [selectedReport, setSelectedReport] = useState<Report | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
+  const [showLimitDialog, setShowLimitDialog] = useState(false);
+  const [checkingLimit, setCheckingLimit] = useState(false);
 
   const ITEMS_PER_PAGE = 6;
 
@@ -302,6 +305,32 @@ const WelcomePage: FC = () => {
       return type === 'incidente' ? 'Incidente' : 'Funcionario';
   };
 
+  const handleCreateReport = async () => {
+    if (!user) {
+      router.push("/login");
+      return;
+    }
+    setCheckingLimit(true);
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const tomorrow = new Date(today);
+    tomorrow.setDate(today.getDate() + 1);
+    const reportsRef = collection(db, "reports");
+    const q = query(
+      reportsRef,
+      where("userId", "==", user.uid),
+      where("createdAt", ">=", Timestamp.fromDate(today)),
+      where("createdAt", "<", Timestamp.fromDate(tomorrow))
+    );
+    const snapshot = await getDocs(q);
+    setCheckingLimit(false);
+    if (snapshot.size >= 2) {
+      setShowLimitDialog(true);
+      return;
+    }
+    router.push("/reports/new");
+  };
+
   return (
     <main className="flex flex-col p-4 sm:p-6 md:p-8 bg-secondary min-h-screen">
       <div className="w-full max-w-7xl mx-auto space-y-6">
@@ -320,10 +349,8 @@ const WelcomePage: FC = () => {
                 <h1 className="text-2xl font-semibold text-foreground">Mis Reportes</h1>
                 <p className="text-sm text-muted-foreground">Aquí puedes ver y gestionar los reportes que has creado.</p>
             </div>
-            <Button asChild className="w-full sm:w-auto rounded-full shadow hover:shadow-md transition-shadow">
-              <Link href="/reports/new">
-                <Plus className="mr-2 h-4 w-4" />Reportar
-              </Link>
+            <Button onClick={handleCreateReport} className="w-full sm:w-auto rounded-full shadow hover:shadow-md transition-shadow">
+              <Plus className="mr-2 h-4 w-4" />Reportar
             </Button>
         </div>
 
@@ -477,8 +504,8 @@ const WelcomePage: FC = () => {
               <CardDescription className="text-muted-foreground mb-4">
                 ¡Empieza a contribuir creando tu primer reporte!
               </CardDescription>
-              <Button asChild>
-                <Link href="/reports/new"> <Plus className="mr-2 h-4 w-4" /> Crear Nuevo Reporte</Link>
+              <Button onClick={handleCreateReport}>
+                <Plus className="mr-2 h-4 w-4" /> Crear Nuevo Reporte
               </Button>
             </CardContent>
           </Card>
@@ -519,6 +546,35 @@ const WelcomePage: FC = () => {
           </div>
         )}
         
+        {showLimitDialog && (
+          <AlertDialog open={showLimitDialog} onOpenChange={setShowLimitDialog}>
+            <AlertDialogContent className="max-w-md text-center animate-bounce-in bg-white dark:bg-zinc-900 border-none shadow-2xl rounded-2xl">
+              <div className="flex flex-col items-center justify-center gap-2">
+                <div className="flex items-center justify-center w-20 h-20 rounded-full bg-red-100 dark:bg-red-900 mb-2 animate-pulse">
+                  <TriangleAlert className="h-12 w-12 text-destructive" />
+                </div>
+                <AlertDialogHeader>
+                  <AlertDialogTitle className="text-2xl font-bold text-destructive mb-1">¡Límite de Reportes Alcanzado!</AlertDialogTitle>
+                  <AlertDialogDescription className="text-base mt-2 text-foreground/80">
+                    <span className="font-semibold text-destructive">Solo puedes crear <b>2 reportes por día</b></span>.<br/><br/>
+                    <span className="text-foreground">Esta medida ayuda a:</span>
+                    <ul className="text-left text-sm text-muted-foreground mt-2 mb-3 mx-auto max-w-xs list-disc list-inside">
+                      <li>Evitar el <b>spam</b> y el uso indebido de la plataforma.</li>
+                      <li>Garantizar que cada reporte sea <b>relevante y de calidad</b>.</li>
+                      <li>Permitir que nuestro equipo revise y atienda los reportes de manera más eficiente.</li>
+                      <li>Fomentar un uso responsable y colaborativo de la comunidad.</li>
+                    </ul>
+                    <span className="text-primary font-medium">Si tienes más incidentes, prioriza los más importantes.</span><br/>
+                    <span className="text-muted-foreground">Podrás volver a reportar <b>mañana</b>. ¡Gracias por tu comprensión y por ayudar a mantener la comunidad segura! <span className="animate-wave inline-block">👋</span></span>
+                  </AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogAction onClick={() => setShowLimitDialog(false)} className="mt-4 w-full py-3 rounded-full text-base font-semibold bg-primary text-primary-foreground hover:bg-primary/90 transition-all shadow-lg">
+                  Entendido
+                </AlertDialogAction>
+              </div>
+            </AlertDialogContent>
+          </AlertDialog>
+        )}
       </div>
       <footer className="mt-12 text-center text-xs text-muted-foreground">
         © {new Date().getFullYear()} +SEGURO - Plataforma de reportes ciudadanos para la seguridad pública
