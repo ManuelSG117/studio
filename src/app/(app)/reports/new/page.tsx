@@ -465,7 +465,7 @@ const NewReportPage: FC = () => {
                 )}
               />
               {/* Map Preview */}
-              <div className="h-48 bg-muted rounded-md flex items-center justify-center text-muted-foreground border overflow-hidden">
+              <div className="h-96 bg-muted rounded-md flex items-center justify-center text-muted-foreground border overflow-hidden">
                  {fetchedCoordinates && user ? (
                     <ReportsMap
                       reports={[{
