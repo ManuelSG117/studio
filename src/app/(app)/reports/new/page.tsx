@@ -103,55 +103,54 @@ const NewReportPage: FC = () => {
     setSelectedFile(null);
 
     const options = {
-        maxSizeMB: file.type.startsWith("image/") ? 2 : 10, // 2MB for images, 10MB for videos
-        maxWidthOrHeight: 1280,
-        useWebWorker: true,
-        initialQuality: 0.7,
-    }
+      maxSizeMB: file.type.startsWith("image/") ? 1 : 10, // 1MB para imágenes webp, 10MB para videos
+      maxWidthOrHeight: 1280,
+      useWebWorker: true,
+      initialQuality: 0.7,
+      fileType: file.type.startsWith("image/") ? 'image/webp' : undefined,
+    };
 
     try {
-        let processedFile = file;
+      let processedFile = file;
+      let processedFileName = file.name;
 
-        if (file.type.startsWith("image/")) {
-             console.log(`Original image size: ${(file.size / 1024 / 1024).toFixed(2)} MB`);
-             processedFile = await imageCompression(file, options);
-             console.log(`Compressed image size: ${(processedFile.size / 1024 / 1024).toFixed(2)} MB`);
-        } else {
-            console.log(`Video file size: ${(file.size / 1024 / 1024).toFixed(2)} MB`);
-            if (file.size > options.maxSizeMB * 1024 * 1024) { // Check against 10MB for videos
-                toast({
-                    variant: "warning",
-                    title: "Archivo Grande",
-                    description: `El video es mayor a ${options.maxSizeMB}MB y podría tardar en subirse.`,
-                });
-            }
+      if (file.type.startsWith("image/")) {
+        processedFile = await imageCompression(file, options);
+        // Cambia la extensión a .webp si es imagen
+        processedFileName = file.name.replace(/\.[^.]+$/, '.webp');
+        console.log(`Imagen comprimida y convertida a webp: ${(processedFile.size / 1024 / 1024).toFixed(2)} MB`);
+      } else {
+        console.log(`Video file size: ${(file.size / 1024 / 1024).toFixed(2)} MB`);
+        if (file.size > options.maxSizeMB * 1024 * 1024) {
+          toast({
+            variant: "warning",
+            title: "Archivo Grande",
+            description: `El video es mayor a ${options.maxSizeMB}MB y podría tardar en subirse.`,
+          });
         }
+      }
 
-        setSelectedFile(processedFile);
+      setSelectedFile(processedFile);
+      setPreviewUrl(URL.createObjectURL(processedFile));
+      // Guarda el nombre procesado para usarlo en el upload
+      (processedFile as any).customFileName = processedFileName;
 
-        const reader = new FileReader();
-        reader.onloadend = () => {
-            setPreviewUrl(reader.result as string);
-        };
-        reader.readAsDataURL(processedFile);
-
-        toast({
-            title: "Archivo Listo",
-            description: `Archivo "${processedFile.name}" seleccionado.`,
-        });
-
+      toast({
+        title: "Archivo Listo",
+        description: `Archivo "${processedFileName}" seleccionado.`,
+      });
     } catch (error) {
-        console.error('Error processing file:', error);
-        toast({
-            variant: "destructive",
-            title: "Error de Procesamiento",
-            description: "No se pudo procesar el archivo. Intenta con otro.",
-        });
+      console.error('Error processing file:', error);
+      toast({
+        variant: "destructive",
+        title: "Error de Procesamiento",
+        description: "No se pudo procesar el archivo. Intenta con otro.",
+      });
     } finally {
-        setIsCompressing(false);
-        if (fileInputRef.current) {
-            fileInputRef.current.value = "";
-        }
+      setIsCompressing(false);
+      if (fileInputRef.current) {
+        fileInputRef.current.value = "";
+      }
     }
   };
 
@@ -249,7 +248,8 @@ const NewReportPage: FC = () => {
     let mediaDownloadURL: string | null = null;
     if (selectedFile) {
       setIsUploading(true);
-      const fileName = `${user.uid}_${Date.now()}_${selectedFile.name.replace(/[^a-zA-Z0-9.\\-_]/g, "_")}`;
+      // Usa el nombre procesado si existe (para imágenes webp)
+      const fileName = `${user.uid}_${Date.now()}_${(selectedFile as any).customFileName || selectedFile.name.replace(/[^a-zA-Z0-9.\-_]/g, "_")}`;
       try {
         // Verifica el tipo y tamaño del archivo
         if (!(selectedFile instanceof Blob) || selectedFile.size === 0) {
