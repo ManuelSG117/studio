@@ -26,6 +26,7 @@ import { ReportsMap } from '@/components/reports-map';
 import { RecentCommunityReports } from '@/components/reports/recent-community-reports'; // Import the new component
 import { Autocomplete, useJsApiLoader } from "@react-google-maps/api";
 import { useCallback } from "react";
+import { supabase } from "@/lib/supabase/client";
 
 type ReportType = 'incidente' | 'funcionario';
 
@@ -248,11 +249,33 @@ const NewReportPage: FC = () => {
     let mediaDownloadURL: string | null = null;
     if (selectedFile) {
       setIsUploading(true);
-      const fileName = `${user.uid}_${Date.now()}_${selectedFile.name}`;
-      const mediaRef = storageRef(storage, `reportMedia/${fileName}`);
+      const fileName = `${user.uid}_${Date.now()}_${selectedFile.name.replace(/[^a-zA-Z0-9.\\-_]/g, "_")}`;
       try {
-        await uploadBytes(mediaRef, selectedFile);
-        mediaDownloadURL = await getDownloadURL(mediaRef);
+        // Verifica el tipo y tamaño del archivo
+        if (!(selectedFile instanceof Blob) || selectedFile.size === 0) {
+          throw new Error("Archivo inválido o vacío.");
+        }
+
+        const uploadResult = await supabase.storage
+          .from('report-media')
+          .upload(fileName, selectedFile, {
+            cacheControl: '3600',
+            upsert: false,
+          });
+
+        console.log("Supabase upload result:", uploadResult);
+
+        if (uploadResult.error) {
+          console.error("Supabase upload error:", uploadResult.error, uploadResult);
+          throw uploadResult.error;
+        }
+
+        // getPublicUrl no retorna error, solo data
+        const { publicUrl } = supabase
+          .storage
+          .from('report-media')
+          .getPublicUrl(fileName).data;
+        mediaDownloadURL = publicUrl || null;
         toast({ title: "Archivo Subido", description: "La evidencia multimedia se ha guardado." });
       } catch (uploadError) {
         console.error("Error uploading media:", uploadError);
