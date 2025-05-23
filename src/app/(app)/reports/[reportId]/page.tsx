@@ -1,4 +1,3 @@
-
 "use client";
 
 import type { FC } from 'react';
@@ -25,6 +24,7 @@ import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 import { ReporterQuickViewDialog } from '@/components/reporter-quick-view-dialog';
 import { getDistance } from 'geolib';
+import { Dialog, DialogTrigger, DialogContent } from '@/components/ui/dialog';
 
 interface ReporterProfile {
   displayName?: string;
@@ -496,15 +496,40 @@ const ReportDetailPage: FC = () => {
                             </div>
                             <Separator />
                             {report.mediaUrl && (
-                                <div className="relative aspect-video w-full overflow-hidden rounded-lg bg-muted">
-                                    {/\.(mp4|webm|ogg|mov)$/i.test(report.mediaUrl) ? (
-                                        <video controls src={report.mediaUrl} className="absolute inset-0 w-full h-full object-cover" preload="metadata">
-                                            Tu navegador no soporta videos HTML5.
-                                        </video>
-                                    ) : (
-                                        <Image src={report.mediaUrl} alt={`Evidencia para reporte ${report.id}`} fill style={{ objectFit: 'cover' }} data-ai-hint="report evidence media" className="bg-muted" sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw" />
-                                    )}
-                                </div>
+                                <Dialog>
+                                    <DialogTrigger asChild>
+                                        <div className="relative aspect-video w-full overflow-hidden rounded-lg bg-muted cursor-zoom-in">
+                                            {/\.(mp4|webm|ogg|mov)$/i.test(report.mediaUrl) ? (
+                                                <video controls src={report.mediaUrl} className="absolute inset-0 w-full h-full object-cover" preload="metadata">
+                                                    Tu navegador no soporta videos HTML5.
+                                                </video>
+                                            ) : (
+                                                <Image 
+                                                    src={report.mediaUrl} 
+                                                    alt={`Evidencia para reporte ${report.id}`} 
+                                                    fill 
+                                                    style={{ objectFit: 'cover' }} 
+                                                    data-ai-hint="report evidence media" 
+                                                    className="bg-muted cursor-zoom-in" 
+                                                    sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                                                    loading="lazy"
+                                                />
+                                            )}
+                                        </div>
+                                    </DialogTrigger>
+                                    <DialogContent className="max-w-3xl w-full bg-black p-0 flex items-center justify-center">
+                                        <div className="relative w-full h-[60vh] md:h-[80vh] flex items-center justify-center">
+                                            <Image
+                                                src={report.mediaUrl}
+                                                alt={`Evidencia para reporte ${report.id}`}
+                                                fill
+                                                style={{ objectFit: 'contain' }}
+                                                className="bg-black"
+                                                loading="lazy"
+                                            />
+                                        </div>
+                                    </DialogContent>
+                                </Dialog>
                             )}
                             {!report.mediaUrl && (
                                 <div className="aspect-video w-full bg-muted rounded-lg flex flex-col items-center justify-center text-muted-foreground">
@@ -632,7 +657,7 @@ const ReportDetailPage: FC = () => {
                                 </div>
                             ) : (
                                 <div className="space-y-3">
-                                    {similarReports.map((r) => (
+                                    {similarReports.slice(0, 5).map((r) => (
                                         <Card key={r.id} className="p-3 flex flex-col gap-1 border border-border rounded-lg hover:shadow-md transition-shadow">
                                             <div className="flex items-center gap-2">
                                                 <Badge variant={r.reportType === 'incidente' ? 'destructive' : 'default'} className="capitalize">
