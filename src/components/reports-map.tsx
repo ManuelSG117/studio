@@ -39,14 +39,15 @@ const GOOGLE_MAPS_API_KEY = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY!;
 // Define map libraries including visualization for heatmap
 const libraries: ('maps' | 'visualization' | 'places')[] = ["maps", "visualization", "places"];
 
-const ReportsMap = forwardRef<ReportsMapRef, ReportsMapProps>(({
-  reports,
-  defaultZoom = 12,
-  defaultCenter = { lat: 19.4181, lng: -102.0515 },
-  viewMode = 'markers', // Default view mode to 'markers' if not provided
-  draggableMarker, // Nuevo: permite que el marcador sea arrastrable
-  onMarkerDragEnd, // Nuevo: callback al mover el marcador
-}) => {
+const ReportsMap = forwardRef<ReportsMapRef, ReportsMapProps>((props, ref) => {
+  const {
+    reports,
+    defaultZoom = 12,
+    defaultCenter = { lat: 19.4181, lng: -102.0515 },
+    viewMode = 'markers',
+    draggableMarker,
+    onMarkerDragEnd,
+  } = props;
   const { toast } = useToast();
   const router = useRouter();
   const { isLoaded, loadError } = useJsApiLoader({
