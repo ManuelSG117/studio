@@ -574,7 +574,7 @@ const NewReportPage: FC = () => {
                 <Button
                     type="submit"
                     className="bg-primary hover:bg-primary/90 text-primary-foreground rounded-full px-6"
-                    disabled={disableForm || !form.formState.isValid || !selectedReportType}
+                    disabled={disableForm || !selectedReportType}
                 >
                     {isLoading || isUploading || isCompressing || isFetchingLocation ? (
                         <Loader2 className="mr-2 h-4 w-4 animate-spin" />
