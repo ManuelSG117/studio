@@ -27,6 +27,8 @@ interface ReportsMapProps {
   defaultZoom?: number;
   defaultCenter?: { lat: number; lng: number };
   viewMode?: MapViewMode; // Add prop for view mode control
+  draggableMarker?: boolean; // Nuevo: permite que el marcador sea arrastrable
+  onMarkerDragEnd?: (coords: { lat: number; lng: number }) => void; // Nuevo: callback al mover el marcador
 }
 
 const GOOGLE_MAPS_API_KEY = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY!;
@@ -38,7 +40,9 @@ export const ReportsMap: FC<ReportsMapProps> = ({
   reports, // Receive the (potentially filtered) reports directly
   defaultZoom = 12,
   defaultCenter = { lat: 19.4181, lng: -102.0515 },
-  viewMode = 'markers' // Default view mode to 'markers' if not provided
+  viewMode = 'markers', // Default view mode to 'markers' if not provided
+  draggableMarker, // Nuevo: permite que el marcador sea arrastrable
+  onMarkerDragEnd, // Nuevo: callback al mover el marcador
 }) => {
   const { toast } = useToast();
   const router = useRouter();
@@ -180,16 +184,25 @@ export const ReportsMap: FC<ReportsMapProps> = ({
           )}
 
           {/* Render Markers if viewMode is 'markers' */}
-          {viewMode === 'markers' && reportsWithCoords.map((report) => (
-            <MarkerF
-              key={report.id}
-              position={{ lat: report.latitude!, lng: report.longitude! }}
-              title={report.title}
-              onClick={() => handleMarkerClick(report)}
-              // You can customize marker icons here based on report.reportType if needed
-              // icon={report.reportType === 'incidente' ? '/path/to/alert-icon.png' : '/path/to/user-icon.png'}
-            />
-          ))}
+          {viewMode === 'markers' && reportsWithCoords.map((report, idx) => {
+            // Si hay solo un reporte y draggableMarker está activo, el marcador es arrastrable
+            const isDraggable = reportsWithCoords.length === 1 && idx === 0 && !!(typeof draggableMarker !== 'undefined' && draggableMarker);
+            return (
+              <MarkerF
+                key={report.id}
+                position={{ lat: report.latitude!, lng: report.longitude! }}
+                title={report.title}
+                onClick={() => handleMarkerClick(report)}
+                draggable={isDraggable}
+                onDragEnd={isDraggable && typeof onMarkerDragEnd === 'function' ? (e) => {
+                  const lat = e.latLng?.lat();
+                  const lng = e.latLng?.lng();
+                  if (lat && lng) onMarkerDragEnd({ lat, lng });
+                } : undefined}
+                // icon personalizado si quieres
+              />
+            );
+          })}
 
            {/* InfoWindow for selected marker (only shown in 'markers' mode) */}
            {viewMode === 'markers' && selectedReport && (

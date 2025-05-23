@@ -485,6 +485,12 @@ const NewReportPage: FC = () => {
                       defaultCenter={fetchedCoordinates}
                       defaultZoom={16}
                       viewMode="markers"
+                      draggableMarker={true}
+                      onMarkerDragEnd={({ lat, lng }) => {
+                        form.setValue('latitude', lat, { shouldValidate: true });
+                        form.setValue('longitude', lng, { shouldValidate: true });
+                        setFetchedCoordinates({ lat, lng });
+                      }}
                     />
                   ) : (
                     <>
@@ -493,6 +499,12 @@ const NewReportPage: FC = () => {
                     </>
                   )}
               </div>
+              {/* Mensaje minimalista para el marcador arrastrable */}
+              {fetchedCoordinates && user && (
+                <div className="text-xs text-muted-foreground mt-1 text-center">
+                  Puedes mover el marcador en el mapa para precisar la ubicación.
+                </div>
+              )}
 
 
                <FormItem>
