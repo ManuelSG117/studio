@@ -569,7 +569,7 @@ const AuthScreen: FC = () => {
                {/* Footer with Terms Link */}
                <CardFooter className="text-center text-xs text-muted-foreground justify-center pt-6 pb-0 px-0">
                   Al continuar, aceptas nuestros{' '}
-                  <Link href="/terms" className={cn("text-accent hover:text-accent/90 underline ml-1", (isSubmitting || isGoogleLoading) && "pointer-events-none opacity-50")}>
+                  <Link href="/privacy-policy" className={cn("text-accent hover:text-accent/90 underline ml-1", (isSubmitting || isGoogleLoading) && "pointer-events-none opacity-50")}>
                      Términos y Condiciones
                   </Link>
                </CardFooter>
@@ -577,7 +577,7 @@ const AuthScreen: FC = () => {
           </Tabs>
 
         </Card>
-         <p className="text-xs text-muted-foreground mt-6">v1.0.0</p>
+      
       </main>
     </>
   );
