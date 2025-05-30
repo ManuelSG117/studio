@@ -12,7 +12,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { GoogleIcon } from '@/components/icons/google-icon';
-import { Mail, Loader2, Terminal, UserPlus, LogIn, Check, X, Eye, EyeOff } from 'lucide-react';
+import { Mail, Loader2, Terminal, UserPlus, LogIn, Check, X, Eye, EyeOff, ArrowLeft } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import Image from 'next/image';
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
@@ -282,9 +282,19 @@ const AuthScreen: FC = () => {
           "flex min-h-screen flex-col items-center justify-center p-4 sm:p-8 bg-secondary transition-opacity duration-300",
           isSubmitting && "opacity-50 pointer-events-none" // Dim background when loading overlay is active
        )}>
-        <Card className="w-full max-w-sm shadow-xl border-none rounded-xl bg-card overflow-hidden">
+        <Card className="w-full max-w-md shadow-xl border-none rounded-xl bg-card overflow-hidden relative">
+          {/* Back arrow to home inside Card */}
+          <Link
+            href="/"
+            className="absolute left-4 top-4 z-20 flex items-center text-muted-foreground hover:text-primary transition-colors"
+            aria-label="Volver al inicio"
+            tabIndex={isSubmitting || isGoogleLoading ? -1 : undefined}
+          >
+            <ArrowLeft className="h-6 w-6" />
+            <span className="sr-only">Volver al inicio</span>
+          </Link>
            {/* Header */}
-           <CardHeader className="text-center pt-10 pb-6 bg-gradient-to-b from-card to-background"> {/* Subtle gradient */}
+           <CardHeader className="text-center pt-10 pb-6 bg-gradient-to-b from-card to-background">
               <Image
                   src="/logo.webp"
                   alt="App Logo"
