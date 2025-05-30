@@ -138,19 +138,22 @@ const AboutCreatorPage: FC = () => {
               <Separator />
 
               {/* Section: Apoya +Seguro */}
-              <section>
-                <h2 className="text-xl font-semibold text-foreground mb-4 flex items-center">
-                  <Gift className="h-5 w-5 mr-2 text-primary" />
-                  Apoya +Seguro
+              <section className="py-8 bg-primary/5 dark:bg-primary/10 rounded-xl px-6">
+                <h2 className="text-2xl font-bold text-primary mb-4 flex items-center">
+                  <Gift className="h-6 w-6 mr-3 text-primary" />
+                  ¡Apoya el Futuro de +Seguro!
                 </h2>
-                <p className="text-muted-foreground leading-relaxed">
-                  Si crees en la misión de +Seguro y te gustaría apoyar el mantenimiento y desarrollo continuo de esta plataforma, ¡tu contribución es bienvenida! Los patrocinadores pueden ser destacados en esta sección como agradecimiento.
+                <p className="text-muted-foreground leading-relaxed text-base">
+                  +Seguro es una iniciativa personal dedicada a mejorar nuestra comunidad. Si crees en esta misión y te gustaría contribuir al mantenimiento, desarrollo de nuevas funcionalidades y costos operativos de la plataforma, ¡tu apoyo es invaluable!
                 </p>
-                <p className="text-muted-foreground leading-relaxed mt-3">
-                  Para más información sobre cómo puedes ayudar, no dudes en <a href="mailto:masseguro117@gmail.com" className="text-primary hover:underline">contactarme</a>.
+                <p className="text-muted-foreground leading-relaxed mt-3 text-base">
+                  Cada contribución, grande o pequeña, nos ayuda a seguir adelante y a construir un Uruapan más seguro para todos. Los patrocinadores y colaboradores podrán ser destacados en esta sección como agradecimiento a su compromiso.
+                </p>
+                <p className="text-foreground leading-relaxed mt-4 font-medium">
+                  Para más información sobre cómo puedes convertirte en un pilar de +Seguro, no dudes en <a href="mailto:masseguro117@gmail.com" className="text-primary hover:underline font-semibold">contactarme por correo electrónico</a>.
                 </p>
                 <div className="mt-6 text-center text-muted-foreground/70 italic">
-                  (Próximamente: Zona de patrocinadores destacados)
+                  (Próximamente: Descubre cómo ser patrocinador y quiénes nos apoyan)
                 </div>
               </section>
 
