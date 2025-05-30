@@ -407,7 +407,7 @@ const DangerZonesPage: FC = () => {
                        Zonas con mayor actividad de reportes
                      </p>
                    </CardHeader>
-                   <CardContent className="flex-1 flex flex-col p-0">
+                   <CardContent className="flex-1 flex flex-col p-0 mt-4 h-[50vh] sm:h-[60vh]">
                      {topColonias.length === 0 ? (
                        <div className="flex-1 flex flex-col items-center justify-center p-6 text-center">
                          <AlertTriangle className="h-8 w-8 text-muted-foreground/50 mb-2" />
