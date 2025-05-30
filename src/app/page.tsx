@@ -582,27 +582,25 @@ const HomePage: FC = () => {
            {/* Statistics Section */}
         <section
             id="statistics"
-            className="w-full py-16 md:py-24 bg-gradient-to-b from-white to-secondary dark:from-background dark:to-secondary"
+            className="w-full py-10 md:py-24 bg-gradient-to-b from-white to-secondary dark:from-background dark:to-secondary"
           >
             <div className="container px-4 md:px-6">
-              <div className="text-center mb-12 max-w-3xl mx-auto">
+              <div className="text-center mb-6 md:mb-12 max-w-3xl mx-auto">
                   <Badge className="mb-4 bg-accent/20 text-accent hover:bg-accent/30">
                       ESTADÍSTICAS
                   </Badge>
                   <h3 className="text-3xl md:text-5xl font-bold tracking-tight mb-4 text-foreground">
                       Tendencias de Reportes
                   </h3>
-                  <p className="mx-auto max-w-[700px] text-muted-foreground md:text-xl/relaxed">
+                  <p className="mx-auto max-w-[700px] text-muted-foreground text-base md:text-xl/relaxed md:mb-0 mb-4">
                       Visualiza las tendencias de reportes para entender mejor la seguridad en tu localidad y tomar decisiones informadas.
                   </p>
               </div>
 
-
-
                {/* Increase the size of the lottie animation by making the container full width */}
                <div className="relative p-0 rounded-2xl overflow-hidden w-full">
                   {/* Lottie Animation */}
-                  <div className="relative h-96 w-full flex items-center justify-center">
+                  <div className="relative h-56 md:h-96 w-full flex items-center justify-center">
                      <DotLottieReact
                         src="https://lottie.host/17494221-1efe-4d0d-ab48-bed230af095d/zJNz64aYIu.lottie"
                         loop={true}
