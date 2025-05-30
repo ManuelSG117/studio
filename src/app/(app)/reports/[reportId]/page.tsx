@@ -1,3 +1,4 @@
+
 "use client";
 
 import type { FC } from 'react';
@@ -11,7 +12,7 @@ import { doc, getDoc, Timestamp, runTransaction, collection, query, where, getDo
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
-import { CalendarDays, MapPin, UserCog, TriangleAlert, Image as ImageIcon, Loader2, ArrowLeft, ArrowUp, ArrowDown, Share2, ShieldAlert, Eye, MessageSquare } from 'lucide-react';
+import { CalendarDays, MapPin, UserCog, TriangleAlert, Image as ImageIcon, Loader2, ArrowLeft, ArrowUp, ArrowDown, Eye, MessageSquare } from 'lucide-react';
 import type { Report } from '@/app/(app)/welcome/page';
 import { format, formatDistanceToNow } from 'date-fns';
 import { es } from 'date-fns/locale';
@@ -25,6 +26,14 @@ import { Separator } from '@/components/ui/separator';
 import { ReporterQuickViewDialog } from '@/components/reporter-quick-view-dialog';
 import { getDistance } from 'geolib';
 import { Dialog, DialogTrigger, DialogContent } from '@/components/ui/dialog';
+
+// Add window.FB type declaration
+declare global {
+  interface Window {
+    FB?: any; // Basic type for Facebook SDK
+    fbAsyncInit?: () => void; // For SDK initialization
+  }
+}
 
 interface ReporterProfile {
   displayName?: string;
@@ -44,7 +53,7 @@ const ReportDetailPage: FC = () => {
     const [isLoading, setIsLoading] = useState(true);
     const [user, setUser] = useState<User | null>(null);
     const [isClient, setIsClient] = useState(false);
-    const [votingState, setVotingState] = useState<boolean>(false); // Simplified voting state for the single report
+    const [votingState, setVotingState] = useState<boolean>(false); 
     const [votesModalOpen, setVotesModalOpen] = useState(false);
     const [reporterProfile, setReporterProfile] = useState<ReporterProfile | null>(null);
     const [isLoadingReporter, setIsLoadingReporter] = useState(true);
@@ -71,6 +80,29 @@ const ReportDetailPage: FC = () => {
         }
         return null;
     }, []);
+
+    useEffect(() => {
+      // Load the Facebook SDK only on the client side
+      if (typeof window !== 'undefined' && !window.FB) {
+        const script = document.createElement('script');
+        script.id = 'facebook-jssdk-report-detail'; // Unique ID for this instance
+        script.src = "https://connect.facebook.net/es_LA/sdk.js";
+        script.async = true;
+        script.defer = true;
+        script.crossOrigin = 'anonymous';
+        document.body.appendChild(script);
+
+        window.fbAsyncInit = function() {
+          window.FB.init({
+            appId            : '3120155478148481', // Your App ID
+            cookie           : true,
+            xfbml            : true,
+            version          : 'v19.0'
+          });
+        };
+      }
+    }, []);
+
 
     useEffect(() => {
         setIsClient(true);
@@ -253,14 +285,12 @@ const ReportDetailPage: FC = () => {
                     if (voteType === 'up') {
                         newUpvotes++;
                         if (existingVote === 'down') newDownvotes = Math.max(0, newDownvotes - 1);
-                        transaction.set(voteRef, { type: 'up' });
-                        transaction.set(userVoteRef, { userId: user.uid, reportId: reportId, reportTitle: reportTitle, type: 'up', timestamp: Timestamp.now() });
                     } else {
                         newDownvotes++;
                         if (existingVote === 'up') newUpvotes = Math.max(0, newUpvotes - 1);
-                        transaction.set(voteRef, { type: 'down' });
-                        transaction.set(userVoteRef, { userId: user.uid, reportId: reportId, reportTitle: reportTitle, type: 'down', timestamp: Timestamp.now() });
                     }
+                     transaction.set(voteRef, { type: voteType }); // Store only the type
+                     transaction.set(userVoteRef, { userId: user.uid, reportId: reportId, reportTitle: reportTitle, type: voteType, timestamp: Timestamp.now() });
                 }
                 transaction.update(reportRef, { upvotes: newUpvotes, downvotes: newDownvotes });
             });
@@ -273,46 +303,25 @@ const ReportDetailPage: FC = () => {
         }
     };
 
-    const handleShare = async () => {
+    const handleFacebookShare = () => {
         if (!report) return;
-        const shareData = {
-          title: report.title,
-          text: `Echa un vistazo a este reporte en +Seguro: ${report.title}`,
-          url: window.location.href,
-        };
-
-        try {
-          if (navigator.share) {
-            await navigator.share(shareData);
-            toast({ title: "Compartido", description: "El reporte se ha compartido exitosamente." });
-          } else {
-            await navigator.clipboard.writeText(window.location.href);
-            toast({ title: "Enlace Copiado", description: "El enlace del reporte se ha copiado al portapapeles. La función de compartir no está disponible en tu navegador." });
-          }
-        } catch (err: any) {
-          console.error("Error al compartir:", err);
-          try {
-            await navigator.clipboard.writeText(window.location.href);
-            let description = "El enlace del reporte se ha copiado al portapapeles.";
-            if (err.name === 'NotAllowedError' || err.message?.includes('Permission denied')) {
-              description = "No se pudo compartir directamente. El enlace del reporte se ha copiado al portapapeles.";
-            } else if (!navigator.share) {
-               description = "La función de compartir no está disponible. El enlace del reporte se ha copiado al portapapeles.";
+        const reportUrl = window.location.href;
+        if (window.FB) {
+          window.FB.ui({
+            method: 'share',
+            href: reportUrl,
+          }, function(response: any){
+            if (response && !response.error_message) {
+              toast({ title: "Compartido", description: "El reporte se ha compartido en Facebook." });
+            } else {
+              // console.log('Facebook Share Error/Closed:', response);
             }
-            toast({
-              title: "Enlace Copiado",
-              description: description,
-            });
-          } catch (copyError) {
-            console.error("Error al copiar al portapapeles:", copyError);
-            toast({
-              variant: "destructive",
-              title: "Error",
-              description: "No se pudo compartir ni copiar el enlace del reporte.",
-            });
-          }
+          });
+        } else {
+          toast({ variant: "destructive", title: "Error", description: "El SDK de Facebook no está listo. Intenta de nuevo en un momento." });
         }
       };
+
 
     if (isLoading || !isClient || isLoadingReporter) {
         return (
@@ -333,9 +342,9 @@ const ReportDetailPage: FC = () => {
                                                 <Skeleton className="h-3 w-20" />
                                             </div>
                                         </div>
-                                        <Skeleton className="h-7 w-3/4 mt-2" /> {/* Title skeleton */}
+                                        <Skeleton className="h-7 w-3/4 mt-2" /> 
                                     </div>
-                                    <Skeleton className="h-10 w-24 rounded-full" /> {/* Votes skeleton */}
+                                    <Skeleton className="h-10 w-24 rounded-full" /> 
                                 </div>
                             </CardHeader>
                             <Skeleton className="aspect-video w-full" />
@@ -372,7 +381,7 @@ const ReportDetailPage: FC = () => {
     if (report === null) {
          return (
              <main className="flex flex-col items-center justify-center min-h-screen p-4 sm:p-8 bg-secondary">
-                 <div className="w-full max-w-md mb-4 self-start"> {/* Moved back button to match loading state */}
+                 <div className="w-full max-w-md mb-4 self-start"> 
                     <Button variant="ghost" size="icon" className="text-muted-foreground hover:text-primary rounded-full" onClick={() => router.back()} aria-label="Volver">
                         <ArrowLeft className="h-5 w-5" />
                     </Button>
@@ -575,7 +584,12 @@ const ReportDetailPage: FC = () => {
                                             {report.reportType === 'incidente' ? 'Delito' : 'Funcionario'}
                                         </Badge>
                                     </div>
-                                   
+                                    <Button onClick={handleFacebookShare} variant="outline" className="sm:col-span-1 md:col-span-1 rounded-full mt-2">
+                                      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" className="bi bi-facebook mr-2" viewBox="0 0 16 16">
+                                        <path d="M16 8.049c0-4.446-3.582-8.05-8-8.05C3.58 0 0 3.592 0 8.049 0 12.069 2.91 15.275 6.75 15.979V10.37H4.849V8.05h1.9V6.275c0-2.017 1.195-3.131 3.022-3.131.876 0 1.791.157 1.791.157v1.98h-1.009c-.993 0-1.303.621-1.303 1.258v1.51h2.218l-.354 2.32H9.25V15.97A8.025 8.025 0 0 0 16 8.049z"/>
+                                      </svg>
+                                      Compartir en Facebook
+                                    </Button>
                                 </div>
                             </div>
                         </CardContent>
@@ -650,7 +664,7 @@ const ReportDetailPage: FC = () => {
                         <CardContent>
                             {similarReports.length === 0 ? (
                                 <div className="text-center py-6">
-                                    <ShieldAlert className="mx-auto h-10 w-10 text-muted-foreground opacity-50 mb-2" />
+                                    <TriangleAlert className="mx-auto h-10 w-10 text-muted-foreground opacity-50 mb-2" />
                                     <p className="text-sm text-muted-foreground">
                                         No se encontraron reportes similares a menos de 5km de este reporte.
                                     </p>

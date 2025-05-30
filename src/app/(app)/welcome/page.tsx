@@ -1,3 +1,4 @@
+
 "use client";
 
 import type { FC } from 'react';
@@ -38,7 +39,8 @@ import { AlertDialog, AlertDialogContent, AlertDialogHeader, AlertDialogTitle, A
 // Add window.FB type declaration
 declare global {
   interface Window {
-    FB?: any;
+    FB?: any; // Basic type for Facebook SDK
+    fbAsyncInit?: () => void; // For SDK initialization
   }
 }
 
@@ -127,7 +129,6 @@ const WelcomePage: FC = () => {
           limitToLast(ITEMS_PER_PAGE)
         );
       } else {
-        // Fallback or handle invalid state
         setIsLoading(false);
         return;
       }
@@ -167,7 +168,7 @@ const WelcomePage: FC = () => {
         setHasMore(fetchedReports.length === ITEMS_PER_PAGE);
       } else if (direction === 'previous') {
         if (fetchedReports.length > 0) setCurrentPage(prev => prev - 1);
-        setHasMore(true); // After going previous, there's likely more next
+        setHasMore(true); 
       }
       
     } catch (error) {
@@ -176,12 +177,12 @@ const WelcomePage: FC = () => {
     } finally {
       setIsLoading(false);
     }
-  }, [user, toast, fetchUserVote, lastVisibleDoc, firstVisibleDoc, currentPage]); // Ensure currentPage is a dependency if logic depends on it directly
+  }, [user, toast, fetchUserVote, lastVisibleDoc, firstVisibleDoc, currentPage]); 
 
   useEffect(() => {
     if (!authLoading) {
         if (isAuthenticated && user) {
-            if (reports.length === 0 && currentPage === 1) { // Only fetch initial if reports are empty and on page 1
+            if (reports.length === 0 && currentPage === 1) { 
                  console.log("Auth confirmed, fetching initial reports for WelcomePage.");
                  fetchReports('initial');
             }
@@ -197,16 +198,45 @@ const WelcomePage: FC = () => {
   }, [authLoading, isAuthenticated, user, router, fetchReports, reports.length, currentPage]);
 
   useEffect(() => {
-    // Cargar el SDK de Facebook solo en cliente
+    // Load the Facebook SDK only on the client side
     if (typeof window !== 'undefined' && !window.FB) {
       const script = document.createElement('script');
+      script.id = 'facebook-jssdk';
+      script.src = "https://connect.facebook.net/es_LA/sdk.js"; // Or your preferred locale
       script.async = true;
       script.defer = true;
       script.crossOrigin = 'anonymous';
-      script.src = 'https://connect.facebook.net/es_ES/sdk.js#xfbml=1&version=v19.0&appId=3120155478148481';
       document.body.appendChild(script);
+
+      window.fbAsyncInit = function() {
+        window.FB.init({
+          appId            : '3120155478148481', // Your App ID
+          cookie           : true,
+          xfbml            : true,
+          version          : 'v19.0'
+        });
+      };
     }
   }, []);
+
+  const handleFacebookShare = (reportId: string) => {
+    const reportUrl = `${window.location.origin}/reports/${reportId}`;
+    if (window.FB) {
+      window.FB.ui({
+        method: 'share',
+        href: reportUrl,
+      }, function(response: any){
+        if (response && !response.error_message) {
+          toast({ title: "Compartido", description: "El reporte se ha compartido en Facebook." });
+        } else {
+          // console.log('Facebook Share Error/Closed:', response); 
+          // Optionally inform user if sharing was cancelled or failed, but be mindful of dialog closures
+        }
+      });
+    } else {
+      toast({ variant: "destructive", title: "Error", description: "El SDK de Facebook no está listo. Intenta de nuevo en un momento." });
+    }
+  };
 
   const handleNextPage = () => {
     if (hasMore && !isLoading) {
@@ -230,10 +260,11 @@ const WelcomePage: FC = () => {
         toast({ variant: "destructive", title: "Error", description: "Reporte no encontrado." });
         return;
     }
-    if (user.uid === currentReport.userId) {
-         toast({ variant: "destructive", title: "Error", description: "No puedes votar en tus propios reportes." });
-         return;
-     }
+    // User cannot vote on their own reports
+    // if (user.uid === currentReport.userId) {
+    //      toast({ variant: "destructive", title: "Error", description: "No puedes votar en tus propios reportes." });
+    //      return;
+    //  }
     if (votingState[reportId]) return;
     setVotingState(prev => ({ ...prev, [reportId]: true }));
     const originalReport = { ...currentReport };
@@ -278,14 +309,13 @@ const WelcomePage: FC = () => {
                 if (voteType === 'up') {
                     newUpvotes++;
                     if (existingVote === 'down') newDownvotes = Math.max(0, newDownvotes - 1);
-                    transaction.set(voteRef, { type: 'up' });
-                    transaction.set(userVoteRef, { userId: user.uid, reportId: reportId, reportTitle: reportTitle, type: 'up', timestamp: Timestamp.now() });
                 } else {
                     newDownvotes++;
                     if (existingVote === 'up') newUpvotes = Math.max(0, newUpvotes - 1);
-                    transaction.set(voteRef, { type: 'down' });
-                    transaction.set(userVoteRef, { userId: user.uid, reportId: reportId, reportTitle: reportTitle, type: 'down', timestamp: Timestamp.now() });
                 }
+                // Always set/update the vote document (both in reports/votes and userVotes)
+                transaction.set(voteRef, { type: voteType });
+                transaction.set(userVoteRef, { userId: user.uid, reportId: reportId, reportTitle: reportTitle, type: voteType, timestamp: Timestamp.now() });
             }
             transaction.update(reportRef, { upvotes: newUpvotes, downvotes: newDownvotes });
         });
@@ -414,22 +444,11 @@ const WelcomePage: FC = () => {
                                         Ver detalles
                                     </Link>
                                 </DropdownMenuItem>
-                                <DropdownMenuItem disabled className="text-muted-foreground flex items-center gap-2">
-                                    <div
-                                      className="fb-share-button ml-2"
-                                      data-href={`https://tusitio.com/reports/${report.id}`}
-                                      data-layout="button"
-                                      data-size="small"
-                                    >
-                                      <a
-                                        target="_blank"
-                                        rel="noopener noreferrer"
-                                        href={`https://www.facebook.com/sharer/sharer.php?u=https://tusitio.com/reports/${report.id}&src=sdkpreparse`}
-                                        className="fb-xfbml-parse-ignore"
-                                      >
-                                        Compartir en Facebook (Próximamente)
-                                      </a>
-                                    </div>
+                                <DropdownMenuItem onClick={() => handleFacebookShare(report.id)} className="flex items-center gap-2 cursor-pointer">
+                                   <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" className="bi bi-facebook h-4 w-4" viewBox="0 0 16 16">
+                                       <path d="M16 8.049c0-4.446-3.582-8.05-8-8.05C3.58 0 0 3.592 0 8.049 0 12.069 2.91 15.275 6.75 15.979V10.37H4.849V8.05h1.9V6.275c0-2.017 1.195-3.131 3.022-3.131.876 0 1.791.157 1.791.157v1.98h-1.009c-.993 0-1.303.621-1.303 1.258v1.51h2.218l-.354 2.32H9.25V15.97A8.025 8.025 0 0 0 16 8.049z"/>
+                                   </svg>
+                                   Compartir en Facebook
                                 </DropdownMenuItem>
                             </DropdownMenuContent>
                         </DropdownMenu>
@@ -519,7 +538,7 @@ const WelcomePage: FC = () => {
                  <PaginationPrevious
                     onClick={handlePreviousPage}
                     className={cn(currentPage === 1 && "pointer-events-none opacity-50", isLoading && "pointer-events-none opacity-50")}
-                    href="#" // Added href to make it a valid link for styling
+                    href="#" 
                     aria-disabled={currentPage === 1 || isLoading}
                   />
                </PaginationItem>
@@ -537,7 +556,7 @@ const WelcomePage: FC = () => {
                   <PaginationNext
                     onClick={handleNextPage}
                     className={cn(!hasMore && "pointer-events-none opacity-50", isLoading && "pointer-events-none opacity-50")}
-                    href="#" // Added href to make it a valid link for styling
+                    href="#" 
                     aria-disabled={!hasMore || isLoading}
                   />
                </PaginationItem>
