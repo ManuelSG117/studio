@@ -1,4 +1,3 @@
-
 "use client";
 
 import type { FC } from 'react';
@@ -98,7 +97,12 @@ const WelcomePage: FC = () => {
       setIsLoading(false);
       return;
     }
-    console.log("Fetching reports for user:", user.uid, "Direction:", direction, "Current Page:", currentPage);
+
+    // Prevent unnecessary API calls when we know there are no more results
+    if (direction === 'next' && !hasMore) {
+      return;
+    }
+
     setIsLoading(true);
 
     try {
@@ -134,6 +138,16 @@ const WelcomePage: FC = () => {
       }
 
       const querySnapshot = await getDocs(q);
+      
+      // If no results found and it's not the initial load, keep current state and disable hasMore
+      if (querySnapshot.empty) {
+        if (direction !== 'initial') {
+          setHasMore(false);
+        }
+        setIsLoading(false);
+        return;
+      }
+
       const fetchedReports: Report[] = [];
       console.log(`Found ${querySnapshot.docs.length} reports in this batch for WelcomePage.`);
 
@@ -142,7 +156,8 @@ const WelcomePage: FC = () => {
         const userVote = await fetchUserVote(user.uid, reportDoc.id);
         const createdAtDate = data.createdAt instanceof Timestamp ? data.createdAt.toDate() : new Date();
         fetchedReports.push({
-            id: reportDoc.id, userId: data.userId, userEmail: data.userEmail || null,
+            id: reportDoc.id,
+            userId: data.userId, userEmail: data.userEmail || null,
             reportType: data.reportType, title: data.title, description: data.description,
             location: data.location, mediaUrl: data.mediaUrl || null,
             latitude: data.latitude || null, longitude: data.longitude || null,
@@ -151,33 +166,31 @@ const WelcomePage: FC = () => {
         });
       }
       
-      setReports(fetchedReports);
-
-      if (querySnapshot.docs.length > 0) {
+      // Update hasMore before setting the reports
+      const newHasMore = querySnapshot.docs.length === ITEMS_PER_PAGE;
+      setHasMore(newHasMore);
+      
+      if (fetchedReports.length > 0) {
+        setReports(fetchedReports);
         setFirstVisibleDoc(querySnapshot.docs[0]);
         setLastVisibleDoc(querySnapshot.docs[querySnapshot.docs.length - 1]);
-      } else {
-        if (direction === 'next') setHasMore(false);
+        
+        if (direction === 'next') {
+          setCurrentPage(prev => prev + 1);
+        } else if (direction === 'previous') {
+          setCurrentPage(prev => prev - 1);
+        } else if (direction === 'initial') {
+          setCurrentPage(1);
+        }
       }
-      
-      if (direction === 'initial') {
-        setCurrentPage(1);
-        setHasMore(fetchedReports.length === ITEMS_PER_PAGE);
-      } else if (direction === 'next') {
-        if (fetchedReports.length > 0) setCurrentPage(prev => prev + 1);
-        setHasMore(fetchedReports.length === ITEMS_PER_PAGE);
-      } else if (direction === 'previous') {
-        if (fetchedReports.length > 0) setCurrentPage(prev => prev - 1);
-        setHasMore(true); 
-      }
-      
+
     } catch (error) {
       console.error("Error fetching reports: ", error);
       toast({ variant: "destructive", title: "Error", description: "Failed to fetch reports." });
     } finally {
       setIsLoading(false);
     }
-  }, [user, toast, fetchUserVote, lastVisibleDoc, firstVisibleDoc, currentPage]); 
+  }, [user, toast, fetchUserVote, lastVisibleDoc, firstVisibleDoc, currentPage, hasMore]);
 
   useEffect(() => {
     if (!authLoading) {
@@ -239,7 +252,7 @@ const WelcomePage: FC = () => {
   };
 
   const handleNextPage = () => {
-    if (hasMore && !isLoading) {
+    if (hasMore && lastVisibleDoc && !isLoading) {
         fetchReports('next');
     }
   };
@@ -358,6 +371,20 @@ const WelcomePage: FC = () => {
       return;
     }
     router.push("/reports/new");
+  };
+
+  const handlePreviousPageClick = (e: React.MouseEvent<HTMLAnchorElement>) => {
+    e.preventDefault();
+    if (currentPage > 1 && !isLoading) {
+      fetchReports('previous');
+    }
+  };
+
+  const handleNextPageClick = (e: React.MouseEvent<HTMLAnchorElement>) => {
+    e.preventDefault();
+    if (hasMore && lastVisibleDoc && !isLoading) {
+      fetchReports('next');
+    }
   };
 
   return (
@@ -536,35 +563,35 @@ const WelcomePage: FC = () => {
         {!isLoading && reports.length > 0 && (hasMore || currentPage > 1) && (
           <div className="mt-8 flex justify-center">
             <Pagination>
-             <PaginationContent>
-               <PaginationItem>
-                 <PaginationPrevious
-                    onClick={handlePreviousPage}
+              <PaginationContent>
+                <PaginationItem>
+                  <PaginationPrevious
+                    onClick={handlePreviousPageClick}
                     className={cn(currentPage === 1 && "pointer-events-none opacity-50", isLoading && "pointer-events-none opacity-50")}
-                    href="#" 
+                    href="#"
                     aria-disabled={currentPage === 1 || isLoading}
                   />
-               </PaginationItem>
-               <PaginationItem>
-                 <PaginationLink href="#" isActive>
-                   {currentPage}
-                 </PaginationLink>
-               </PaginationItem>
-               {hasMore && (
-                 <PaginationItem>
-                   <PaginationEllipsis />
-                 </PaginationItem>
-               )}
-               <PaginationItem>
+                </PaginationItem>
+                <PaginationItem>
+                  <PaginationLink href="#" isActive>
+                    {currentPage}
+                  </PaginationLink>
+                </PaginationItem>
+                {hasMore && (
+                  <PaginationItem>
+                    <PaginationEllipsis />
+                  </PaginationItem>
+                )}
+                <PaginationItem>
                   <PaginationNext
-                    onClick={handleNextPage}
-                    className={cn(!hasMore && "pointer-events-none opacity-50", isLoading && "pointer-events-none opacity-50")}
-                    href="#" 
-                    aria-disabled={!hasMore || isLoading}
+                    onClick={handleNextPageClick}
+                    className={cn((!hasMore || !lastVisibleDoc) && "pointer-events-none opacity-50", isLoading && "pointer-events-none opacity-50")}
+                    href="#"
+                    aria-disabled={!hasMore || !lastVisibleDoc || isLoading}
                   />
-               </PaginationItem>
-             </PaginationContent>
-           </Pagination>
+                </PaginationItem>
+              </PaginationContent>
+            </Pagination>
           </div>
         )}
         
