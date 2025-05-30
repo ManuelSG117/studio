@@ -384,7 +384,7 @@ const WelcomePage: FC = () => {
         </div>
 
         {isLoading && reports.length === 0 ? (
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
             {[...Array(ITEMS_PER_PAGE)].map((_, i) => (
               <Card key={i} className="shadow-sm bg-card rounded-lg overflow-hidden">
                 <CardHeader className="p-4 flex flex-row items-center justify-between">
@@ -405,7 +405,7 @@ const WelcomePage: FC = () => {
             ))}
           </div>
         ) : reports.length > 0 ? (
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
             {reports.map((report) => (
                <Card key={report.id} className="shadow-md bg-card rounded-lg overflow-hidden hover:shadow-xl transition-shadow duration-300 flex flex-col">
                    <div className="relative h-40 w-full bg-muted flex items-center justify-center text-muted-foreground overflow-hidden group">
