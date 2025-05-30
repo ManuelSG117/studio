@@ -137,19 +137,17 @@ const AuthScreen: FC = () => {
   // --- Handlers ---
 
   const handleGoogleSignIn = async () => {
-    setIsGoogleLoading(true); // Use separate loading state for Google button
-    setIsSubmitting(false); // Ensure form submission overlay is hidden
+    setIsGoogleLoading(true);
+    setIsSubmitting(false);
     setAuthError(null);
     const provider = new GoogleAuthProvider();
     try {
-      // Use local persistence for Google Sign-In for a more persistent session
       await setPersistence(auth, browserLocalPersistence);
       await signInWithPopup(auth, provider);
       toast({
         title: "Inicio con Google Exitoso",
         description: "Verificando perfil...",
       });
-      // useEffect will handle redirect
     } catch (error) {
        console.error("Google Sign-In Error:", error);
        let friendlyError = "No se pudo iniciar sesión con Google. Por favor, inténtalo de nuevo.";
@@ -557,7 +555,7 @@ const AuthScreen: FC = () => {
                 <Button
                    onClick={handleGoogleSignIn}
                    variant="outline"
-                   className="w-full h-12 rounded-md text-base font-medium border-input hover:bg-accent/10"
+                   className="w-full h-12 rounded-md text-base font-medium border-input hover:bg-accent/90"
                    size="lg"
                    disabled={isSubmitting || isGoogleLoading} // Disable during submission
                    type="button"
