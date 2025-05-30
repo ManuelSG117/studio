@@ -88,41 +88,41 @@ const AboutCreatorPage: FC = () => {
                 <h2 className="text-xl font-semibold text-foreground mb-4">
                   <AnimatedTextCycle texts={["Contacto", "Colaboración", "Sugerencia"]} duration={3000} className="inline-block" />
                 </h2>
-                <p className="text-muted-foreground mb-4 leading-relaxed">
+                <p className="text-muted-foreground mb-6 leading-relaxed">
                   Si tienes alguna pregunta, sugerencia para mejorar la plataforma, o simplemente quieres charlar sobre cómo podemos hacer de Uruapan un lugar mejor, no dudes en contactarme.
                 </p>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  <Button asChild variant="outline" className="w-full justify-start text-left h-auto py-3 rounded-lg">
-                    <a href="mailto:masseguro117@gmail.com">
-                      <Mail className="h-5 w-5 mr-3 text-primary flex-shrink-0" />
+                  <Button asChild variant="outline" className="w-full justify-start text-left h-auto py-4 px-5 rounded-xl hover:bg-primary/5 hover:border-primary/30 transition-all">
+                    <a href="mailto:masseguro117@gmail.com" className="flex items-center">
+                      <Mail className="h-6 w-6 mr-4 text-primary flex-shrink-0" />
                       <div>
-                        <span className="font-medium text-foreground">Correo Electrónico</span>
-                        <span className="block text-xs text-muted-foreground">masseguro117@gmail.com</span>
+                        <span className="font-medium text-foreground text-base">Correo Electrónico</span>
+                        <span className="block text-sm text-muted-foreground">masseguro117@gmail.com</span>
                       </div>
                     </a>
                   </Button>
-                  <Button variant="outline" className="w-full justify-start text-left h-auto py-3 rounded-lg" onClick={handleOpenSuggestionDialog} disabled>
-                    <MessageSquare className="h-5 w-5 mr-3 text-muted-foreground flex-shrink-0" />
+                  <Button variant="outline" className="w-full justify-start text-left h-auto py-4 px-5 rounded-xl hover:bg-muted/80 transition-all" onClick={handleOpenSuggestionDialog} disabled>
+                    <MessageSquare className="h-6 w-6 mr-4 text-muted-foreground flex-shrink-0" />
                     <div>
-                      <span className="font-medium text-muted-foreground">Buzón de Sugerencias</span>
-                      <span className="block text-xs text-muted-foreground">Disponible Próximamente</span>
+                      <span className="font-medium text-muted-foreground text-base">Buzón de Sugerencias</span>
+                      <span className="block text-sm text-muted-foreground">Disponible Próximamente</span>
                     </div>
                   </Button>
-                  <Button asChild variant="outline" className="w-full justify-start text-left h-auto py-3 rounded-lg">
-                    <a href="https://www.facebook.com/manuel.sandoval.5245" target="_blank" rel="noopener noreferrer">
-                      <Facebook className="h-5 w-5 mr-3 text-blue-600 flex-shrink-0" />
+                  <Button asChild variant="outline" className="w-full justify-start text-left h-auto py-4 px-5 rounded-xl hover:bg-blue-500/5 hover:border-blue-500/30 transition-all">
+                    <a href="https://www.facebook.com/manuel.sandoval.5245" target="_blank" rel="noopener noreferrer" className="flex items-center">
+                      <Facebook className="h-6 w-6 mr-4 text-blue-600 flex-shrink-0" />
                       <div>
-                        <span className="font-medium text-foreground">Facebook Personal</span>
-                        <span className="block text-xs text-muted-foreground">Manuel Sandoval <ExternalLink className="inline h-3 w-3 ml-1" /></span>
+                        <span className="font-medium text-foreground text-base">Facebook Personal</span>
+                        <span className="block text-sm text-muted-foreground">Manuel Sandoval <ExternalLink className="inline h-3.5 w-3.5 ml-1 opacity-70" /></span>
                       </div>
                     </a>
                   </Button>
-                  <Button asChild variant="outline" className="w-full justify-start text-left h-auto py-3 rounded-lg">
-                    <a href="https://www.facebook.com/profile.php?id=61576643662120" target="_blank" rel="noopener noreferrer">
-                      <Facebook className="h-5 w-5 mr-3 text-blue-600 flex-shrink-0" />
+                  <Button asChild variant="outline" className="w-full justify-start text-left h-auto py-4 px-5 rounded-xl hover:bg-blue-500/5 hover:border-blue-500/30 transition-all">
+                    <a href="https://www.facebook.com/profile.php?id=61576643662120" target="_blank" rel="noopener noreferrer" className="flex items-center">
+                      <Facebook className="h-6 w-6 mr-4 text-blue-600 flex-shrink-0" />
                       <div>
-                        <span className="font-medium text-foreground">+Seguro en Facebook</span>
-                        <span className="block text-xs text-muted-foreground">Actualizaciones o Contacto <ExternalLink className="inline h-3 w-3 ml-1" /></span>
+                        <span className="font-medium text-foreground text-base">+Seguro en Facebook</span>
+                        <span className="block text-sm text-muted-foreground">Actualizaciones y Contacto <ExternalLink className="inline h-3.5 w-3.5 ml-1 opacity-70" /></span>
                       </div>
                     </a>
                   </Button>
@@ -134,7 +134,7 @@ const AboutCreatorPage: FC = () => {
               {/* Section: Apoya +Seguro */}
               <section className="py-8 bg-primary/5 dark:bg-primary/10 rounded-xl px-6">
                 <h2 className="text-2xl font-bold text-primary mb-4 flex items-center">
-                  <Gift className="h-6 w-6 mr-3 text-primary" />
+                  <Gift className="h-7 w-7 mr-3 text-primary" />
                   ¡Apoya el Futuro de +Seguro!
                 </h2>
                 <p className="text-muted-foreground leading-relaxed text-base">
