@@ -5,7 +5,7 @@ import type { FC } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { ArrowLeft, Mail, MessageSquare, Facebook, ExternalLink, Briefcase } from 'lucide-react';
+import { ArrowLeft, Mail, MessageSquare, Facebook, ExternalLink, Briefcase, Gift } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -79,13 +79,14 @@ const AboutCreatorPage: FC = () => {
                   </GradientText>
                   {' '}Mi compromiso es con el progreso y la tranquilidad de Uruapan.
                 </p>
+                 {/* Aviso de app móvil en desarrollo */}
+                 <div className="px-6 pt-4 pb-0 text-center">
+                    <p className="text-base font-semibold text-primary bg-primary/10 dark:bg-primary/20 rounded-lg py-2 px-4 mb-2">
+                        ¡Estamos trabajando en la aplicación móvil de la plataforma para mejorar la comodidad y experiencia de todos los usuarios! Próximamente disponible.
+                    </p>
+                </div>
               </section>
-              {/* Aviso de app móvil en desarrollo */}
-              <div className="px-6 pt-4 pb-0 text-center">
-                            <p className="text-base font-semibold text-primary bg-primary/10 dark:bg-primary/20 rounded-lg py-2 px-4 mb-2">
-                              ¡Estamos trabajando en la aplicación móvil de la plataforma para mejorar la comodidad y experiencia de todos los usuarios! Próximamente disponible.
-                            </p>
-                          </div>
+             
               <Separator />
 
               {/* Section 2: Contacto */}
@@ -131,6 +132,25 @@ const AboutCreatorPage: FC = () => {
                       </div>
                     </a>
                   </Button>
+                </div>
+              </section>
+
+              <Separator />
+
+              {/* Section: Apoya +Seguro */}
+              <section>
+                <h2 className="text-xl font-semibold text-foreground mb-4 flex items-center">
+                  <Gift className="h-5 w-5 mr-2 text-primary" />
+                  Apoya +Seguro
+                </h2>
+                <p className="text-muted-foreground leading-relaxed">
+                  Si crees en la misión de +Seguro y te gustaría apoyar el mantenimiento y desarrollo continuo de esta plataforma, ¡tu contribución es bienvenida! Los patrocinadores pueden ser destacados en esta sección como agradecimiento.
+                </p>
+                <p className="text-muted-foreground leading-relaxed mt-3">
+                  Para más información sobre cómo puedes ayudar, no dudes en <a href="mailto:masseguro117@gmail.com" className="text-primary hover:underline">contactarme</a>.
+                </p>
+                <div className="mt-6 text-center text-muted-foreground/70 italic">
+                  (Próximamente: Zona de patrocinadores destacados)
                 </div>
               </section>
 
