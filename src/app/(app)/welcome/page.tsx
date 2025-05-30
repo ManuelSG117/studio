@@ -75,6 +75,7 @@ const WelcomePage: FC = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const [showLimitDialog, setShowLimitDialog] = useState(false);
   const [checkingLimit, setCheckingLimit] = useState(false);
+  const [isPaginating, setIsPaginating] = useState(false);
 
   const ITEMS_PER_PAGE = 6;
 
@@ -103,7 +104,11 @@ const WelcomePage: FC = () => {
       return;
     }
 
-    setIsLoading(true);
+    if (direction === 'initial') {
+      setIsLoading(true);
+    } else {
+      setIsPaginating(true);
+    }
 
     try {
       const reportsCollectionRef = collection(db, "reports");
@@ -189,6 +194,7 @@ const WelcomePage: FC = () => {
       toast({ variant: "destructive", title: "Error", description: "Failed to fetch reports." });
     } finally {
       setIsLoading(false);
+      setIsPaginating(false);
     }
   }, [user, toast, fetchUserVote, lastVisibleDoc, firstVisibleDoc, currentPage, hasMore]);
 
@@ -410,7 +416,7 @@ const WelcomePage: FC = () => {
             </Button>
         </div>
 
-        {isLoading && reports.length === 0 ? (
+        {(isLoading && reports.length === 0) || isPaginating ? (
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
             {[...Array(ITEMS_PER_PAGE)].map((_, i) => (
               <Card key={i} className="shadow-sm bg-card rounded-lg overflow-hidden">
@@ -424,8 +430,8 @@ const WelcomePage: FC = () => {
                   <Skeleton className="h-3 w-[90%]" />
                   <Skeleton className="h-3 w-[50%]" />
                   <div className="flex justify-between items-center pt-2">
-                     <Skeleton className="h-3 w-[40%]" />
-                     <Skeleton className="h-8 w-20" />
+                    <Skeleton className="h-3 w-[40%]" />
+                    <Skeleton className="h-8 w-20" />
                   </div>
                 </CardContent>
               </Card>
@@ -560,17 +566,27 @@ const WelcomePage: FC = () => {
           </Card>
         )}
 
-        {!isLoading && reports.length > 0 && (hasMore || currentPage > 1) && (
+        {/* Modify the pagination controls to show loading state */}
+        {!isLoading && !isPaginating && reports.length > 0 && (hasMore || currentPage > 1) && (
           <div className="mt-8 flex justify-center">
             <Pagination>
               <PaginationContent>
                 <PaginationItem>
                   <PaginationPrevious
                     onClick={handlePreviousPageClick}
-                    className={cn(currentPage === 1 && "pointer-events-none opacity-50", isLoading && "pointer-events-none opacity-50")}
+                    className={cn(
+                      currentPage === 1 && "pointer-events-none opacity-50",
+                      (isLoading || isPaginating) && "pointer-events-none opacity-50"
+                    )}
                     href="#"
-                    aria-disabled={currentPage === 1 || isLoading}
-                  />
+                    aria-disabled={currentPage === 1 || isLoading || isPaginating}
+                  >
+                    {isPaginating ? (
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    ) : (
+                      "Previous"
+                    )}
+                  </PaginationPrevious>
                 </PaginationItem>
                 <PaginationItem>
                   <PaginationLink href="#" isActive>
@@ -585,10 +601,19 @@ const WelcomePage: FC = () => {
                 <PaginationItem>
                   <PaginationNext
                     onClick={handleNextPageClick}
-                    className={cn((!hasMore || !lastVisibleDoc) && "pointer-events-none opacity-50", isLoading && "pointer-events-none opacity-50")}
+                    className={cn(
+                      (!hasMore || !lastVisibleDoc) && "pointer-events-none opacity-50",
+                      (isLoading || isPaginating) && "pointer-events-none opacity-50"
+                    )}
                     href="#"
-                    aria-disabled={!hasMore || !lastVisibleDoc || isLoading}
-                  />
+                    aria-disabled={!hasMore || !lastVisibleDoc || isLoading || isPaginating}
+                  >
+                    {isPaginating ? (
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    ) : (
+                      "Next"
+                    )}
+                  </PaginationNext>
                 </PaginationItem>
               </PaginationContent>
             </Pagination>
