@@ -1,4 +1,3 @@
-
 "use client";
 
 import type { FC } from 'react';
@@ -59,7 +58,7 @@ const CommunityReportsPage: FC = () => {
   const [displayedSearchTerm, setDisplayedSearchTerm] = useState(''); // For desktop search input
 
   const [currentPage, setCurrentPage] = useState(1);
-
+  const [isPaginating, setIsPaginating] = useState(false);
 
   const ITEMS_PER_PAGE = 6;
 
@@ -87,8 +86,13 @@ const CommunityReportsPage: FC = () => {
         setIsLoading(false);
         return;
     }
-    console.log("Fetching community reports. Direction:", direction, "Filter Type:", filterType, "Sort By:", sortBy, "Search:", currentSearchTerm, "Current Page:", currentPage);
-    setIsLoading(true);
+
+    // Set the appropriate loading state based on direction
+    if (direction === 'initial' || direction === 'filterOrSort') {
+      setIsLoading(true);
+    } else {
+      setIsPaginating(true);
+    }
 
     try {
       const reportsCollectionRef = collection(db, "reports");
@@ -192,6 +196,7 @@ const CommunityReportsPage: FC = () => {
       toast({ variant: "destructive", title: "Error", description: "Failed to fetch community reports." });
     } finally {
       setIsLoading(false);
+      setIsPaginating(false);
     }
   }, [user, toast, fetchUserVote, lastVisibleDoc, firstVisibleDoc, currentFilterType, currentSortBy, displayedSearchTerm, currentPage, hasMore]);
 
@@ -514,7 +519,7 @@ const CommunityReportsPage: FC = () => {
           </Dialog>
         </div>
 
-        {isLoading && reports.length === 0 ? (
+        {(isLoading && reports.length === 0) || isPaginating ? (
            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
             {[...Array(ITEMS_PER_PAGE)].map((_, i) => (
               <Card key={i} className="shadow-sm bg-card rounded-lg overflow-hidden">
@@ -656,17 +661,27 @@ const CommunityReportsPage: FC = () => {
            </Card>
         )}
 
-        {!isLoading && reports.length > 0 && (hasMore || currentPage > 1) && (
+        {/* Modify pagination section to reflect loading state */}
+        {!isLoading && !isPaginating && reports.length > 0 && (hasMore || currentPage > 1) && (
          <div className="mt-8 flex justify-center">
            <Pagination>
              <PaginationContent>
                <PaginationItem>
                  <PaginationPrevious
                     onClick={handlePreviousPageClick}
-                    className={cn(currentPage === 1 && "pointer-events-none opacity-50", isLoading && "pointer-events-none opacity-50")}
-                    href="#" 
-                    aria-disabled={currentPage === 1 || isLoading}
-                  />
+                    className={cn(
+                      currentPage === 1 && "pointer-events-none opacity-50",
+                      (isLoading || isPaginating) && "pointer-events-none opacity-50"
+                    )}
+                    href="#"
+                    aria-disabled={currentPage === 1 || isLoading || isPaginating}
+                  >
+                  {isPaginating ? (
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  ) : (
+                    "Anterior"
+                  )}
+                 </PaginationPrevious>
                </PaginationItem>
                <PaginationItem>
                  <PaginationLink href="#" isActive>
@@ -681,10 +696,19 @@ const CommunityReportsPage: FC = () => {
                <PaginationItem>
                   <PaginationNext
                     onClick={handleNextPageClick}
-                    className={cn(!hasMore && "pointer-events-none opacity-50", isLoading && "pointer-events-none opacity-50")}
-                    href="#" 
-                    aria-disabled={!hasMore || isLoading}
-                  />
+                    className={cn(
+                      !hasMore && "pointer-events-none opacity-50",
+                      (isLoading || isPaginating) && "pointer-events-none opacity-50"
+                    )}
+                    href="#"
+                    aria-disabled={!hasMore || isLoading || isPaginating}
+                  >
+                  {isPaginating ? (
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  ) : (
+                    "Siguiente"
+                  )}
+                 </PaginationNext>
                </PaginationItem>
              </PaginationContent>
            </Pagination>
@@ -703,6 +727,5 @@ export default CommunityReportsPage;
 
 
 
-    
 
-    
+
