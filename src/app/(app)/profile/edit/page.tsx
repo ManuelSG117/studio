@@ -198,9 +198,9 @@ const EditProfilePage: FC = () => {
     setIsUploading(false);
 
     if (!user) {
-        toast({ variant: "destructive", title: "Error", description: "Usuario no autenticado." });
-        setIsLoading(false);
-        return;
+      toast({ variant: "destructive", title: "Error", description: "Usuario no autenticado." });
+      setIsLoading(false);
+      return;
     }
 
     console.log("Updating profile data:", values);
@@ -209,30 +209,41 @@ const EditProfilePage: FC = () => {
     if (selectedFile) {
       setIsUploading(true);
       try {
-        // Generar un nombre único para el archivo usando el UID del usuario
-        const fileName = `${user.uid}_${Date.now()}_${(selectedFile as any).customFileName || 'profile.webp'}`;
+        // Nombre fijo para la imagen de perfil del usuario
+        const fileName = `profile/${user.uid}/avatar.webp`;
 
-        // Subir a Supabase
-        const uploadResult = await supabase.storage
+        // Primero intentamos eliminar el archivo existente (no importa si falla)
+        try {
+          await supabase.storage
+            .from('profile')
+            .remove([fileName]);
+        } catch (error) {
+          console.log("No existing file to delete or error deleting:", error);
+        }
+
+        // Subir la nueva imagen
+        const { error: uploadError, data } = await supabase.storage
           .from('profile')
           .upload(fileName, selectedFile, {
             cacheControl: '3600',
-            upsert: false,
+            upsert: true
           });
 
-        if (uploadResult.error) {
-          throw uploadResult.error;
+        if (uploadError) {
+          throw uploadError;
         }
 
-        // Obtener la URL pública
-        const { publicUrl } = supabase
+        // Obtener la URL pública usando el mismo nombre de archivo
+        const { data: { publicUrl } } = supabase
           .storage
           .from('profile')
-          .getPublicUrl(fileName).data;
+          .getPublicUrl(fileName);
+
+        // Añadir timestamp para forzar actualización de caché
+        photoDownloadURL = `${publicUrl}?t=${Date.now()}`;
         
-        photoDownloadURL = publicUrl;
         console.log("Image uploaded successfully to Supabase:", photoDownloadURL);
-        toast({ title: "Imagen Cargada", description: "La nueva imagen de perfil se ha guardado." });
+        toast({ title: "Imagen Actualizada", description: "La nueva imagen de perfil se ha guardado." });
 
       } catch (uploadError) {
         console.error("Error uploading image:", uploadError);
@@ -246,10 +257,19 @@ const EditProfilePage: FC = () => {
         setIsUploading(false);
       }
     } else if (previewUrl === null && user.photoURL !== null) {
+      // Si se está eliminando la foto de perfil
+      try {
+        const fileName = `profile/${user.uid}/avatar.webp`;
+        await supabase.storage
+          .from('profile')
+          .remove([fileName]);
+        
         photoDownloadURL = null;
-        console.log("Removing profile picture.");
+        console.log("Profile picture removed from storage");
+      } catch (error) {
+        console.error("Error removing profile picture:", error);
+      }
     }
-
 
     try {
       const userDocRef = doc(db, "users", user.uid);
