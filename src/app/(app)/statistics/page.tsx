@@ -1,4 +1,3 @@
-
 "use client";
 
 import type { FC } from 'react';
@@ -30,7 +29,8 @@ import {
   getDate,
   differenceInDays,
   differenceInWeeks,
-  differenceInMonths
+  differenceInMonths,
+  type Interval
 } from 'date-fns';
 import { es } from 'date-fns/locale';
 import { Area, AreaChart, CartesianGrid, XAxis, YAxis, Tooltip as ChartTooltip } from 'recharts';
@@ -205,7 +205,7 @@ const StatisticsPage: FC = () => {
         interval = { start: startOfWeek(firstReportDate, { locale: es }), end: endOfWeek(lastReportDate, { locale: es }) };
         allPeriodsInInterval = eachWeekOfInterval(interval, { locale: es });
         formatKey = (date) => format(date, 'RRRR-II', { locale: es });
-        numberOfPeriods = Math.max(1, differenceInWeeks(interval.end, interval.start, { locale: es }) + 1);
+        numberOfPeriods = Math.max(1, differenceInWeeks(interval.end, interval.start) + 1);
         break;
       case 'month':
       default:
@@ -283,11 +283,11 @@ const StatisticsPage: FC = () => {
   const chartConfig = {
     incidentCount: {
       label: "Incidentes",
-      color: "hsl(var(--chart-2))",
+      color: "hsl(217 91% 60%)", // Azul para incidentes
     },
     officerCount: {
       label: "Funcionarios",
-      color: "hsl(var(--chart-1))",
+      color: "hsl(0 84% 60%)", // Rojo para funcionarios
     },
   } satisfies ChartConfig;
 

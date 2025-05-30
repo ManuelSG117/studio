@@ -166,7 +166,7 @@ const AuthScreen: FC = () => {
                     title: "Dominio no Autorizado",
                     description: "Este dominio no está autorizado. Contacta al administrador.",
                  });
-                 friendlyError = null; // Don't show in alert
+                 friendlyError = ""; // Don't show in alert
            } else if (firebaseError.code === 'auth/account-exists-with-different-credential') {
                 friendlyError = 'Ya existe una cuenta con este correo, pero con diferente método de inicio de sesión.';
            }
