@@ -1,4 +1,3 @@
-
 "use client";
 
 import type { FC } from 'react';
@@ -261,8 +260,9 @@ const HomePage: FC = () => {
 
               {/* Step 1 */}
               <div className="relative mb-16 md:mb-24">
-                <div className="md:grid md:grid-cols-2 gap-8 md:gap-12 items-center">
-                  <div className="md:text-right mb-8 md:mb-0 md:pr-12">
+                <div className="flex flex-col md:grid md:grid-cols-2 gap-8 md:gap-12 items-center">
+                  {/* Paso (texto) primero en mobile, segundo en desktop */}
+                  <div className="order-1 md:order-1 md:text-right mb-8 md:mb-0 md:pr-12">
                     <div className="flex items-center justify-start md:justify-end mb-4">
                        <div className="flex-shrink-0 inline-flex items-center justify-center h-12 w-12 rounded-full bg-primary text-white text-xl font-bold z-10 shadow-md" >1</div>
                        <div className="absolute left-4 md:left-1/2 top-1/2 transform -translate-y-1/2 md:-translate-x-1/2 h-4 w-4 bg-card border-4 border-primary rounded-full z-20 hidden md:block"></div>
@@ -278,7 +278,8 @@ const HomePage: FC = () => {
                       </Button>
                     </div>
                   </div>
-                  <div className="bg-card p-4 rounded-2xl shadow-xl border border-border relative z-10 overflow-hidden" >
+                  {/* Simulación (tarjeta) segundo en mobile, primero en desktop */}
+                  <div className="order-2 md:order-2 bg-card p-4 rounded-2xl shadow-xl border border-border relative z-10 overflow-hidden">
                      <div className="absolute inset-0 bg-gradient-to-br from-primary/50 to-primary/20 opacity-30 pointer-events-none"></div>
                      <Card className="overflow-hidden bg-transparent shadow-none border-none">
                         <CardContent className="p-4 sm:p-6 relative z-10">
@@ -320,8 +321,26 @@ const HomePage: FC = () => {
 
               {/* Step 2 */}
               <div className="relative mb-16 md:mb-24">
-                <div className="md:grid md:grid-cols-2 gap-8 md:gap-12 items-center">
-                  <div className="order-2 md:order-1 mb-8 md:mb-0 bg-card p-4 rounded-2xl shadow-xl border border-border relative z-10 overflow-hidden">
+                <div className="flex flex-col md:grid md:grid-cols-2 gap-8 md:gap-12 items-center">
+                  {/* Paso (texto) primero en mobile, segundo en desktop */}
+                  <div className="order-1 md:order-2 md:text-left md:pl-12 mb-8 md:mb-0">
+                    <div className="flex items-center justify-start mb-4">
+                       <div className="flex-shrink-0 inline-flex items-center justify-center h-12 w-12 rounded-full bg-destructive text-white text-xl font-bold z-10 shadow-md" >2</div>
+                       <div className="absolute left-4 md:left-1/2 top-1/2 transform -translate-y-1/2 md:-translate-x-1/2 h-4 w-4 bg-card border-4  border-destructive rounded-full z-20 hidden md:block"></div>
+                    </div>
+                    <h3 className="text-2xl md:text-3xl font-semibold text-destructive mb-3">Crea un reporte detallado</h3>
+                    <p className="text-muted-foreground">
+                      Describe el incidente con precisión, añade la ubicación exacta en el mapa, adjunta fotografías o videos como evidencia y clasifica correctamente el tipo de incidente. Cuanto más detallado sea tu reporte, más útil será para la comunidad.
+                    </p>
+                    <div className="mt-5 flex justify-start">
+                      <Button variant="outline" className="border-destructive text-destructive hover:bg-destructive hover:text-destructive-foreground flex items-center rounded-full" onClick={() => router.push('/auth')}>
+                        Crear reporte
+                        <ChevronRight className="ml-1 h-4 w-4" />
+                      </Button>
+                    </div>
+                  </div>
+                  {/* Simulación (tarjeta) segundo en mobile, primero en desktop */}
+                  <div className="order-2 md:order-1 bg-card p-4 rounded-2xl shadow-xl border border-border relative z-10 overflow-hidden">
                      <div className="absolute inset-0 bg-gradient-to-br from-destructive/50 to-destructive/20 opacity-30 pointer-events-none"></div>
                      <Card className="overflow-hidden bg-transparent shadow-none border-none">
                         <CardContent className="p-4 sm:p-6 relative z-10">
@@ -375,29 +394,14 @@ const HomePage: FC = () => {
                        </CardContent>
                      </Card>
                   </div>
-                  <div className="md:text-left md:pl-12 order-1 md:order-2">
-                     <div className="flex items-center justify-start mb-4">
-                       <div className="flex-shrink-0 inline-flex items-center justify-center h-12 w-12 rounded-full bg-destructive text-white text-xl font-bold z-10 shadow-md" >2</div>
-                       <div className="absolute left-4 md:left-1/2 top-1/2 transform -translate-y-1/2 md:-translate-x-1/2 h-4 w-4 bg-card border-4  border-destructive rounded-full z-20 hidden md:block"></div>
-                     </div>
-                    <h3 className="text-2xl md:text-3xl font-semibold text-destructive mb-3">Crea un reporte detallado</h3>
-                    <p className="text-muted-foreground">
-                      Describe el incidente con precisión, añade la ubicación exacta en el mapa, adjunta fotografías o videos como evidencia y clasifica correctamente el tipo de incidente. Cuanto más detallado sea tu reporte, más útil será para la comunidad.
-                    </p>
-                    <div className="mt-5 flex justify-start">
-                      <Button variant="outline" className="border-destructive text-destructive hover:bg-destructive hover:text-destructive-foreground flex items-center rounded-full" onClick={() => router.push('/auth')}>
-                        Crear reporte
-                        <ChevronRight className="ml-1 h-4 w-4" />
-                      </Button>
-                    </div>
-                  </div>
                 </div>
               </div>
 
               {/* Step 3 */}
               <div className="relative mb-16 md:mb-24">
-                <div className="md:grid md:grid-cols-2 gap-8 md:gap-12 items-center">
-                  <div className="md:text-right mb-8 md:mb-0 md:pr-12" >
+                <div className="flex flex-col md:grid md:grid-cols-2 gap-8 md:gap-12 items-center">
+                  {/* Paso (texto) primero en mobile, segundo en desktop */}
+                  <div className="order-1 md:order-1 md:text-right mb-8 md:mb-0 md:pr-12" >
                      <div className="flex items-center justify-start md:justify-end mb-4">
                        <div className="flex-shrink-0 inline-flex items-center justify-center h-12 w-12 rounded-full bg-accent text-white text-xl font-bold z-10 shadow-md">3</div>
                        <div className="absolute left-4 md:left-1/2 top-1/2 transform -translate-y-1/2 md:-translate-x-1/2 h-4 w-4 bg-card border-4  border-accent rounded-full z-20 hidden md:block"></div>
@@ -413,7 +417,8 @@ const HomePage: FC = () => {
                       </Button>
                     </div>
                   </div>
-                  <div className="bg-card p-4 rounded-2xl shadow-xl border border-border relative z-10 overflow-hidden" >
+                  {/* Simulación (tarjeta) segundo en mobile, primero en desktop */}
+                  <div className="order-2 md:order-2 bg-card p-4 rounded-2xl shadow-xl border border-border relative z-10 overflow-hidden" >
                      <div className="absolute inset-0 bg-gradient-to-br from-accent/50 to-accent/20 opacity-30 pointer-events-none"></div>
                      <Card className="overflow-hidden bg-transparent shadow-none border-none">
                          <CardContent className="p-4 sm:p-6 relative z-10">
@@ -462,8 +467,26 @@ const HomePage: FC = () => {
 
                {/* Step 4 - Voting */}
                <div className="relative">
-                 <div className="md:grid md:grid-cols-2 gap-8 md:gap-12 items-center">
-                   <div className="order-2 md:order-1 mb-8 md:mb-0 bg-card p-4 rounded-2xl shadow-xl border border-border relative z-10 overflow-hidden">
+                 <div className="flex flex-col md:grid md:grid-cols-2 gap-8 md:gap-12 items-center">
+                   {/* Paso (texto) primero en mobile, segundo en desktop */}
+                   <div className="order-1 md:order-2 md:text-left md:pl-12 mb-8 md:mb-0">
+                     <div className="flex items-center justify-start mb-4">
+                       <div className="flex-shrink-0 inline-flex items-center justify-center h-12 w-12 rounded-full bg-green-600 text-white text-xl font-bold z-10 shadow-md" >4</div>
+                       <div className="absolute left-4 md:left-1/2 top-1/2 transform -translate-y-1/2 md:-translate-x-1/2 h-4 w-4 bg-card border-4 border-green-600 rounded-full z-20 hidden md:block"></div>
+                     </div>
+                    <h3 className="text-2xl md:text-3xl font-semibold text-green-700 dark:text-green-400 mb-3">Vota por los reportes</h3>
+                    <p className="text-muted-foreground">
+                       Ayuda a la comunidad votando en los reportes. Tus votos aumentan la credibilidad y visibilidad de los incidentes, permitiendo que la información más relevante llegue a más personas y a las autoridades correspondientes.
+                    </p>
+                     <div className="mt-5 flex justify-start">
+                       <Button variant="outline" className="border-green-600 text-green-700 dark:border-green-500 dark:text-green-400 hover:bg-green-600 hover:text-white flex items-center rounded-full" onClick={() => router.push('/auth')}>
+                         Ver Reportes de la Comunidad
+                         <ChevronRight className="ml-1 h-4 w-4" />
+                       </Button>
+                     </div>
+                   </div>
+                   {/* Simulación (tarjeta) segundo en mobile, primero en desktop */}
+                   <div className="order-2 md:order-1 bg-card p-4 rounded-2xl shadow-xl border border-border relative z-10 overflow-hidden">
                       <div className="absolute inset-0 bg-gradient-to-br from-green-500/30 to-green-500/10 opacity-30 pointer-events-none"></div>
                       <Card className="overflow-hidden bg-transparent shadow-none border-none">
                          <CardContent className="p-4 sm:p-6 relative z-10">
@@ -508,22 +531,6 @@ const HomePage: FC = () => {
                             </div>
                         </CardContent>
                       </Card>
-                   </div>
-                   <div className="md:text-left md:pl-12 order-1 md:order-2">
-                      <div className="flex items-center justify-start mb-4">
-                        <div className="flex-shrink-0 inline-flex items-center justify-center h-12 w-12 rounded-full bg-green-600 text-white text-xl font-bold z-10 shadow-md" >4</div>
-                        <div className="absolute left-4 md:left-1/2 top-1/2 transform -translate-y-1/2 md:-translate-x-1/2 h-4 w-4 bg-card border-4 border-green-600 rounded-full z-20 hidden md:block"></div>
-                      </div>
-                     <h3 className="text-2xl md:text-3xl font-semibold text-green-700 dark:text-green-400 mb-3">Vota por los reportes</h3>
-                     <p className="text-muted-foreground">
-                       Ayuda a la comunidad votando en los reportes. Tus votos aumentan la credibilidad y visibilidad de los incidentes, permitiendo que la información más relevante llegue a más personas y a las autoridades correspondientes.
-                     </p>
-                     <div className="mt-5 flex justify-start">
-                       <Button variant="outline" className="border-green-600 text-green-700 dark:border-green-500 dark:text-green-400 hover:bg-green-600 hover:text-white flex items-center rounded-full" onClick={() => router.push('/auth')}>
-                         Ver Reportes de la Comunidad
-                         <ChevronRight className="ml-1 h-4 w-4" />
-                       </Button>
-                     </div>
                    </div>
                  </div>
                </div>
@@ -674,4 +681,4 @@ const HomePage: FC = () => {
 };
 
 export default HomePage;
-    
+
