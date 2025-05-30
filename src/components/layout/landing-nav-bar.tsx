@@ -1,4 +1,3 @@
-
 "use client";
 
 import type { FC } from 'react';
@@ -111,9 +110,17 @@ const LandingNavBar: FC = () => {
   return (
     <header
       className={cn(
-        'fixed top-0 left-0 right-0 z-50 flex h-20 items-center justify-center px-4 md:px-8 transition-all duration-500'
+        // Cambia la clase para igualar el difuminado de la bottom navbar
+        'fixed top-0 left-0 right-0 z-50 flex h-20 items-center justify-center px-4 md:px-8 transition-all duration-500',
+        'bg-background/80 backdrop-blur-md shadow-sm border-b border-border/30'
       )}
     >
+      {/* Mobile: Logo +Seguro a la izquierda */}
+      <div className="md:hidden absolute left-4 top-1/2 transform -translate-y-1/2 flex items-center">
+        <Image src={logoSrc} alt="+Seguro Logo" width={28} height={28} className="mr-2" data-ai-hint="app logo small"/>
+        <span className="text-xl font-bold text-primary">+Seguro</span>
+      </div>
+
       {/* Desktop Navigation in Pill Container - Centered */}
       <div className={cn(
         "absolute left-1/2 top-1/2 transform -translate-x-1/2 -translate-y-1/2 transition-all duration-500 ease-in-out hidden md:flex",
