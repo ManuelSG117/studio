@@ -79,12 +79,6 @@ const AboutCreatorPage: FC = () => {
                   </GradientText>
                   {' '}Mi compromiso es con el progreso y la tranquilidad de Uruapan.
                 </p>
-                 {/* Aviso de app móvil en desarrollo */}
-                 <div className="px-6 pt-4 pb-0 text-center">
-                    <p className="text-base font-semibold text-primary bg-primary/10 dark:bg-primary/20 rounded-lg py-2 px-4 mb-2">
-                        ¡Estamos trabajando en la aplicación móvil de la plataforma para mejorar la comodidad y experiencia de todos los usuarios! Próximamente disponible.
-                    </p>
-                </div>
               </section>
              
               <Separator />
