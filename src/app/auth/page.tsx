@@ -1,4 +1,3 @@
-
 "use client";
 
 import type { FC } from 'react';
@@ -13,7 +12,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { GoogleIcon } from '@/components/icons/google-icon';
-import { Mail, Loader2, Terminal, UserPlus, LogIn, Check, X } from 'lucide-react';
+import { Mail, Loader2, Terminal, UserPlus, LogIn, Check, X, Eye, EyeOff } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import Image from 'next/image';
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
@@ -71,13 +70,18 @@ const RequirementItem: FC<{ met: boolean; text: string }> = ({ met, text }) => (
 
 const AuthScreen: FC = () => {
   const router = useRouter();
-  const { isAuthenticated, user, loading: authContextLoading } = useAuth(); // Renamed loading to avoid conflict
-  const [initialLoading, setInitialLoading] = useState(true); // Overall initial loading (auth check)
-  const [isSubmitting, setIsSubmitting] = useState(false); // For form submit loading (triggers overlay)
-  const [isGoogleLoading, setIsGoogleLoading] = useState(false); // Specific state for Google button (inline loader)
+  const { isAuthenticated, user, loading: authContextLoading } = useAuth();
+  const [initialLoading, setInitialLoading] = useState(true);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isGoogleLoading, setIsGoogleLoading] = useState(false);
   const [authError, setAuthError] = useState<string | null>(null);
   const { toast } = useToast();
-  const [activeTab, setActiveTab] = useState("login"); // Default to login tab
+  const [activeTab, setActiveTab] = useState("login");
+  
+  // Agregar estos estados para el control de visibilidad de contraseñas
+  const [showLoginPassword, setShowLoginPassword] = useState(false);
+  const [showRegisterPassword, setShowRegisterPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
   // Login Form
   const loginForm = useForm<LoginFormData>({
@@ -353,13 +357,29 @@ const AuthScreen: FC = () => {
                                       {/* Link moved below */}
                                   </div>
                                  <FormControl>
-                                   <Input
-                                     type="password"
-                                     placeholder="••••••••"
-                                     {...field}
-                                     disabled={isSubmitting || isGoogleLoading} // Disable during submission
-                                     className="h-11"
+                                   <div className="relative">
+                                    <Input
+                                      type={showLoginPassword ? "text" : "password"}
+                                      placeholder="••••••••"
+                                      {...field}
+                                      disabled={isSubmitting || isGoogleLoading} // Disable during submission
+                                      className="h-11 pr-10"
                                     />
+                                    <Button
+                                      type="button"
+                                      variant="ghost"
+                                      size="sm"
+                                      className="absolute right-0 top-0 h-11 w-11 px-3 py-2 hover:bg-transparent"
+                                      onClick={() => setShowLoginPassword(!showLoginPassword)}
+                                      disabled={isSubmitting || isGoogleLoading}
+                                    >
+                                      {showLoginPassword ? (
+                                        <EyeOff className="h-4 w-4 text-muted-foreground/70" />
+                                      ) : (
+                                        <Eye className="h-4 w-4 text-muted-foreground/70" />
+                                      )}
+                                    </Button>
+                                   </div>
                                  </FormControl>
                                  <FormMessage />
                                </FormItem>
@@ -436,7 +456,29 @@ const AuthScreen: FC = () => {
                                <FormItem>
                                  <FormLabel>Contraseña</FormLabel>
                                  <FormControl>
-                                   <Input type="password" placeholder="Crea una contraseña segura" {...field} disabled={isSubmitting || isGoogleLoading} className="h-11"/>
+                                   <div className="relative">
+                                    <Input
+                                      type={showRegisterPassword ? "text" : "password"}
+                                      placeholder="Crea una contraseña segura"
+                                      {...field}
+                                      disabled={isSubmitting || isGoogleLoading} // Disable during submission
+                                      className="h-11 pr-10"
+                                    />
+                                    <Button
+                                      type="button"
+                                      variant="ghost"
+                                      size="sm"
+                                      className="absolute right-0 top-0 h-11 w-11 px-3 py-2 hover:bg-transparent"
+                                      onClick={() => setShowRegisterPassword(!showRegisterPassword)}
+                                      disabled={isSubmitting || isGoogleLoading}
+                                    >
+                                      {showRegisterPassword ? (
+                                        <EyeOff className="h-4 w-4 text-muted-foreground/70" />
+                                      ) : (
+                                        <Eye className="h-4 w-4 text-muted-foreground/70" />
+                                      )}
+                                    </Button>
+                                   </div>
                                  </FormControl>
                                  {/* Password Requirements Checklist */}
                                   <ul className="grid grid-cols-1 sm:grid-cols-3 gap-x-4 gap-y-1 mt-2 pl-1">
@@ -455,7 +497,29 @@ const AuthScreen: FC = () => {
                                <FormItem>
                                  <FormLabel>Confirmar Contraseña</FormLabel>
                                  <FormControl>
-                                   <Input type="password" placeholder="Vuelve a escribir tu contraseña" {...field} disabled={isSubmitting || isGoogleLoading} className="h-11"/>
+                                   <div className="relative">
+                                    <Input
+                                      type={showConfirmPassword ? "text" : "password"}
+                                      placeholder="Vuelve a escribir tu contraseña"
+                                      {...field}
+                                      disabled={isSubmitting || isGoogleLoading} // Disable during submission
+                                      className="h-11 pr-10"
+                                    />
+                                    <Button
+                                      type="button"
+                                      variant="ghost"
+                                      size="sm"
+                                      className="absolute right-0 top-0 h-11 w-11 px-3 py-2 hover:bg-transparent"
+                                      onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                                      disabled={isSubmitting || isGoogleLoading}
+                                    >
+                                      {showConfirmPassword ? (
+                                        <EyeOff className="h-4 w-4 text-muted-foreground/70" />
+                                      ) : (
+                                        <Eye className="h-4 w-4 text-muted-foreground/70" />
+                                      )}
+                                    </Button>
+                                   </div>
                                  </FormControl>
                                  <FormMessage />
                                </FormItem>
