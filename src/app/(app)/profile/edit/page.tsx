@@ -1,4 +1,3 @@
-
 "use client";
 
 import type { FC, ChangeEvent } from "react";
@@ -29,6 +28,7 @@ import { ArrowLeft, CalendarIcon, Save, Camera, Trash2, Loader2 } from "lucide-r
 import { useToast } from "@/hooks/use-toast";
 import { getUserProfileData, type UserProfile } from "@/app/(app)/profile/page";
 import { Skeleton } from "@/components/ui/skeleton";
+import { supabase } from "@/lib/supabase/client";
 
 // Schema remains the same
 const formSchema = z.object({
@@ -114,7 +114,6 @@ const EditProfilePage: FC = () => {
     const file = event.target.files?.[0];
     if (!file) return;
 
-    // Basic validation (type)
     if (!file.type.startsWith("image/")) {
       toast({
         variant: "destructive",
@@ -124,15 +123,16 @@ const EditProfilePage: FC = () => {
       return;
     }
 
-    setIsCompressing(true); // Start compression loading
-    setPreviewUrl(null); // Clear previous preview
-    setSelectedFile(null); // Clear previous file selection
+    setIsCompressing(true);
+    setPreviewUrl(null);
+    setSelectedFile(null);
 
     const options = {
-        maxSizeMB: 1, // Target size 1MB (adjust as needed)
-        maxWidthOrHeight: 1024, // Resize the largest dimension to 1024px (adjust as needed)
-        useWebWorker: true, // Use web worker for better performance
-        initialQuality: 0.7, // Initial quality for compression
+        maxSizeMB: 1,
+        maxWidthOrHeight: 1024,
+        useWebWorker: true,
+        initialQuality: 0.7,
+        fileType: 'image/webp', // Forzar conversión a webp
     }
 
     try {
@@ -140,20 +140,24 @@ const EditProfilePage: FC = () => {
         const compressedFile = await imageCompression(file, options);
         console.log(`Compressed file size: ${(compressedFile.size / 1024 / 1024).toFixed(2)} MB`);
 
-        setSelectedFile(compressedFile); // Set the compressed file
+        // Cambia la extensión a .webp
+        const fileName = file.name.replace(/\.[^.]+$/, '.webp');
+        // Guarda el nombre procesado para usarlo en el upload
+        (compressedFile as any).customFileName = fileName;
 
-        // Create a preview URL from the compressed file
+        setSelectedFile(compressedFile);
+
         const reader = new FileReader();
         reader.onloadend = () => {
             setPreviewUrl(reader.result as string);
         };
         reader.readAsDataURL(compressedFile);
 
-        form.trigger(); // Trigger validation after setting the file
+        form.trigger();
 
         toast({
             title: "Imagen Lista",
-            description: `Imagen comprimida a ${(compressedFile.size / 1024 / 1024).toFixed(2)} MB.`,
+            description: `Imagen comprimida a ${(compressedFile.size / 1024 / 1024).toFixed(2)} MB y convertida a webp.`,
         });
 
     } catch (error) {
@@ -163,10 +167,9 @@ const EditProfilePage: FC = () => {
             title: "Error de Compresión",
             description: "No se pudo procesar la imagen. Intenta con otra imagen.",
         });
-        setPreviewUrl(user?.photoURL || null); // Revert preview if compression fails
+        setPreviewUrl(user?.photoURL || null);
     } finally {
-        setIsCompressing(false); // Stop compression loading
-        // Reset the file input value so the same file can be selected again if needed
+        setIsCompressing(false);
         if (fileInputRef.current) {
             fileInputRef.current.value = "";
         }
@@ -201,18 +204,36 @@ const EditProfilePage: FC = () => {
     }
 
     console.log("Updating profile data:", values);
-    let photoDownloadURL: string | null = user.photoURL; // Start with existing URL
+    let photoDownloadURL: string | null = user.photoURL;
 
-    // Upload the COMPRESSED Image if selectedFile is present
     if (selectedFile) {
       setIsUploading(true);
-      // Use a consistent naming convention or the user UID for the file name in storage
-      const imageRef = storageRef(storage, `profilePictures/${user.uid}/profileImage.jpg`); // Example: always save as profileImage.jpg
       try {
-        await uploadBytes(imageRef, selectedFile); // Upload the compressed file
-        photoDownloadURL = await getDownloadURL(imageRef);
-        console.log("Compressed image uploaded successfully:", photoDownloadURL);
+        // Generar un nombre único para el archivo usando el UID del usuario
+        const fileName = `${user.uid}_${Date.now()}_${(selectedFile as any).customFileName || 'profile.webp'}`;
+
+        // Subir a Supabase
+        const uploadResult = await supabase.storage
+          .from('profile')
+          .upload(fileName, selectedFile, {
+            cacheControl: '3600',
+            upsert: false,
+          });
+
+        if (uploadResult.error) {
+          throw uploadResult.error;
+        }
+
+        // Obtener la URL pública
+        const { publicUrl } = supabase
+          .storage
+          .from('profile')
+          .getPublicUrl(fileName).data;
+        
+        photoDownloadURL = publicUrl;
+        console.log("Image uploaded successfully to Supabase:", photoDownloadURL);
         toast({ title: "Imagen Cargada", description: "La nueva imagen de perfil se ha guardado." });
+
       } catch (uploadError) {
         console.error("Error uploading image:", uploadError);
         toast({
