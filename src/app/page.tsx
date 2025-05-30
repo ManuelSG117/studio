@@ -550,23 +550,23 @@ const HomePage: FC = () => {
          {/* Risk Map Section */}
           <section
             id="risk-map"
-            className="w-full py-16 md:py-24 bg-gradient-to-b from-secondary to-white dark:from-secondary dark:to-background"
+            className="w-full py-10 md:py-24 bg-gradient-to-b from-secondary to-white dark:from-secondary dark:to-background"
           >
             <div className="container px-4 md:px-6">
-              <div className="text-center mb-12 max-w-3xl mx-auto">
+              <div className="text-center mb-6 md:mb-12 max-w-3xl mx-auto">
                   <Badge className="mb-4 bg-destructive/10 text-destructive hover:bg-destructive/20">
                       ZONAS DE RIESGO
                   </Badge>
                   <h2 className="text-3xl md:text-5xl font-bold tracking-tight mb-4 text-foreground">
                       Mapa de incidencias
                   </h2>
-                  <p className="mx-auto max-w-[700px] text-muted-foreground md:text-xl/relaxed">
+                  <p className="mx-auto max-w-[700px] text-muted-foreground text-base md:text-xl/relaxed md:mb-0 mb-4">
                       Explora las áreas con mayor número de reportes para mantenerte informado y tomar precauciones
                   </p>
               </div>
               <div className="rounded-2xl overflow-hidden">
                        {/* Lottie Animation for Risk Map */}
-                       <div className="relative h-96 w-full flex items-center justify-center">
+                       <div className="relative h-56 md:h-96 w-full flex items-center justify-center">
                           <DotLottieReact
                              src="https://lottie.host/e575a174-b6c9-45e1-86bf-f712aad9cf22/yWmVrRdEOm.lottie"
                              loop
