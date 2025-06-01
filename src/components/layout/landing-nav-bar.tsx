@@ -111,8 +111,8 @@ const LandingNavBar: FC = () => {
     <header
       className={cn(
         // Cambia la clase para igualar el difuminado de la bottom navbar
-        'fixed top-0 left-0 right-0 z-50 flex h-20 items-center justify-center px-4 md:px-8 transition-all duration-500',
-        'bg-background/80 backdrop-blur-md shadow-sm border-b border-border/30'
+           'fixed top-0 left-0 right-0 z-50 flex h-20 items-center justify-between md:justify-center px-4 md:px-8 transition-all duration-300',
+      'bg-background/80 backdrop-blur-md shadow-sm border-b border-border/30 md:bg-transparent md:shadow-none md:border-none md:backdrop-blur-none'
       )}
     >
       {/* Mobile: Logo +Seguro a la izquierda */}
