@@ -505,7 +505,7 @@ const HomePage: FC = () => {
                      </div>
                    </div>
                    {/* Simulación (tarjeta) segundo en mobile, primero en desktop */}
-                   <div className="order-2 md:order-1 bg-card p-4 sm:p-6 rounded-2xl shadow-xl border border-border relative z-10 overflow-hidden w-full max-w-full mx-auto">
+                   <div className="order-2 md:order-1 bg-card p-4 rounded-2xl shadow-xl border border-border relative z-10 overflow-hidden">
                       <div className="absolute inset-0 bg-gradient-to-br from-green-500/30 to-green-500/10 opacity-30 pointer-events-none"></div>
                       <Card className="overflow-hidden bg-transparent shadow-none border-none">
                          <CardContent className="p-4 sm:p-6 relative z-10">
@@ -536,7 +536,7 @@ const HomePage: FC = () => {
                                        <span className="text-sm font-medium text-foreground tabular-nums w-6 text-center">
                                           12
                                        </span>
-                                       <div className="h-6 w-6 rounded-full flex items-center justify-center cursor-pointer bg-green-600/20 text-green-600 hover:bg-green-600/30">
+                                       <div className="h-6 w-6 rounded-full flex items-center justify-center cursor-pointer bg-blue-600/20 text-blue-600 hover:bg-blue-600/30">
                                           <ArrowUp className="h-3.5 w-3.5" />
                                        </div>
                                    </div>
