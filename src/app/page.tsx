@@ -844,13 +844,7 @@ const HomePage: FC = () => {
                   <Mail className="h-3 w-3 md:h-4 md:w-4 text-primary" />
                   masseguro117@gmail.com
                 </a>
-                <a
-                  href="tel:+524521234567"
-                  className="flex items-center gap-2 hover:text-white transition-colors"
-                >
-                  <Phone className="h-3 w-3 md:h-4 md:w-4 text-primary" />
-                  +52 (452) 123-4567
-                </a>
+
                 <p className="flex items-center gap-2">
                   <MapPin className="h-3 w-3 md:h-4 md:w-4 text-primary" />
                   Uruapan, Michoacán, México
@@ -864,13 +858,7 @@ const HomePage: FC = () => {
                   <Mail className="h-3 w-3 text-primary" /> 
                   masseguro117@gmail.com 
                 </a> 
-                <a
-                  href="tel:+524521234567"
-                  className="flex items-center gap-2 hover:text-white transition-colors justify-center"
-                > 
-                  <Phone className="h-3 w-3 text-primary" />
-                  +52 (452) 123-4567 
-                </a> 
+          
                 <p className="flex items-center gap-2 justify-center">
                   <MapPin className="h-3 w-3 text-primary" /> 
                   Uruapan, Michoacán, México 
