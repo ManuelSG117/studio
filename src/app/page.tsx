@@ -505,7 +505,7 @@ const HomePage: FC = () => {
                      </div>
                    </div>
                    {/* Simulación (tarjeta) segundo en mobile, primero en desktop */}
-                   <div className="order-2 md:order-1 bg-card p-4 rounded-2xl shadow-xl border border-border relative z-10 overflow-hidden">
+                   <div className="order-2 md:order-1 bg-card p-4 sm:p-6 rounded-2xl shadow-xl border border-border relative z-10 overflow-hidden w-full max-w-full mx-auto">
                       <div className="absolute inset-0 bg-gradient-to-br from-green-500/30 to-green-500/10 opacity-30 pointer-events-none"></div>
                       <Card className="overflow-hidden bg-transparent shadow-none border-none">
                          <CardContent className="p-4 sm:p-6 relative z-10">
