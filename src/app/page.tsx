@@ -374,7 +374,7 @@ const HomePage: FC = () => {
                               <div className="flex justify-between gap-2">
                                   <div className="p-2 w-1/2 border-2 border-destructive/50 rounded-md bg-destructive/10 text-center ring-1 ring-destructive/30">
                                        <AlertTriangle className="h-4 w-4 text-destructive mx-auto mb-1" />
-                                       <span className="text-xs text-destructive font-medium">Incidente</span>
+                                       <span className="text-xs text-destructive font-medium">Intento de Robo</span>
                                   </div>
                                    <div className="p-2 w-1/2 border border-input rounded-md bg-muted/50 text-center opacity-60">
                                        <UserCog className="h-4 w-4 text-muted-foreground mx-auto mb-1" />
@@ -640,59 +640,11 @@ const HomePage: FC = () => {
       </main>
 
       {/* Footer */}
-       <footer className="bg-[#1C2B41] dark:bg-slate-900 text-gray-300 dark:text-slate-300 py-12">
-         <div className="container mx-auto px-4">
-           <div className="grid grid-cols-1 md:grid-cols-3 gap-8 items-start">
-             <div className="space-y-4">
-                 <h3 className="text-xl font-semibold text-white flex items-center">
-                   <span className="text-primary">+</span>Seguro
-                 </h3>
-                 <p className="text-sm leading-relaxed">
-                 Tu plataforma ciudadana para reportar incidentes y crear un Uruapan más seguro para todos. Tu participación es clave para el cambio y la transformación de nuestro Uruapan.
-                 </p>
-             </div>
+       <footer className="bg-[#1C2B41] dark:bg-slate-900 text-gray-300 dark:text-slate-300 py-6 sm:py-12">         <div className="container mx-auto px-4">           <div className="grid grid-cols-3 gap-2 md:gap-8 items-start">             <div className="space-y-1 md:space-y-4 col-span-1">                 <h3 className="text-sm md:text-xl font-semibold text-white flex items-center justify-center md:justify-start">                   <span className="text-primary">+</span>Seguro                 </h3>                 <p className="text-xs md:text-sm leading-relaxed hidden md:block">                 Tu plataforma ciudadana para reportar incidentes y crear un Uruapan más seguro para todos. Tu participación es clave para el cambio y la transformación de nuestro Uruapan.                 </p>             </div>
 
-             <div className="space-y-4">
-                 <h3 className="text-lg font-semibold text-white">Contacto</h3>
-                 <div className="space-y-2 text-sm">
-                   <a href="mailto:masseguro117@gmail.com" className="flex items-center gap-2 hover:text-white transition-colors">
-                     <Mail className="h-4 w-4 text-primary" />
-                     masseguro117@gmail.com
-                   </a>
-                   <a href="tel:+524521234567" className="flex items-center gap-2 hover:text-white transition-colors">
-                     <Phone className="h-4 w-4 text-primary" />
-                     +52 (452) 123-4567
-                   </a>
-                   <p className="flex items-center gap-2">
-                     <MapPin className="h-4 w-4 text-primary" />
-                     Uruapan, Michoacán, México
-                   </p>
-                 </div>
-             </div>
-             <div className="space-y-4">
-                <h3 className="text-lg font-semibold text-white">Nuestras Redes</h3>
-                <div className="flex items-center space-x-3">
-                    <a href="https://www.facebook.com/profile.php?id=61576643662120" target="_blank" rel="noopener noreferrer" aria-label="Facebook" className="bg-white/10 p-2 rounded-full hover:bg-white/20  transition-colors">
-                      <Facebook className="h-5 w-5" />
-                    </a>
-                    <a href="#" aria-label="Instagram" className="bg-white/10 p-2 rounded-full hover:bg-white/20 transition-colors">
-                      <Instagram className="h-5 w-5" />
-                    </a>
-                </div>
-             </div>
-           </div>
-            <div className="flex flex-wrap gap-x-4 gap-y-1 text-xs mt-8 border-t border-white/10 pt-6">
-               <Link href="/faq" className="hover:text-white transition-colors">Preguntas frecuentes</Link>
-               <Link href="/privacy-policy" className="hover:text-white transition-colors">Política de Privacidad</Link>
-           </div>
+             <div className="space-y-1 md:space-y-4 col-span-1 text-center md:text-left">                 <h3 className="text-sm md:text-lg font-semibold text-white">Contacto</h3>                 <div className="hidden md:block space-y-2 text-xs md:text-sm">                   <a href="mailto:masseguro117@gmail.com" className="flex items-center gap-2 hover:text-white transition-colors">                     <Mail className="h-3 w-3 md:h-4 md:w-4 text-primary" />                     masseguro117@gmail.com                   </a>                   <a href="tel:+524521234567" className="flex items-center gap-2 hover:text-white transition-colors">                     <Phone className="h-3 w-3 md:h-4 md:w-4 text-primary" />                     +52 (452) 123-4567                   </a>                   <p className="flex items-center gap-2">                     <MapPin className="h-3 w-3 md:h-4 md:w-4 text-primary" />                     Uruapan, Michoacán, México                   </p>                 </div>                 <div className="md:hidden">                   <a href="mailto:masseguro117@gmail.com" aria-label="Email" className="inline-block mx-1">                     <Mail className="h-4 w-4 text-primary" />                   </a>                   <a href="tel:+524521234567" aria-label="Teléfono" className="inline-block mx-1">                     <Phone className="h-4 w-4 text-primary" />                   </a>                   <a aria-label="Ubicación" className="inline-block mx-1">                     <MapPin className="h-4 w-4 text-primary" />                   </a>                 </div>             </div>             <div className="space-y-1 md:space-y-4 col-span-1 text-center md:text-left">                <h3 className="text-sm md:text-lg font-semibold text-white">Redes</h3>                <div className="flex items-center space-x-2 md:space-x-3 justify-center md:justify-start">                    <a href="https://www.facebook.com/profile.php?id=61576643662120" target="_blank" rel="noopener noreferrer" aria-label="Facebook" className="bg-white/10 p-1.5 md:p-2 rounded-full hover:bg-white/20 transition-colors">                      <Facebook className="h-4 w-4 md:h-5 md:w-5" />                    </a>                    <a href="#" aria-label="Instagram" className="bg-white/10 p-1.5 md:p-2 rounded-full hover:bg-white/20 transition-colors">                      <Instagram className="h-4 w-4 md:h-5 md:w-5" />                    </a>                </div>             </div>           </div>            <div className="flex flex-wrap justify-center md:justify-start gap-x-4 gap-y-1 text-xs mt-4 md:mt-8 border-t border-white/10 pt-3 md:pt-6">               <Link href="/faq" className="hover:text-white transition-colors">Preguntas frecuentes</Link>               <Link href="/privacy-policy" className="hover:text-white transition-colors">Política de Privacidad</Link>           </div>
 
-           <div className="border-t border-white/10 mt-8 pt-6 text-center text-xs text-gray-400">
-             <p>
-               © {new Date().getFullYear()} +Seguro. Casi todos los derechos reservados.
-             </p>
-           </div>
-         </div>
-       </footer>
+           <div className="border-t border-white/10 mt-3 md:mt-8 pt-3 md:pt-6 text-center text-xs text-gray-400">             <p>               © {new Date().getFullYear()} +Seguro             </p>           </div>         </div>       </footer>
     </div>
   );
 };
