@@ -1,4 +1,3 @@
-
 "use client";
 
 import type { FC } from 'react';
@@ -142,12 +141,46 @@ const ReportDetailPage: FC = () => {
                                         const reporterData = reporterDocSnap.data();
                                         const reportCountQuery = query(collection(db, "reports"), where("userId", "==", fetchedReport.userId));
                                         const reportCountSnapshot = await getDocs(reportCountQuery);
+                                        const reportIds = reportCountSnapshot.docs.map(doc => doc.id);
+                                        let totalUpvotes = 0;
+                                        let totalVotes = 0;
+                                        if (reportIds.length > 0) {
+                                            const votesQuery = query(
+                                              collection(db, "userVotes"),
+                                              where("reportId", "in", reportIds.length > 10 ? reportIds.slice(0,10) : reportIds) // Firestore limita a 10 elementos en 'in'
+                                            );
+                                            const votesSnapshot = await getDocs(votesQuery);
+                                            votesSnapshot.forEach((voteDoc) => {
+                                              const vote = voteDoc.data();
+                                              if (vote.type === 'up') totalUpvotes++;
+                                              if (vote.type === 'up' || vote.type === 'down') totalVotes++;
+                                            });
+                                            if (reportIds.length > 10) {
+                                              for (let i = 10; i < reportIds.length; i += 10) {
+                                                const batchIds = reportIds.slice(i, i + 10);
+                                                const batchVotesQuery = query(
+                                                  collection(db, "userVotes"),
+                                                  where("reportId", "in", batchIds)
+                                                );
+                                                const batchVotesSnapshot = await getDocs(batchVotesQuery);
+                                                batchVotesSnapshot.forEach((voteDoc) => {
+                                                  const vote = voteDoc.data();
+                                                  if (vote.type === 'up') totalUpvotes++;
+                                                  if (vote.type === 'up' || vote.type === 'down') totalVotes++;
+                                                });
+                                              }
+                                            }
+                                        }
+                                        let credibility = 50;
+                                        if (totalVotes > 0) {
+                                          credibility = Math.round((totalUpvotes / totalVotes) * 100);
+                                        }
                                         setReporterProfile({
                                             displayName: reporterData.fullName || reporterData.displayName || "Usuario Anónimo",
                                             photoURL: reporterData.photoURL || null,
                                             memberSince: reporterData.createdAt instanceof Timestamp ? reporterData.createdAt.toDate() : (reporterData.memberSince instanceof Timestamp ? reporterData.memberSince.toDate() : undefined),
                                             reportCount: reportCountSnapshot.size,
-                                            credibility: Math.min(90 + reportCountSnapshot.size, 99),
+                                            credibility,
                                             dob: reporterData.dob instanceof Timestamp ? reporterData.dob.toDate() : undefined,
                                         });
                                     } else {
@@ -486,7 +519,7 @@ const ReportDetailPage: FC = () => {
                                        </Button>
                                        <Button
                                           variant="ghost" size="icon"
-                                          className={cn("h-7 w-7 rounded-full text-muted-foreground hover:bg-green-500/10 hover:text-green-500", report.userVote === 'up' && "bg-green-600/20 text-green-600", votingState && "opacity-50 cursor-not-allowed", isOwnReport && "cursor-not-allowed opacity-60")}
+                                          className={cn("h-7 w-7 rounded-full text-muted-foreground hover:bg-blue-500/10 hover:text-blue-500", report.userVote === 'up' && "bg-blue-600/20 text-blue-600", votingState && "opacity-50 cursor-not-allowed", isOwnReport && "cursor-not-allowed opacity-60")}
                                           onClick={() => handleVote('up')}
                                           disabled={votingState || isOwnReport}
                                           aria-pressed={report.userVote === 'up'}
