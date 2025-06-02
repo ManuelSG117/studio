@@ -577,6 +577,7 @@ const EditProfilePage: FC = () => {
                            }
                            initialFocus
                            locale={es}
+                           defaultMonth={new Date(new Date().setFullYear(new Date().getFullYear() - 18))}
                          />
                        </PopoverContent>
                      </Popover>
