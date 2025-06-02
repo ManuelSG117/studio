@@ -4,7 +4,7 @@ import './globals.css';
 import { Toaster } from "@/components/ui/toaster"; // Import Toaster
 import { AuthProvider } from '@/context/AuthContext'; // Import AuthProvider
 import { ThemeProvider } from "next-themes"; // Import ThemeProvider
-
+import { Analytics } from "@vercel/analytics/next"
 const geistSans = Geist({
   variable: '--font-geist-sans',
   subsets: ['latin'],
@@ -16,8 +16,11 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: '+Seguro', // Updated title
-  description: 'Plataforma de reportes de seguridad y prevención de incidentes en Uruapan', // Updated description
+  title: '+Seguro',
+  description: 'Plataforma de reportes de seguridad y prevención de incidentes en Uruapan',
+  icons: {
+    icon: '/logo.webp'
+  }
 };
 
 export default function RootLayout({
@@ -34,6 +37,7 @@ export default function RootLayout({
             enableSystem
             disableTransitionOnChange
         >
+          <Analytics/>
           <AuthProvider> {/* Wrap the entire application with AuthProvider */}
             {children}
             <Toaster /> {/* Add Toaster here */}
