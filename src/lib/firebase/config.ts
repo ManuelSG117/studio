@@ -17,9 +17,9 @@ const firebaseConfig: FirebaseOptions = {
 };
 
 // Log the API key being used (ONLY FOR DEBUGGING - REMOVE IN PRODUCTION)
-console.log("Firebase API Key Used:", process.env.NEXT_PUBLIC_FIREBASE_API_KEY);
+//console.log("Firebase API Key Used:", process.env.NEXT_PUBLIC_FIREBASE_API_KEY);
 if (!process.env.NEXT_PUBLIC_FIREBASE_API_KEY) {
-  console.error("Firebase API Key is missing! Check your .env.local file and ensure NEXT_PUBLIC_FIREBASE_API_KEY is set.");
+ // console.error("Firebase API Key is missing! Check your .env.local file and ensure NEXT_PUBLIC_FIREBASE_API_KEY is set.");
 }
 
 
