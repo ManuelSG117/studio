@@ -149,7 +149,7 @@ const AuthScreen: FC = () => {
         description: "Verificando perfil...",
       });
     } catch (error) {
-       console.error("Google Sign-In Error:", error);
+      // console.error("Google Sign-In Error:", error);
        let friendlyError = "No se pudo iniciar sesión con Google. Por favor, inténtalo de nuevo.";
        if (error instanceof Error) {
            const firebaseError = error as AuthError;
@@ -201,7 +201,7 @@ const AuthScreen: FC = () => {
       } else if (authError.code === 'auth/too-many-requests') {
           friendlyError = 'Demasiados intentos. Por favor, intenta más tarde o recupera tu contraseña.';
       }
-      console.error("Firebase Login Error:", authError);
+     // console.error("Firebase Login Error:", authError);
       setAuthError(friendlyError);
       setIsSubmitting(false); // Stop submitting overlay only on error
     }
@@ -247,7 +247,7 @@ const AuthScreen: FC = () => {
        } else if (authError.code === 'auth/operation-not-allowed') {
            friendlyError = 'Registro por correo/contraseña deshabilitado.';
        }
-      console.error("Registration Error:", authError);
+    //  console.error("Registration Error:", authError);
       setAuthError(friendlyError);
       setIsSubmitting(false); // Stop submitting overlay only on error
     }

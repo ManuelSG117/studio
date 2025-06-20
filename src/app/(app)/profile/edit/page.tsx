@@ -87,7 +87,7 @@ const EditProfilePage: FC = () => {
             email: currentUser.email || "",
           });
         } catch (error) {
-          console.error("Error fetching/resetting profile data:", error);
+        //  console.error("Error fetching/resetting profile data:", error);
           toast({
             variant: "destructive",
             title: "Error",
@@ -136,9 +136,9 @@ const EditProfilePage: FC = () => {
     }
 
     try {
-        console.log(`Original file size: ${(file.size / 1024 / 1024).toFixed(2)} MB`);
+    //    console.log(`Original file size: ${(file.size / 1024 / 1024).toFixed(2)} MB`);
         const compressedFile = await imageCompression(file, options);
-        console.log(`Compressed file size: ${(compressedFile.size / 1024 / 1024).toFixed(2)} MB`);
+   //     console.log(`Compressed file size: ${(compressedFile.size / 1024 / 1024).toFixed(2)} MB`);
 
         // Cambia la extensión a .webp
         const fileName = file.name.replace(/\.[^.]+$/, '.webp');
@@ -161,10 +161,10 @@ const EditProfilePage: FC = () => {
         });
 
     } catch (error) {
-        console.error('Error compressing image:', error);
+   //     console.error('Error compressing image:', error);
         toast({
             variant: "destructive",
-            title: "Error de Compresión",
+            title: "Error de Subida",
             description: "No se pudo procesar la imagen. Intenta con otra imagen.",
         });
         setPreviewUrl(user?.photoURL || null);
@@ -203,7 +203,7 @@ const EditProfilePage: FC = () => {
       return;
     }
 
-    console.log("Updating profile data:", values);
+  //  console.log("Updating profile data:", values);
     let photoDownloadURL: string | null = user.photoURL;
 
     if (selectedFile) {
@@ -218,7 +218,7 @@ const EditProfilePage: FC = () => {
             .from('profile')
             .remove([fileName]);
         } catch (error) {
-          console.log("No existing file to delete or error deleting:", error);
+      //    console.log("No existing file to delete or error deleting:", error);
         }
 
         // Subir la nueva imagen
@@ -242,11 +242,11 @@ const EditProfilePage: FC = () => {
         // Añadir timestamp para forzar actualización de caché
         photoDownloadURL = `${publicUrl}?t=${Date.now()}`;
         
-        console.log("Image uploaded successfully to Supabase:", photoDownloadURL);
+    //    console.log("Image uploaded successfully to Supabase:", photoDownloadURL);
         toast({ title: "Imagen Actualizada", description: "La nueva imagen de perfil se ha guardado." });
 
       } catch (uploadError) {
-        console.error("Error uploading image:", uploadError);
+     //   console.error("Error uploading image:", uploadError);
         toast({
           variant: "destructive",
           title: "Error al Cargar Imagen",
@@ -265,9 +265,9 @@ const EditProfilePage: FC = () => {
           .remove([fileName]);
         
         photoDownloadURL = null;
-        console.log("Profile picture removed from storage");
+     //   console.log("Profile picture removed from storage");
       } catch (error) {
-        console.error("Error removing profile picture:", error);
+     //   console.error("Error removing profile picture:", error);
       }
     }
 
@@ -284,13 +284,13 @@ const EditProfilePage: FC = () => {
       };
 
       await setDoc(userDocRef, profileDataToUpdate, { merge: true });
-      console.log("Profile data upserted successfully for user:", user.uid);
+      //console.log("Profile data upserted successfully for user:", user.uid);
 
       await updateProfile(user, {
           displayName: values.fullName,
           photoURL: photoDownloadURL,
       });
-       console.log("Firebase Auth profile updated.");
+      // console.log("Firebase Auth profile updated.");
 
       toast({
         title: "Perfil Actualizado",
@@ -298,7 +298,7 @@ const EditProfilePage: FC = () => {
       });
       router.push("/profile");
     } catch (error) {
-      console.error("Error saving profile:", error);
+   //   console.error("Error saving profile:", error);
       toast({
         variant: "destructive",
         title: "Error al Guardar",

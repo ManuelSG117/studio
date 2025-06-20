@@ -96,7 +96,7 @@ export const TopNavBar: FC = () => {
       setIsSheetOpen(false);
       router.push("/");
     } catch (error) {
-      console.error("Error signing out: ", error);
+    //  console.error("Error signing out: ", error);
       toast({
         variant: "destructive",
         title: "Error al Cerrar Sesión",

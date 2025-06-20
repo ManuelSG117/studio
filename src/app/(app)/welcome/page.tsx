@@ -87,14 +87,14 @@ const WelcomePage: FC = () => {
               return voteDocSnap.data().type as 'up' | 'down';
           }
       } catch (error) {
-          console.error("Error fetching user vote: ", error);
+    //      console.error("Error fetching user vote: ", error);
       }
       return null;
   }, []);
 
   const fetchReports = useCallback(async (direction: 'initial' | 'next' | 'previous') => {
     if (!user) {
-      console.error("fetchReports called without a valid user.");
+   //   console.error("fetchReports called without a valid user.");
       setIsLoading(false);
       return;
     }
@@ -154,7 +154,7 @@ const WelcomePage: FC = () => {
       }
 
       const fetchedReports: Report[] = [];
-      console.log(`Found ${querySnapshot.docs.length} reports in this batch for WelcomePage.`);
+   //   console.log(`Found ${querySnapshot.docs.length} reports in this batch for WelcomePage.`);
 
       for (const reportDoc of querySnapshot.docs) {
         const data = reportDoc.data();
@@ -190,7 +190,7 @@ const WelcomePage: FC = () => {
       }
 
     } catch (error) {
-      console.error("Error fetching reports: ", error);
+      //console.error("Error fetching reports: ", error);
       toast({ variant: "destructive", title: "Error", description: "Failed to fetch reports." });
     } finally {
       setIsLoading(false);
@@ -202,16 +202,16 @@ const WelcomePage: FC = () => {
     if (!authLoading) {
         if (isAuthenticated && user) {
             if (reports.length === 0 && currentPage === 1) { 
-                 console.log("Auth confirmed, fetching initial reports for WelcomePage.");
+            //     console.log("Auth confirmed, fetching initial reports for WelcomePage.");
                  fetchReports('initial');
             }
         } else {
-            console.log("Not authenticated or user not ready, redirecting to login.");
+         //   console.log("Not authenticated or user not ready, redirecting to login.");
             setIsLoading(false);
             router.replace("/login");
         }
     } else {
-        console.log("Auth state still loading...");
+     //   console.log("Auth state still loading...");
          setIsLoading(true);
     }
   }, [authLoading, isAuthenticated, user, router, fetchReports, reports.length, currentPage]);
@@ -338,7 +338,7 @@ const WelcomePage: FC = () => {
             transaction.update(reportRef, { upvotes: newUpvotes, downvotes: newDownvotes });
         });
     } catch (error: any) {
-        console.error("Error updating vote:", error);
+       // console.error("Error updating vote:", error);
         toast({ variant: "destructive", title: "Error", description: `No se pudo registrar el voto: ${error.message}` });
         setReports(prevReports => prevReports.map(rep => rep.id === reportId ? originalReport : rep));
     } finally {

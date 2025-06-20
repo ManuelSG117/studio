@@ -85,7 +85,7 @@ export function VotesModal({ open, onOpenChange, reportId, reportTitle, upvotes,
 
       setVotes(votesData);
     } catch (error) {
-      console.error('Error al obtener los votos:', error);
+    //  console.error('Error al obtener los votos:', error);
     } finally {
       setIsLoading(false);
     }

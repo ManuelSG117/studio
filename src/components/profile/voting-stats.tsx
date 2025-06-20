@@ -117,7 +117,7 @@ export const VotingStats: FC<VotingStatsProps> = ({ userId }) => {
         setWeeklyActivity(weekActivityData);
 
       } catch (error) {
-        console.error('Error al obtener estadísticas de votos:', error);
+ //       console.error('Error al obtener estadísticas de votos:', error);
       } finally {
         setIsLoading(false);
       }

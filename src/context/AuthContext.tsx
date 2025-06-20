@@ -62,14 +62,14 @@ export const AuthProvider: FC<AuthProviderProps> = ({ children }) => {
                 // Add other necessary fields like photoURL if required
                 // data.photoURL
             );
-             console.log("Profile data fetched for user:", firebaseUser.uid, "Complete:", isProfileComplete, "Data:", data);
+            // console.log("Profile data fetched for user:", firebaseUser.uid, "Complete:", isProfileComplete, "Data:", data);
           } else {
-             console.log("No profile document found for user:", firebaseUser.uid);
+           //  console.log("No profile document found for user:", firebaseUser.uid);
           }
 
           setUser({ ...firebaseUser, isProfileComplete });
         } catch (error) {
-           console.error("Error fetching user profile data or updating lastActivity:", error);
+        //   console.error("Error fetching user profile data or updating lastActivity:", error);
            // Assume profile is incomplete if fetching fails
            setUser({ ...firebaseUser, isProfileComplete: false });
         }

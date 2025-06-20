@@ -53,7 +53,7 @@ export const RecentCommunityReports: FC = () => {
       });
       setReports(fetchedReports);
     } catch (error) {
-      console.error("Error fetching recent community reports: ", error);
+ //    console.error("Error fetching recent community reports: ", error);
       // Optionally set an error state to display to the user
     } finally {
       setIsLoading(false);

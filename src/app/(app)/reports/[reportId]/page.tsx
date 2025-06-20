@@ -75,7 +75,7 @@ const ReportDetailPage: FC = () => {
                 return voteDocSnap.data().type as 'up' | 'down';
             }
         } catch (error) {
-            console.error("Error fetching user vote: ", error);
+          //  console.error("Error fetching user vote: ", error);
         }
         return null;
     }, []);
@@ -187,7 +187,7 @@ const ReportDetailPage: FC = () => {
                                        setReporterProfile({ displayName: "Usuario Anónimo", reportCount: 0, credibility: 50 });
                                     }
                                 } catch (err) {
-                                    console.error("Error fetching reporter profile:", err);
+                                //    console.error("Error fetching reporter profile:", err);
                                     setReporterProfile({ displayName: "Usuario Anónimo", reportCount: 0, credibility: 50 });
                                 } finally {
                                     setIsLoadingReporter(false);
@@ -201,7 +201,7 @@ const ReportDetailPage: FC = () => {
                              setReport(null);
                          }
                     } catch (error) {
-                        console.error("Error fetching report details:", error);
+                   //     console.error("Error fetching report details:", error);
                         setReport(null);
                         toast({ variant: "destructive", title: "Error", description: "No se pudo cargar el reporte." });
                     } finally {
@@ -328,7 +328,7 @@ const ReportDetailPage: FC = () => {
                 transaction.update(reportRef, { upvotes: newUpvotes, downvotes: newDownvotes });
             });
         } catch (error: any) {
-            console.error("Error updating vote:", error);
+     //       console.error("Error updating vote:", error);
             toast({ variant: "destructive", title: "Error", description: `No se pudo registrar el voto: ${error.message}` });
             setReport(originalReport);
         } finally {

@@ -81,7 +81,7 @@ const StatisticsPage: FC = () => {
       } else {
         setUser(currentUser);
         try {
-          console.log("Fetching all reports for statistics...");
+  //        console.log("Fetching all reports for statistics...");
           const reportsCollectionRef = collection(db, "reports");
           // Order by createdAt ascending to easily get the firstReportDate for period calculation later
           const q = query(reportsCollectionRef, orderBy("createdAt", "asc"));
@@ -109,10 +109,10 @@ const StatisticsPage: FC = () => {
               downvotes: data.downvotes || 0,
             } as Report;
           });
-          console.log("Fetched reports for statistics:", fetchedReports.length);
+     //     console.log("Fetched reports for statistics:", fetchedReports.length);
           setReports(fetchedReports);
         } catch (error) {
-          console.error("Error fetching reports for statistics: ", error);
+  //        console.error("Error fetching reports for statistics: ", error);
         } finally {
            setIsLoading(false);
         }
@@ -310,7 +310,7 @@ const StatisticsPage: FC = () => {
             return format(dateM, 'MMM yy', { locale: es });
         }
     } catch (e) {
-        console.warn("Error formatting X-axis tick:", value, e);
+   //     console.warn("Error formatting X-axis tick:", value, e);
         return value;
     }
   };
@@ -339,7 +339,7 @@ const StatisticsPage: FC = () => {
                     return format(parseISO(label.includes('-') ? label : label + '-01'), 'MMMM yyyy', { locale: es });
             }
         } catch (e) {
-            console.warn("Error formatting tooltip label:", label, e);
+        //    console.warn("Error formatting tooltip label:", label, e);
             return label;
         }
     };

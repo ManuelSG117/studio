@@ -65,17 +65,20 @@ const AboutCreatorPage: FC = () => {
               >
                 <h2 className="text-xl font-semibold text-foreground mb-3">Motivación detrás de +Seguro</h2>
                 <p className="text-muted-foreground leading-relaxed">
-                  La plataforma +Seguro nace con la convicción de que una comunidad unida es una comunidad más fuerte. Surge como una herramienta fundamental para Uruapan, con el objetivo de que todos podamos contribuir a un entorno más seguro. Aquí puedes reportar incidentes, consultar niveles de seguridad en diferentes zonas y estar al tanto de cualquier problemática que afecte a nuestra ciudad. Cada reporte, cada voto, es un granito de arena esencial. Es crucial la participación activa y responsable de todos: al utilizar la plataforma correctamente, garantizamos que los reportes sean legítimos y la información sea verídica, logrando juntos un Uruapan mejor y más seguro para todos.
+                  La plataforma +Seguro nace con la convicción de que una comunidad unida es una comunidad más fuerte. Surge como una herramienta fundamental para Uruapan, 
+                  con el objetivo de que todos podamos contribuir a un entorno más seguro. Aquí puedes reportar incidentes, consultar niveles de seguridad en diferentes zonas y estar al tanto de cualquier problemática que afecte a nuestra ciudad. 
+                  Cada reporte, cada voto, es un granito de arena esencial. Es crucial la participación activa y responsable de todos: al utilizar la plataforma correctamente, garantizamos que los reportes sean legítimos y la información sea verídica, logrando juntos un Uruapan mejor y más seguro para todos.
                 </p>
                 <p className="text-muted-foreground leading-relaxed mt-3">
-                  Mi principal motivación es mejorar la seguridad y el bienestar de nuestra comunidad, facilitando el acceso rápido a información relevante. Es importante destacar que este proyecto es una iniciativa personal,{' '}
+                  Mi principal motivación es hacer de Uruapan un lugar más seguro y el bienestar de nuestra comunidad, facilitando el acceso rápido a información relevante.
+                   Es importante destacar que este proyecto es una iniciativa personal,{' '}
                   <GradientText
                     from="from-primary"
                     to="to-destructive"
                     size="text-base"
                     className="font-semibold"
                   >
-                    sin afiliaciones políticas.
+                    sin afiliaciones políticas de ningún tipo.
                   </GradientText>
                   {' '}Mi compromiso es con el progreso y la tranquilidad de Uruapan.
                 </p>
@@ -106,6 +109,7 @@ const AboutCreatorPage: FC = () => {
                     <div>
                       <span className="font-medium text-muted-foreground text-base">Buzón de Sugerencias</span>
                       <span className="block text-sm text-muted-foreground">Disponible Próximamente</span>
+                      <span className="block text-sm text-muted-foreground">Puedes hacer sugerencias en la pagina de facebook de +Seguro</span>
                     </div>
                   </Button>
                   <Button asChild variant="outline" className="w-full justify-start text-left h-auto py-4 px-5 rounded-xl hover:bg-blue-500/5 hover:border-blue-500/30 transition-all">
@@ -167,10 +171,14 @@ const AboutCreatorPage: FC = () => {
                 </div>
 
                 <p className="text-muted-foreground leading-relaxed">
-                  Soy Manuel Sandoval, un Ingeniero en Sistemas Computacionales originario y residente de Uruapan, Michoacán. Esta ciudad es el lugar que llamo hogar y por el cual siento un profundo cariño y compromiso. Desde siempre, me ha apasionado la tecnología, no solo como una herramienta, sino como un medio para generar un impacto positivo real en la sociedad.
+                  Soy Manuel Sandoval, un Ingeniero en Sistemas Computacionales originario y residente de Uruapan. De niño queria ser doctor para salvar vidas, ahora quiero intentar hacer un lugar más seuro para todos. 
+                  Desde siempre, me ha apasionado la tecnología, no solo como una herramienta, sino como un medio para generar un impacto positivo real en la sociedad.
                 </p>
                 <p className="text-muted-foreground leading-relaxed mt-3">
-                  Mi trayectoria como desarrollador full-stack me ha permitido explorar cómo las soluciones digitales pueden abordar problemáticas cotidianas. Fue esta pasión, combinada con mi deseo de ver a Uruapan prosperar en un ambiente de mayor tranquilidad, lo que me impulsó a crear +Seguro. Esta plataforma es mi contribución personal para fortalecer el tejido social, ofreciendo un espacio donde la información y la colaboración ciudadana se unen para fomentar un entorno más seguro y protegido para todos los que vivimos aquí.
+                  Mi trayectoria como desarrollador me ha permitido buscar soluciones a problemas cotidianos, y cómo las soluciones digitales pueden cambiar el mundo.
+                   Fue esta pasión, combinada con mi deseo de ver a Uruapan prosperar en un ambiente de mayor tranquilidad, lo que me impulsó a crear +Seguro. 
+                   Esta plataforma es mi contribución  para fortalecer el tejido social, ofreciendo un espacio donde la información y la colaboración ciudadana se unen para fomentar un entorno más seguro
+                    y protegido para todos los que vivimos aquí.
                 </p>
                  <p className="text-muted-foreground leading-relaxed mt-3">
                   Estoy convencido de que, trabajando juntos y utilizando la tecnología de manera responsable, podemos marcar una diferencia significativa en el bienestar de nuestra comunidad.

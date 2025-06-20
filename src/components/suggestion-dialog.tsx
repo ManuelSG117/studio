@@ -53,7 +53,7 @@ export const SuggestionDialog: FC<SuggestionDialogProps> = ({
         setSuggestionText(''); // Clear textarea
         onOpenChange(false); // Close dialog
     } catch (error) {
-        console.error("Error opening mailto link:", error);
+      //le.error("Error opening mailto link:", error);
         toast({
             title: "Error",
             description: "No se pudo abrir tu cliente de correo. Por favor, copia la sugerencia y envíala manualmente.",

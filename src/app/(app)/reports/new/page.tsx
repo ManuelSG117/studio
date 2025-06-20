@@ -138,12 +138,12 @@ const NewReportPage: FC = () => {
         processedFile = await imageCompression(file, options);
         // Cambia la extensión a .webp si es imagen
         processedFileName = file.name.replace(/\.[^.]+$/, '.webp');
-        console.log(`Imagen comprimida y convertida a webp: ${(processedFile.size / 1024 / 1024).toFixed(2)} MB`);
+   //     console.log(`Imagen comprimida y convertida a webp: ${(processedFile.size / 1024 / 1024).toFixed(2)} MB`);
       } else {
-        console.log(`Video file size: ${(file.size / 1024 / 1024).toFixed(2)} MB`);
+     //   console.log(`Video file size: ${(file.size / 1024 / 1024).toFixed(2)} MB`);
         if (file.size > options.maxSizeMB * 1024 * 1024) {
           toast({
-            variant: "warning",
+            variant: "destructive",
             title: "Archivo Grande",
             description: `El video es mayor a ${options.maxSizeMB}MB y podría tardar en subirse.`,
           });
@@ -160,7 +160,7 @@ const NewReportPage: FC = () => {
         description: `Archivo "${processedFileName}" seleccionado.`,
       });
     } catch (error) {
-      console.error('Error processing file:', error);
+    //  console.error('Error processing file:', error);
       toast({
         variant: "destructive",
         title: "Error de Procesamiento",
@@ -203,7 +203,7 @@ const NewReportPage: FC = () => {
                          });
                     })
                     .catch(err => {
-                         console.error("Reverse geocoding failed:", err);
+                 //        console.error("Reverse geocoding failed:", err);
                          const locationString = `Lat: ${latitude.toFixed(4)}, Lon: ${longitude.toFixed(4)}`;
                          form.setValue("location", locationString, { shouldValidate: true });
                           toast({
@@ -219,7 +219,7 @@ const NewReportPage: FC = () => {
                     });
             },
             (error) => {
-                 console.error("Geolocation error:", error);
+             //    console.error("Geolocation error:", error);
                  let description = "No se pudo obtener tu ubicación.";
                  if (error.code === error.PERMISSION_DENIED) description = "Permiso de ubicación denegado.";
                  else if (error.code === error.POSITION_UNAVAILABLE) description = "La información de ubicación no está disponible.";
@@ -283,10 +283,10 @@ const NewReportPage: FC = () => {
             upsert: false,
           });
 
-        console.log("Supabase upload result:", uploadResult);
+     //   console.log("Supabase upload result:", uploadResult);
 
         if (uploadResult.error) {
-          console.error("Supabase upload error:", uploadResult.error, uploadResult);
+  //        console.error("Supabase upload error:", uploadResult.error, uploadResult);
           throw uploadResult.error;
         }
 
@@ -298,7 +298,7 @@ const NewReportPage: FC = () => {
         mediaDownloadURL = publicUrl || null;
         toast({ title: "Archivo Subido", description: "La evidencia multimedia se ha guardado." });
       } catch (uploadError) {
-        console.error("Error uploading media:", uploadError);
+      ///  console.error("Error uploading media:", uploadError);
         toast({ variant: "destructive", title: "Error al Subir Archivo", description: "No se pudo guardar la evidencia. El reporte se guardará sin ella."});
       } finally {
         setIsUploading(false);
@@ -316,7 +316,7 @@ const NewReportPage: FC = () => {
       toast({ title: "Reporte Enviado", description: "Tu reporte ha sido registrado exitosamente." });
       router.push("/welcome");
     } catch (error) {
-      console.error("Error saving report:", error);
+   //   console.error("Error saving report:", error);
       toast({ variant: "destructive", title: "Error al Guardar Reporte", description: "No se pudo registrar el reporte. Inténtalo de nuevo."});
     } finally {
       setIsLoading(false);

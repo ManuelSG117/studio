@@ -70,7 +70,7 @@ const CommunityReportsPage: FC = () => {
               return voteDocSnap.data().type as 'up' | 'down';
           }
       } catch (error) {
-          console.error("Error fetching user vote: ", error);
+      //    console.error("Error fetching user vote: ", error);
       }
       return null;
     }, []);
@@ -82,7 +82,7 @@ const CommunityReportsPage: FC = () => {
     currentSearchTerm = displayedSearchTerm // Use displayedSearchTerm for actual fetching
   ) => {
     if (!user) {
-        console.error("fetchReports (Community) called without a valid user.");
+    //    console.error("fetchReports (Community) called without a valid user.");
         setIsLoading(false);
         return;
     }
@@ -142,7 +142,7 @@ const CommunityReportsPage: FC = () => {
       const q = query(reportsCollectionRef, ...queryConstraints);
       const querySnapshot = await getDocs(q);
       let fetchedReports: Report[] = [];
-      console.log(`Found ${querySnapshot.docs.length} community reports in this batch.`);
+    //  console.log(`Found ${querySnapshot.docs.length} community reports in this batch.`);
 
        for (const reportDoc of querySnapshot.docs) {
          const data = reportDoc.data();
@@ -189,10 +189,10 @@ const CommunityReportsPage: FC = () => {
         if (fetchedReports.length > 0) setCurrentPage(prev => prev - 1);
         setHasMore(true); 
       }
-      console.log("Community fetch complete. Has More:", hasMore, "New First Doc:", firstVisibleDoc?.id, "New Last Doc:", lastVisibleDoc?.id, "Current Page:", currentPage);
+    //  console.log("Community fetch complete. Has More:", hasMore, "New First Doc:", firstVisibleDoc?.id, "New Last Doc:", lastVisibleDoc?.id, "Current Page:", currentPage);
 
     } catch (error) {
-      console.error("Error fetching community reports: ", error);
+    //  console.error("Error fetching community reports: ", error);
       toast({ variant: "destructive", title: "Error", description: "Failed to fetch community reports." });
     } finally {
       setIsLoading(false);
@@ -205,7 +205,7 @@ const CommunityReportsPage: FC = () => {
         if (!authLoading) {
             if (isAuthenticated && user) {
                 if (reports.length === 0 && currentPage === 1) {
-                    console.log("Auth confirmed, fetching initial community reports.");
+                //    console.log("Auth confirmed, fetching initial community reports.");
                     fetchReports('initial', currentFilterType, currentSortBy, displayedSearchTerm);
                 }
             } else {
@@ -323,7 +323,7 @@ const CommunityReportsPage: FC = () => {
             transaction.update(reportRef, { upvotes: newUpvotes, downvotes: newDownvotes });
         });
     } catch (error: any) {
-        console.error("Error updating vote:", error);
+      //  console.error("Error updating vote:", error);
         toast({ variant: "destructive", title: "Error", description: `No se pudo registrar el voto: ${error.message}` });
         setReports(prevReports => prevReports.map(rep => rep.id === reportId ? originalReport : rep));
     } finally {

@@ -249,7 +249,7 @@ const AchievementsPage: FC = () => {
             });
             setProcessedAchievements(updatedAchievements);
         } catch (error) {
-            console.error("Error fetching achievement data:", error);
+        //    console.error("Error fetching achievement data:", error);
         } finally {
             setIsLoadingAchievements(false);
         }

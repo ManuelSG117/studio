@@ -85,14 +85,14 @@ const achievementsListDisplay: Array<{ id: string; title: string; description: s
 
 export const getUserProfileData = async (userId: string): Promise<UserProfile | null> => { 
     if (!userId) return null; 
-    console.log("Fetching profile for user:", userId);
+  //  console.log("Fetching profile for user:", userId);
     try {
         const userDocRef = doc(db, 'users', userId);
         const userDocSnap = await getDoc(userDocRef);
 
         if (userDocSnap.exists()) {
           const data = userDocSnap.data();
-          console.log("Profile data found:", data);
+    //      console.log("Profile data found:", data);
           return {
               fullName: data.fullName,
               address: data.address,
@@ -106,7 +106,7 @@ export const getUserProfileData = async (userId: string): Promise<UserProfile | 
               lastActivity: data.lastActivity instanceof Timestamp ? data.lastActivity.toDate() : undefined,
           };
         } else {
-           console.log("No profile document found for user:", userId);
+      //     console.log("No profile document found for user:", userId);
             const defaultProfile: UserProfile = {
                 fullName: auth.currentUser?.displayName || '',
                 address: '',
@@ -122,7 +122,7 @@ export const getUserProfileData = async (userId: string): Promise<UserProfile | 
             return defaultProfile;
         }
     } catch (error) {
-       console.error("Error fetching user profile data:", error);
+    //   console.error("Error fetching user profile data:", error);
        return null; 
     }
 };
@@ -155,7 +155,7 @@ const ProfilePage: FC = () => {
 
         if (profileData?.photoURL !== currentUser.photoURL) {
            setUser({ ...currentUser, photoURL: profileData?.photoURL || null });
-           console.log("Syncing auth photoURL with Firestore data");
+      //     console.log("Syncing auth photoURL with Firestore data");
         }
       } else {
         setUser(null);
@@ -238,7 +238,7 @@ const ProfilePage: FC = () => {
         else setUserLevel(1);
 
     } catch (error) {
-        console.error("Error calculating user level/achievements:", error);
+      //  console.error("Error calculating user level/achievements:", error);
         setUserLevel(1); // Default to level 1 on error
         setDisplayAchievements(achievementsListDisplay.slice(0,3).map(a => ({...a, unlocked: false })));
     } finally {
@@ -263,7 +263,7 @@ const ProfilePage: FC = () => {
       });
       router.push("/"); 
     } catch (error) {
-      console.error("Error signing out: ", error);
+    //  console.error("Error signing out: ", error);
       toast({
         variant: "destructive",
         title: "Error al Cerrar Sesión",
@@ -436,7 +436,7 @@ const ProfilePage: FC = () => {
                     await signOut(auth);
                     router.push('/auth');
                   } catch (error) {
-                    console.error('Error al cerrar sesión:', error);
+               //     console.error('Error al cerrar sesión:', error);
                     toast({
                       title: "Error",
                       description: "No se pudo cerrar la sesión. Intenta de nuevo.",

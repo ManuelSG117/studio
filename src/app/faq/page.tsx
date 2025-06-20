@@ -28,7 +28,7 @@ const faqData: FAQItem[] = [
         Desarrollada íntegramente por mí, Manuel Sandoval, esta iniciativa personal busca ofrecer a los habitantes de Uruapan una herramienta
         directa y efectiva para reportar incidentes y consultar información crucial sobre la seguridad en diversas zonas.
         El objetivo primordial es mejorar nuestra seguridad y calidad de vida. Es fundamental subrayar que +Seguro opera de manera
-        independiente, sin ningún tipo de afiliación política.
+        independiente, sin ningún tipo de afiliación política. Por ello pido que se use de manera responsable y respetuosa.
       </>
     ),
   },

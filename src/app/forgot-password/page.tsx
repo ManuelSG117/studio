@@ -58,7 +58,7 @@ const ForgotPasswordPage: FC = () => {
       } else if (authError.code === 'auth/invalid-email') {
          friendlyError = 'El formato del correo electrónico no es válido.';
       }
-      console.error("Firebase Password Reset Error:", authError);
+    //  console.error("Firebase Password Reset Error:", authError);
       toast({
         variant: "destructive",
         title: "Error al Enviar Correo",

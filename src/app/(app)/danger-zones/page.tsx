@@ -53,7 +53,7 @@ const DangerZonesPage: FC = () => {
       } else {
         setUser(currentUser);
         try {
-          console.log("Fetching all reports for danger zones map...");
+      //    console.log("Fetching all reports for danger zones map...");
           const reportsCollectionRef = collection(db, "reports");
           const q = query(reportsCollectionRef, orderBy("createdAt", "desc"));
           const querySnapshot = await getDocs(q);
@@ -78,10 +78,10 @@ const DangerZonesPage: FC = () => {
               createdAt: createdAtDate,
             } as Report;
           });
-          console.log("Fetched reports for map:", fetchedReports.length);
+       //   console.log("Fetched reports for map:", fetchedReports.length);
           setReports(fetchedReports);
         } catch (error) {
-          console.error("Error fetching reports for map: ", error);
+       //   console.error("Error fetching reports for map: ", error);
         } finally {
            setIsLoading(false);
         }

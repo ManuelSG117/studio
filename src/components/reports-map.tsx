@@ -103,12 +103,12 @@ const ReportsMap = forwardRef<ReportsMapRef, ReportsMapProps>((props, ref) => {
             );
             setHeatmapData(data);
             setShowNoReportsAlert(false); // No alert needed for heatmap
-            console.log("Generated heatmap data points:", data.length);
+      //      console.log("Generated heatmap data points:", data.length);
         } else { // Marker view
             setHeatmapData([]); // Clear heatmap data
             if (reportsWithCoords.length === 0) {
                 setShowNoReportsAlert(true); // Show alert if no markers
-                console.log("No reports with coordinates to show in marker view.");
+          //      console.log("No reports with coordinates to show in marker view.");
             } else {
                 setShowNoReportsAlert(false); // Hide alert if there are markers
             }
@@ -135,7 +135,7 @@ const ReportsMap = forwardRef<ReportsMapRef, ReportsMapProps>((props, ref) => {
 
   // --- Loading and Error States ---
   if (loadError) {
-     console.error("Error loading Google Maps:", loadError);
+  //   console.error("Error loading Google Maps:", loadError);
      toast({
        variant: "destructive",
        title: "Error de Mapa",
