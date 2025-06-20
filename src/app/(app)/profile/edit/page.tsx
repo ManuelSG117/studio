@@ -71,7 +71,7 @@ const EditProfilePage: FC = () => {
     setIsDataLoading(true);
     const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
       if (!currentUser) {
-        router.replace("/login");
+        router.replace("/auth");
         setIsDataLoading(false);
       } else {
         setUser(currentUser);

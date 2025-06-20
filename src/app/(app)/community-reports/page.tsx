@@ -210,7 +210,7 @@ const CommunityReportsPage: FC = () => {
                 }
             } else {
                 setIsLoading(false);
-                router.replace("/login");
+                router.replace("/auth");
             }
         } else {
              setIsLoading(true);

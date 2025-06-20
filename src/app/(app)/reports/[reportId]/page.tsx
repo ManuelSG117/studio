@@ -108,7 +108,7 @@ const ReportDetailPage: FC = () => {
         setIsLoading(true);
         const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
             if (!currentUser) {
-                router.replace("/login");
+                router.replace("/auth");
             } else {
                 setUser(currentUser);
                 if (reportId) {

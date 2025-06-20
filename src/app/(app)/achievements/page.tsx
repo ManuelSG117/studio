@@ -157,7 +157,7 @@ const AchievementsPage: FC = () => {
     }
     if (!user) {
         setIsLoadingAchievements(false);
-        router.replace('/login'); // Or your auth page
+        router.replace('/auth'); // Or your auth page
         return;
     }
 

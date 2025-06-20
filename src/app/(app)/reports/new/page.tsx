@@ -79,7 +79,7 @@ const NewReportPage: FC = () => {
     setCheckingLimit(true);
     const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
       if (!currentUser) {
-        router.replace("/login");
+        router.replace("/auth");
       } else {
         setUser(currentUser);
         // Verifica el límite de reportes

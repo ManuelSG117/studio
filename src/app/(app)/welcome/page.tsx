@@ -208,7 +208,7 @@ const WelcomePage: FC = () => {
         } else {
          //   console.log("Not authenticated or user not ready, redirecting to login.");
             setIsLoading(false);
-            router.replace("/login");
+            router.replace("/auth");
         }
     } else {
      //   console.log("Auth state still loading...");
@@ -355,7 +355,7 @@ const WelcomePage: FC = () => {
 
   const handleCreateReport = async () => {
     if (!user) {
-      router.push("/login");
+      router.push("/auth");
       return;
     }
     setCheckingLimit(true);
