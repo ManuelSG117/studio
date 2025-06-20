@@ -545,7 +545,7 @@ const EditProfilePage: FC = () => {
                  control={form.control}
                  name="dob"
                  render={({ field }) => (
-                   <FormItem className="flex flex-col">
+                   <FormItem>
                      <FormLabel>Fecha de Nacimiento</FormLabel>
                      <Popover>
                        <PopoverTrigger asChild>
@@ -577,6 +577,7 @@ const EditProfilePage: FC = () => {
                            }
                            initialFocus
                            locale={es}
+                           defaultMonth={new Date(new Date().setFullYear(new Date().getFullYear() - 18))}
                          />
                        </PopoverContent>
                      </Popover>

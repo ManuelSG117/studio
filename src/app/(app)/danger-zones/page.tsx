@@ -391,7 +391,7 @@ const DangerZonesPage: FC = () => {
                    </CardContent>
                  </Card>
                </div>
-               <div className="hidden md:block w-96 flex-shrink-0" style={{height: 'calc(60vh + 64px)'}}>
+               <div className={cn("md:w-96 md:flex-shrink-0", {"hidden md:block": false})} style={{height: 'calc(60vh + 64px)'}}>
                  <Card className="h-full shadow-sm rounded-xl border border-border bg-card flex flex-col overflow-hidden">
                    <CardHeader className="pb-3 pt-4 px-5 bg-gradient-to-r from-primary/5 to-primary/10 border-b">
                      <div className="flex items-center justify-between">
@@ -509,7 +509,7 @@ const DangerZonesPage: FC = () => {
                </div>
              </div>
 
-              <Card className="w-full shadow-sm rounded-lg border border-border bg-card">
+              <Card className="w-full shadow-sm rounded-lg border border-border bg-card hidden md:block">
                  <CardHeader>
                      <CardTitle className="text-lg font-semibold flex items-center">
                          <List className="h-5 w-5 mr-2 text-primary"/> Lista de Reportes {reportTypeFilter !== 'Todos' ? `(${reportTypeFilter}s)` : ''}
