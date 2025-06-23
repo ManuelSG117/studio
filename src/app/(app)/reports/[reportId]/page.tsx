@@ -27,14 +27,6 @@ import { getDistance } from 'geolib';
 import { Dialog, DialogTrigger, DialogContent } from '@/components/ui/dialog';
 import { useScreenshot } from 'use-react-screenshot';
 
-// Add window.FB type declaration
-declare global {
-  interface Window {
-    FB?: any; // Basic type for Facebook SDK
-    fbAsyncInit?: () => void; // For SDK initialization
-  }
-}
-
 interface ReporterProfile {
   displayName?: string;
   photoURL?: string | null;
@@ -44,10 +36,6 @@ interface ReporterProfile {
   dob?: Date;
 }
 
-// Fix for missing types for use-react-screenshot
-// @ts-expect-error: No types for 'use-react-screenshot'
-// eslint-disable-next-line
-// @ts-ignore
 
 const ReportDetailPage: FC = () => {
     const router = useRouter();
@@ -87,29 +75,6 @@ const ReportDetailPage: FC = () => {
         }
         return null;
     }, []);
-
-    useEffect(() => {
-      // Load the Facebook SDK only on the client side
-      if (typeof window !== 'undefined' && !window.FB) {
-        const script = document.createElement('script');
-        script.id = 'facebook-jssdk-report-detail'; // Unique ID for this instance
-        script.src = "https://connect.facebook.net/es_LA/sdk.js";
-        script.async = true;
-        script.defer = true;
-        script.crossOrigin = 'anonymous';
-        document.body.appendChild(script);
-
-        window.fbAsyncInit = function() {
-          window.FB.init({
-            appId            : '3120155478148481', // Your App ID
-            cookie           : true,
-            xfbml            : true,
-            version          : 'v19.0'
-          });
-        };
-      }
-    }, []);
-
 
     useEffect(() => {
         setIsClient(true);
@@ -639,17 +604,17 @@ const ReportDetailPage: FC = () => {
                                         </Badge>
                                     </div>
                                     <Button onClick={handleScreenshot} variant="outline" className="sm:col-span-1 md:col-span-1 rounded-full mt-2 ml-2">
-                                      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" className="bi bi-camera mr-2" viewBox="0 0 16 16">
-                                        <path d="M10.5 8a2.5 2.5 0 1 1-5 0 2.5 2.5 0 0 1 5 0z"/>
-                                        <path d="M4.5 1a.5.5 0 0 0-.5.5V2H2a2 2 0 0 0-2 2v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V4a2 2 0 0 0-2-2h-2v-.5a.5.5 0 0 0-.5-.5h-5zm0 1h5V2h2a1 1 0 0 1 1 1v8a1 1 0 0 1-1 1H2a1 1 0 0 1-1-1V3a1 1 0 0 1 1-1h2v-.5z"/>
-                                      </svg>
+                                    <svg className="w-6 h-6 text-gray-800 dark:text-white" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" viewBox="0 0 24 24">
+                                    <path fill-rule="evenodd" d="M13 10a1 1 0 0 1 1-1h.01a1 1 0 1 1 0 2H14a1 1 0 0 1-1-1Z" clip-rule="evenodd"/>
+                                    <path fill-rule="evenodd" d="M2 6a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v12c0 .556-.227 1.06-.593 1.422A.999.999 0 0 1 20.5 20H4a2.002 2.002 0 0 1-2-2V6Zm6.892 12 3.833-5.356-3.99-4.322a1 1 0 0 0-1.549.097L4 12.879V6h16v9.95l-3.257-3.619a1 1 0 0 0-1.557.088L11.2 18H8.892Z" clip-rule="evenodd"/>
+                                    </svg>
+
                                       Captura del reporte <span className="text-xs text-muted-foreground">(Imagen)</span>
                                     </Button>
                                     <Button onClick={handleCopyReportUrl} variant="outline" className="sm:col-span-1 md:col-span-1 rounded-full mt-2 ml-2">
-                                      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" className="bi bi-link-45deg mr-2" viewBox="0 0 16 16">
-                                        <path d="M4.715 6.542a3 3 0 0 1 4.243 0l.543.543a.5.5 0 0 0 .708-.708l-.543-.543a4 4 0 1 0-5.657 5.657l1.414 1.414a4 4 0 0 0 5.657-5.657.5.5 0 1 0-.708.708 3 3 0 0 1-4.243 4.243l-1.414-1.414a3 3 0 0 1 0-4.243z"/>
-                                        <path d="M6.542 4.715a3 3 0 0 1 4.243 4.243l-.543.543a.5.5 0 0 0 .708.708l.543-.543a4 4 0 1 0-5.657-5.657l-1.414 1.414a4 4 0 0 0 5.657 5.657.5.5 0 1 0-.708-.708 3 3 0 0 1-4.243-4.243l1.414-1.414z"/>
-                                      </svg>
+                                    <svg className="w-6 h-6 text-gray-800 dark:text-white" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" viewBox="0 0 24 24">
+                                    <path stroke="currentColor" stroke-linecap="round" stroke-width="2" d="M7.926 10.898 15 7.727m-7.074 5.39L15 16.29M8 12a2.5 2.5 0 1 1-5 0 2.5 2.5 0 0 1 5 0Zm12 5.5a2.5 2.5 0 1 1-5 0 2.5 2.5 0 0 1 5 0Zm0-11a2.5 2.5 0 1 1-5 0 2.5 2.5 0 0 1 5 0Z"/>
+                                     </svg>
                                       Copiar enlace
                                     </Button>
                                   
