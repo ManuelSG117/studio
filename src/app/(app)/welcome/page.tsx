@@ -421,22 +421,16 @@ const WelcomePage: FC = () => {
         {(isLoading && reports.length === 0) || isPaginating ? (
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
             {[...Array(ITEMS_PER_PAGE)].map((_, i) => (
-              <Card key={i} className="shadow-sm bg-card rounded-lg overflow-hidden">
-                <CardHeader className="p-4 flex flex-row items-center justify-between">
-                  <Skeleton className="h-4 w-1/4" />
-                  <Skeleton className="h-8 w-8 rounded-full" />
-                </CardHeader>
-                <Skeleton className="h-32 w-full bg-muted" />
-                <CardContent className="p-4 space-y-2">
-                  <Skeleton className="h-4 w-[60%] mb-1" />
-                  <Skeleton className="h-3 w-[90%]" />
-                  <Skeleton className="h-3 w-[50%]" />
-                  <div className="flex justify-between items-center pt-2">
-                    <Skeleton className="h-3 w-[40%]" />
-                    <Skeleton className="h-8 w-20" />
-                  </div>
-                </CardContent>
-              </Card>
+           <Card key={i} className="shadow-sm bg-card rounded-lg overflow-hidden">
+           <Skeleton className="h-40 w-full bg-muted" />
+           <CardContent className="p-4">
+             <Skeleton className="h-4 w-3/4 mb-2" />
+             <Skeleton className="h-3 w-full mb-1" />
+             <Skeleton className="h-3 w-5/6 mb-3" />
+             <Skeleton className="h-3 w-1/2 mb-3" />
+             <Skeleton className="h-3 w-1/3" />
+           </CardContent>
+       </Card>
             ))}
           </div>
         ) : reports.length > 0 ? (
