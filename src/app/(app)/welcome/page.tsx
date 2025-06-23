@@ -444,11 +444,8 @@ const WelcomePage: FC = () => {
             {reports.map((report) => (
                <Card
                  key={report.id}
-                 className="shadow-md bg-card rounded-lg overflow-hidden hover:shadow-xl transition-shadow duration-300 flex flex-col"
-                 {...(isMobile ? {
-                   onClick: () => router.push(`/reports/${report.id}`),
-                   style: { cursor: 'pointer' },
-                 } : {})}
+                 className="shadow-md bg-card rounded-lg overflow-hidden hover:shadow-xl transition-shadow duration-300 flex flex-col cursor-pointer"
+                 onClick={() => router.push(`/reports/${report.id}`)}
                >
                    <div className="relative h-40 w-full bg-muted flex items-center justify-center text-muted-foreground overflow-hidden group">
                       {report.mediaUrl ? (
@@ -480,7 +477,7 @@ const WelcomePage: FC = () => {
                                     variant="ghost"
                                     size="icon"
                                     className="h-8 w-8 bg-black/40 text-white hover:bg-black/60 rounded-full backdrop-blur-sm"
-                                    onClick={e => isMobile && e.stopPropagation()}
+                                    onClick={e => e.stopPropagation()}
                                   >
                                       <Ellipsis className="h-4 w-4" />
                                       <span className="sr-only">Abrir menú</span>
