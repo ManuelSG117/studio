@@ -34,6 +34,7 @@ import {
 } from "@/components/ui/pagination"
 import { VotesModal } from "@/components/votes-modal";
 import { AlertDialog, AlertDialogContent, AlertDialogHeader, AlertDialogTitle, AlertDialogDescription, AlertDialogAction } from "@/components/ui/alert-dialog";
+import { useIsMobile } from '@/hooks/use-mobile';
 
 // Add window.FB type declaration
 declare global {
@@ -76,6 +77,7 @@ const WelcomePage: FC = () => {
   const [showLimitDialog, setShowLimitDialog] = useState(false);
   const [checkingLimit, setCheckingLimit] = useState(false);
   const [isPaginating, setIsPaginating] = useState(false);
+  const isMobile = useIsMobile();
 
   const ITEMS_PER_PAGE = 6;
 
@@ -440,7 +442,14 @@ const WelcomePage: FC = () => {
         ) : reports.length > 0 ? (
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
             {reports.map((report) => (
-               <Card key={report.id} className="shadow-md bg-card rounded-lg overflow-hidden hover:shadow-xl transition-shadow duration-300 flex flex-col">
+               <Card
+                 key={report.id}
+                 className="shadow-md bg-card rounded-lg overflow-hidden hover:shadow-xl transition-shadow duration-300 flex flex-col"
+                 {...(isMobile ? {
+                   onClick: () => router.push(`/reports/${report.id}`),
+                   style: { cursor: 'pointer' },
+                 } : {})}
+               >
                    <div className="relative h-40 w-full bg-muted flex items-center justify-center text-muted-foreground overflow-hidden group">
                       {report.mediaUrl ? (
                           <>
@@ -467,7 +476,12 @@ const WelcomePage: FC = () => {
                       <div className="absolute top-2 right-2 z-10">
                           <DropdownMenu>
                               <DropdownMenuTrigger asChild>
-                                  <Button variant="ghost" size="icon" className="h-8 w-8 bg-black/40 text-white hover:bg-black/60 rounded-full backdrop-blur-sm">
+                                  <Button
+                                    variant="ghost"
+                                    size="icon"
+                                    className="h-8 w-8 bg-black/40 text-white hover:bg-black/60 rounded-full backdrop-blur-sm"
+                                    onClick={e => isMobile && e.stopPropagation()}
+                                  >
                                       <Ellipsis className="h-4 w-4" />
                                       <span className="sr-only">Abrir menú</span>
                                   </Button>
@@ -518,9 +532,10 @@ const WelcomePage: FC = () => {
                         </div>
                         <div className="flex items-center space-x-1 bg-muted p-1 rounded-full">
                              <Button
-                                 variant="ghost" size="icon"
+                                 variant="ghost"
+                                 size="icon"
                                  className={cn("h-6 w-6 rounded-full text-muted-foreground hover:bg-red-500/10 hover:text-red-500", report.userVote === 'down' && "bg-red-600/20 text-red-600", votingState[report.id] && "opacity-50 cursor-not-allowed", user?.uid === report.userId && "cursor-not-allowed opacity-60")}
-                                onClick={() => handleVote(report.id, 'down')}
+                                onClick={e => { e.stopPropagation(); handleVote(report.id, 'down'); }}
                                 disabled={votingState[report.id] || user?.uid === report.userId}
                                 aria-pressed={report.userVote === 'down'}
                                 title={user?.uid === report.userId ? "No puedes votar en tus propios reportes" : "Votar negativamente"}
@@ -530,15 +545,16 @@ const WelcomePage: FC = () => {
                              <Button 
                                  variant="ghost" 
                                  className="text-sm font-medium text-foreground tabular-nums w-6 text-center p-0 h-auto hover:bg-transparent hover:text-primary"
-                                 onClick={() => { setSelectedReport(report); setVotesModalOpen(true); }}
+                                 onClick={e => { e.stopPropagation(); setSelectedReport(report); setVotesModalOpen(true); }}
                                  title="Ver detalles de votos"
                              >
                                  {report.upvotes - report.downvotes}
                              </Button>
                              <Button
-                                variant="ghost" size="icon"
+                                variant="ghost"
+                                size="icon"
                                 className={cn("h-6 w-6 rounded-full text-muted-foreground hover:bg-green-500/10 hover:text-green-500", report.userVote === 'up' && "bg-green-600/20 text-green-600", votingState[report.id] && "opacity-50 cursor-not-allowed", user?.uid === report.userId && "cursor-not-allowed opacity-60")}
-                                onClick={() => handleVote(report.id, 'up')}
+                                onClick={e => { e.stopPropagation(); handleVote(report.id, 'up'); }}
                                 disabled={votingState[report.id] || user?.uid === report.userId}
                                 aria-pressed={report.userVote === 'up'}
                                 title={user?.uid === report.userId ? "No puedes votar en tus propios reportes" : "Votar positivamente"}
