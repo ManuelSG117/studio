@@ -1,4 +1,3 @@
-
 "use client";
 
 import type { FC } from 'react';
@@ -249,7 +248,7 @@ const DangerZonesPage: FC = () => {
                     </Button>
                  </div>
 
-                 <div className="hidden md:flex flex-row items-center gap-3 p-2 bg-card rounded-full shadow-md border border-border">
+                 <div className="hidden md:flex flex-row items-center gap-3 p-2 bg-card rounded-full shadow-md border border-border ml-auto">
                     <Filter className="h-4 w-4 text-muted-foreground ml-2" />
                     <span className="text-sm font-medium text-muted-foreground hidden md:inline">Filtrar:</span>
                     <Select
