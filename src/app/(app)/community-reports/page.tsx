@@ -572,7 +572,16 @@ const CommunityReportsPage: FC = () => {
                                         Ver detalles
                                     </Link>
                                 </DropdownMenuItem>
-                                <DropdownMenuItem>
+                                <DropdownMenuItem onClick={() => {
+                                  const reportUrl = `https://masseguro.vercel.app/reports/${report.id}`;
+                                  navigator.clipboard.writeText(reportUrl)
+                                    .then(() => {
+                                      toast({ title: "Enlace copiado", description: "El enlace del reporte se ha copiado al portapapeles." });
+                                    })
+                                    .catch(() => {
+                                      toast({ variant: "destructive", title: "Error", description: "No se pudo copiar el enlace. Intenta de nuevo." });
+                                    });
+                                }}>
                                     Compartir
                                 </DropdownMenuItem>
                             </DropdownMenuContent>
