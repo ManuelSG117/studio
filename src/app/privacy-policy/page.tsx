@@ -97,18 +97,9 @@ const privacyPolicyData: PolicySection[] = [
               masseguro117@gmail.com
             </a> con el asunto "Eliminación de datos".
           </li>
-          <li>
-            A través de nuestro formulario automatizado en la siguiente URL:{' '}
-            <a href="/api/facebook-data-deletion" className="text-primary hover:underline" target="_blank" rel="noopener noreferrer">
-              /api/facebook-data-deletion
-            </a>
-            .
-          </li>
+        
         </ul>
-        Una vez recibida tu solicitud, procesaremos la eliminación de tu información personal de nuestros sistemas en un plazo razonable, salvo que la retención sea requerida por motivos legales. Puedes consultar el estado de tu solicitud en:{' '}
-        <a href="/data-deletion-status" className="text-primary hover:underline" target="_blank" rel="noopener noreferrer">
-          /data-deletion-status
-        </a>.
+        Una vez recibida tu solicitud, procesaremos la eliminación de tu información personal de nuestros sistemas en un plazo razonable, salvo que la retención sea requerida por motivos legales.
       </>
     ),
   },
