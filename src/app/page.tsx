@@ -859,7 +859,7 @@ const HomePage: FC = () => {
                   masseguro117@gmail.com 
                 </a> 
           
-                <p className="flex items-center gap-2 justify-center">
+                <p className="flex items-center gap-2 justify-center text-inline">
                   <MapPin className="h-3 w-3 text-primary" /> 
                   Uruapan, Michoacán, México 
                 </p> 
