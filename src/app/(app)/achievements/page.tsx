@@ -406,7 +406,7 @@ const AchievementsPage: FC = () => {
         </Card>
       </div>
       <footer className="mt-16 text-center text-xs text-muted-foreground">
-        © {new Date().getFullYear()} +SEGURO - Plataforma de reportes ciudadanos para la seguridad pública
+      © {new Date().getFullYear()} +SEGURO - Plataforma de reportes de seguridad y prevención de incidentes en Uruapan
       </footer>
     </main>
   );
