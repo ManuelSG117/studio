@@ -391,6 +391,11 @@ const CommunityReportsPage: FC = () => {
                     onChange={(e) => setSearchTerm(e.target.value)} 
                 />
             </form>
+            <Button asChild size="sm" className=" sm:w-auto rounded-full shadow-md hover:shadow-lg transition-shadow">
+                <Link href="/reports/new">
+                    <Plus className="mr-2 h-5 w-5" />Reportar
+                </Link>
+            </Button>
           </div>
           <div className="hidden md:flex flex-row items-center gap-4 p-4 bg-card rounded-full shadow-md border border-border">
              <form onSubmit={handleSearchSubmit} className="relative w-full md:flex-1">
