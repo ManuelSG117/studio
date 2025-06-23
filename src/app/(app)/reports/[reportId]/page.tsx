@@ -338,11 +338,10 @@ const ReportDetailPage: FC = () => {
 
     const handleFacebookShare = () => {
         if (!report) return;
-        const reportUrl = window.location.href;
-        // Construir el texto a compartir
+        // Usar la URL pública de producción
+        const reportUrl = `https://masseguro.vercel.app/reports/${report.id}`;
         const quote = `${report.title}\n\n${report.description}`;
         const hashtag = "#ReporteCiudadano";
-        // Si hay imagen, usarla
         const picture = report.mediaUrl || undefined;
         if (window.FB) {
           window.FB.ui({
