@@ -104,8 +104,7 @@ const AboutCreatorPage: FC = () => {
                     <MessageSquare className="h-6 w-6 mr-4 text-muted-foreground flex-shrink-0" />
                     <div>
                       <span className="font-medium text-muted-foreground text-base">Buzón de Sugerencias</span>
-                      <span className="block text-sm text-muted-foreground">Disponible Próximamente</span>
-                      <span className="block text-sm text-muted-foreground">Puedes hacer sugerencias en la pagina de facebook de +Seguro</span>
+                      <span className="block text-xs text-muted-foreground">Por ahora en la pagina de facebook de +Seguro</span>
                     </div>
                   </Button>
                   <Button asChild variant="outline" className="w-full justify-start text-left h-auto py-4 px-5 rounded-xl hover:bg-blue-500/5 hover:border-blue-500/30 transition-all">
@@ -167,7 +166,7 @@ const AboutCreatorPage: FC = () => {
                 </div>
 
                 <p className="text-muted-foreground leading-relaxed">
-                  Soy Manuel Sandoval, un Ingeniero en Sistemas Computacionales originario y residente de Uruapan. De niño queria ser doctor para salvar vidas, ahora quiero intentar hacer un lugar más seuro para todos. 
+                  Soy Manuel Sandoval, un Ingeniero en Sistemas Computacionales originario y residente de Uruapan. De niño queria ser doctor para salvar vidas, ahora quiero intentar hacer un lugar más seguro para todos. 
                   Desde siempre, me ha apasionado la tecnología, no solo como una herramienta, sino como un medio para generar un impacto positivo real en la sociedad.
                 </p>
                 <p className="text-muted-foreground leading-relaxed mt-3">

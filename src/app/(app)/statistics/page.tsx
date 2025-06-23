@@ -503,7 +503,7 @@ const StatisticsPage: FC = () => {
                     </div>
              </div>
 
-             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+             <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4">
                  <Card className="group rounded-lg shadow-sm overflow-hidden border border-border bg-green-100 dark:bg-green-900/30 dark:border-green-800/60 dark:bg-green-900/25 dark:border-green-700/50">
                      <div className="p-3 flex flex-col justify-between h-full">
                          <div className="flex justify-between items-start">
@@ -685,7 +685,7 @@ const StatisticsPage: FC = () => {
              </Card>
         </div>
         <footer className="mt-12 text-center text-xs text-muted-foreground">
-            © {new Date().getFullYear()} +SEGURO - Plataforma de reportes ciudadanos para la seguridad pública
+        © {new Date().getFullYear()} +SEGURO - Plataforma de reportes de seguridad y prevención de incidentes en Uruapan
         </footer>
     </main>
   );
