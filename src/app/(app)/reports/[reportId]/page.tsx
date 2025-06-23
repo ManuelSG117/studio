@@ -362,6 +362,17 @@ const ReportDetailPage: FC = () => {
         }
       };
 
+    const handleCopyReportUrl = () => {
+        if (!report) return;
+        const reportUrl = `https://masseguro.vercel.app/reports/${report.id}`;
+        navigator.clipboard.writeText(reportUrl)
+            .then(() => {
+                toast({ title: "Enlace copiado", description: "El enlace del reporte se ha copiado al portapapeles. ¡Pégalo en Facebook o donde quieras!" });
+            })
+            .catch(() => {
+                toast({ variant: "destructive", title: "Error", description: "No se pudo copiar el enlace. Intenta de nuevo." });
+            });
+    };
 
     if (isLoading || !isClient || isLoadingReporter) {
         return (
@@ -629,6 +640,13 @@ const ReportDetailPage: FC = () => {
                                         <path d="M16 8.049c0-4.446-3.582-8.05-8-8.05C3.58 0 0 3.592 0 8.049 0 12.069 2.91 15.275 6.75 15.979V10.37H4.849V8.05h1.9V6.275c0-2.017 1.195-3.131 3.022-3.131.876 0 1.791.157 1.791.157v1.98h-1.009c-.993 0-1.303.621-1.303 1.258v1.51h2.218l-.354 2.32H9.25V15.97A8.025 8.025 0 0 0 16 8.049z"/>
                                       </svg>
                                       Compartir en Facebook
+                                    </Button>
+                                    <Button onClick={handleCopyReportUrl} variant="outline" className="sm:col-span-1 md:col-span-1 rounded-full mt-2 ml-2">
+                                      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" className="bi bi-link-45deg mr-2" viewBox="0 0 16 16">
+                                        <path d="M4.715 6.542a3 3 0 0 1 4.243 0l.543.543a.5.5 0 0 0 .708-.708l-.543-.543a4 4 0 1 0-5.657 5.657l1.414 1.414a4 4 0 0 0 5.657-5.657.5.5 0 1 0-.708.708 3 3 0 0 1-4.243 4.243l-1.414-1.414a3 3 0 0 1 0-4.243z"/>
+                                        <path d="M6.542 4.715a3 3 0 0 1 4.243 4.243l-.543.543a.5.5 0 0 0 .708.708l.543-.543a4 4 0 1 0-5.657-5.657l-1.414 1.414a4 4 0 0 0 5.657 5.657.5.5 0 1 0-.708-.708 3 3 0 0 1-4.243-4.243l1.414-1.414z"/>
+                                      </svg>
+                                      Copiar enlace
                                     </Button>
                                 </div>
                             </div>
