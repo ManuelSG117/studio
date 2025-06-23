@@ -39,3 +39,4 @@ yarn-error.log*
 
 # Patch Package
 /patches
+src/app/layout.tsx

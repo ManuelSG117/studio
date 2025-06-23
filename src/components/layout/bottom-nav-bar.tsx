@@ -1,4 +1,3 @@
-
 "use client";
 
 import type { FC, ReactElement } from 'react';
@@ -130,6 +129,24 @@ export const TopNavBar: FC = () => {
 
   const logoSrc = resolvedTheme === 'dark' ? '/logo_dark.webp' : '/logo.webp';
 
+  // Función para obtener el label de la vista actual
+  const getCurrentViewLabel = () => {
+    // Rutas principales
+    const found = navLinks.find((item) =>
+      item.href === '/' ? pathname === item.href : pathname?.startsWith(item.href)
+    );
+    if (found) return found.label;
+    // Rutas especiales
+    if (pathname === '/about-creator') return '+Seguro';
+    if (pathname === '/faq') return 'Preguntas Frecuentes';
+    if (pathname === '/privacy-policy') return 'Política de Privacidad';
+    if (pathname === '/reports/new') return 'Crear Reporte';
+    if (pathname === '/profile/edit') return 'Editar Perfil';
+    if (pathname?.startsWith('/reports/')) return 'Detalles de Reporte';
+    if (pathname === '/achievements') return 'Logros';
+    // Fallback
+    return '+Seguro';
+  };
 
   return (
     <header className={cn(
@@ -168,7 +185,7 @@ export const TopNavBar: FC = () => {
       <div className="md:hidden flex items-center justify-between w-full">
          <Link href="/about-creator" className="text-xl font-bold text-primary flex items-center">
             <Image src={logoSrc} alt="+Seguro Logo" width={28} height={28} className="mr-2" data-ai-hint="app logo small"/>
-            +Seguro
+            <span className="truncate max-w-[140px]">{getCurrentViewLabel()}</span>
         </Link>
         <div className="flex items-center gap-2">
             <ThemeToggle />
