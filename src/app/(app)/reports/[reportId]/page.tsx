@@ -1,7 +1,7 @@
 "use client";
 
 import type { FC } from 'react';
-import { useEffect, useState, useCallback } from 'react';
+import { useEffect, useState, useCallback, useRef } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import Link from 'next/link';
 import Image from 'next/image';
@@ -25,6 +25,7 @@ import { Separator } from '@/components/ui/separator';
 import { ReporterQuickViewDialog } from '@/components/reporter-quick-view-dialog';
 import { getDistance } from 'geolib';
 import { Dialog, DialogTrigger, DialogContent } from '@/components/ui/dialog';
+import { useScreenshot } from 'use-react-screenshot';
 
 // Add window.FB type declaration
 declare global {
@@ -43,6 +44,11 @@ interface ReporterProfile {
   dob?: Date;
 }
 
+// Fix for missing types for use-react-screenshot
+// @ts-expect-error: No types for 'use-react-screenshot'
+// eslint-disable-next-line
+// @ts-ignore
+
 const ReportDetailPage: FC = () => {
     const router = useRouter();
     const params = useParams();
@@ -59,6 +65,8 @@ const ReportDetailPage: FC = () => {
     const [isQuickViewOpen, setIsQuickViewOpen] = useState(false);
     const [selectedReporterForQuickView, setSelectedReporterForQuickView] = useState<ReporterProfile | null>(null);
     const [similarReports, setSimilarReports] = useState<Report[]>([]);
+    const reportCardRef = useRef<HTMLDivElement>(null);
+    const [image, takeScreenshot] = useScreenshot();
 
     const getInitials = (name?: string | null): string => {
         if (!name) return "?";
@@ -336,31 +344,7 @@ const ReportDetailPage: FC = () => {
         }
     };
 
-    const handleFacebookShare = () => {
-        if (!report) return;
-        // Usar la URL pública de producción
-        const reportUrl = `https://masseguro.vercel.app/reports/${report.id}`;
-        const quote = `${report.title}\n\n${report.description}`;
-        const hashtag = "#ReporteCiudadano";
-        const picture = report.mediaUrl || undefined;
-        if (window.FB) {
-          window.FB.ui({
-            method: 'share',
-            href: reportUrl,
-            quote,
-            hashtag,
-            ...(picture ? { picture } : {}),
-          }, function(response: any){
-            if (response && !response.error_message) {
-              toast({ title: "Compartido", description: "El reporte se ha compartido en Facebook." });
-            } else {
-              // console.log('Facebook Share Error/Closed:', response);
-            }
-          });
-        } else {
-          toast({ variant: "destructive", title: "Error", description: "El SDK de Facebook no está listo. Intenta de nuevo en un momento." });
-        }
-      };
+   
 
     const handleCopyReportUrl = () => {
         if (!report) return;
@@ -372,6 +356,25 @@ const ReportDetailPage: FC = () => {
             .catch(() => {
                 toast({ variant: "destructive", title: "Error", description: "No se pudo copiar el enlace. Intenta de nuevo." });
             });
+    };
+
+    const handleScreenshot = async () => {
+      if (!reportCardRef.current) return;
+      try {
+        const img = await takeScreenshot(reportCardRef.current);
+        if (img) {
+          // Download the image
+          const link = document.createElement('a');
+          link.href = img;
+          link.download = `reporte-${report?.id || 'captura'}.png`;
+          document.body.appendChild(link);
+          link.click();
+          document.body.removeChild(link);
+          toast({ title: "Captura lista", description: "La imagen del reporte se ha descargado. ¡Compártela donde quieras!" });
+        }
+      } catch {
+        toast({ variant: "destructive", title: "Error", description: "No se pudo generar la captura. Intenta de nuevo." });
+      }
     };
 
     if (isLoading || !isClient || isLoadingReporter) {
@@ -483,7 +486,7 @@ const ReportDetailPage: FC = () => {
 
             <div className="w-full max-w-7xl grid grid-cols-1 md:grid-cols-3 gap-6">
                 <div className="md:col-span-2">
-                    <Card className="w-full shadow-lg border-none rounded-xl bg-card">
+                    <Card ref={reportCardRef} className="w-full shadow-lg border-none rounded-xl bg-card">
                         <CardHeader className="pt-6 pb-4 px-6">
                             <div className="flex items-center justify-between gap-4 mb-2">
                                 <div
@@ -635,11 +638,12 @@ const ReportDetailPage: FC = () => {
                                             {report.reportType === 'incidente' ? 'Delito' : 'Funcionario'}
                                         </Badge>
                                     </div>
-                                    <Button onClick={handleFacebookShare} variant="outline" className="sm:col-span-1 md:col-span-1 rounded-full mt-2">
-                                      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" className="bi bi-facebook mr-2" viewBox="0 0 16 16">
-                                        <path d="M16 8.049c0-4.446-3.582-8.05-8-8.05C3.58 0 0 3.592 0 8.049 0 12.069 2.91 15.275 6.75 15.979V10.37H4.849V8.05h1.9V6.275c0-2.017 1.195-3.131 3.022-3.131.876 0 1.791.157 1.791.157v1.98h-1.009c-.993 0-1.303.621-1.303 1.258v1.51h2.218l-.354 2.32H9.25V15.97A8.025 8.025 0 0 0 16 8.049z"/>
+                                    <Button onClick={handleScreenshot} variant="outline" className="sm:col-span-1 md:col-span-1 rounded-full mt-2 ml-2">
+                                      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" className="bi bi-camera mr-2" viewBox="0 0 16 16">
+                                        <path d="M10.5 8a2.5 2.5 0 1 1-5 0 2.5 2.5 0 0 1 5 0z"/>
+                                        <path d="M4.5 1a.5.5 0 0 0-.5.5V2H2a2 2 0 0 0-2 2v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V4a2 2 0 0 0-2-2h-2v-.5a.5.5 0 0 0-.5-.5h-5zm0 1h5V2h2a1 1 0 0 1 1 1v8a1 1 0 0 1-1 1H2a1 1 0 0 1-1-1V3a1 1 0 0 1 1-1h2v-.5z"/>
                                       </svg>
-                                      Compartir en Facebook
+                                      Captura del reporte <span className="text-xs text-muted-foreground">(Imagen)</span>
                                     </Button>
                                     <Button onClick={handleCopyReportUrl} variant="outline" className="sm:col-span-1 md:col-span-1 rounded-full mt-2 ml-2">
                                       <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" className="bi bi-link-45deg mr-2" viewBox="0 0 16 16">
@@ -648,6 +652,7 @@ const ReportDetailPage: FC = () => {
                                       </svg>
                                       Copiar enlace
                                     </Button>
+                                  
                                 </div>
                             </div>
                         </CardContent>

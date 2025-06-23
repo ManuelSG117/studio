@@ -1,6 +1,8 @@
 import {genkit} from 'genkit';
 import {googleAI} from '@genkit-ai/googleai';
 
+declare module 'use-react-screenshot';
+
 export const ai = genkit({
   promptDir: './prompts',
   plugins: [
