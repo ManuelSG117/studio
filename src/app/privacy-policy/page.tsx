@@ -1,4 +1,3 @@
-
 "use client";
 
 import type { FC } from 'react';
@@ -83,6 +82,17 @@ const privacyPolicyData: PolicySection[] = [
         <a href="mailto:masseguro117@gmail.com" className="text-primary hover:underline">
           masseguro117@gmail.com
         </a>.
+      </>
+    ),
+  },
+  {
+    title: "10. Eliminación de Datos",
+    content: (
+      <>
+        Si deseas que eliminemos todos tus datos personales asociados a tu cuenta, puedes solicitarlo enviando un correo electrónico a{' '}
+        <a href="mailto:masseguro117@gmail.com" className="text-primary hover:underline">
+          masseguro117@gmail.com
+        </a> con el asunto "Eliminación de datos". Procesaremos tu solicitud y eliminaremos tu información personal de nuestros sistemas en un plazo razonable, salvo que la retención sea requerida por motivos legales.
       </>
     ),
   },
