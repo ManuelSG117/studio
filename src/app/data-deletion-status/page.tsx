@@ -1,3 +1,4 @@
+"use client";
 import type { FC } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
