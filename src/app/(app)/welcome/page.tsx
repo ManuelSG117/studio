@@ -408,8 +408,11 @@ const WelcomePage: FC = () => {
         )}
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
           
-            <Button onClick={handleCreateReport} className="w-full sm:w-auto rounded-full shadow hover:shadow-md transition-shadow">
-              <Plus className="mr-2 h-4 w-4" />Reportar
+   
+        <Button asChild size="lg" className="w-full sm:w-auto rounded-full shadow-md hover:shadow-lg transition-shadow">
+                <Link href="/reports/new">
+                    <Plus className="mr-2 h-5 w-5" />Reportar
+                </Link>
             </Button>
         </div>
 
@@ -556,12 +559,13 @@ const WelcomePage: FC = () => {
               <CardDescription className="text-muted-foreground mb-4">
                 ¡Empieza a contribuir creando tu primer reporte!
               </CardDescription>
-              <Button onClick={handleCreateReport}>
+              <Button  size="lg" className="w-full sm:w-auto rounded-full shadow-md hover:shadow-lg transition-shadow"  onClick={handleCreateReport}>
                 <Plus className="mr-2 h-4 w-4" /> Crear Nuevo Reporte
               </Button>
             </CardContent>
           </Card>
         )}
+        
 
         {/* Modify the pagination controls to show loading state */}
         {!isLoading && !isPaginating && reports.length > 0 && (hasMore || currentPage > 1) && (
