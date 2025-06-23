@@ -356,7 +356,7 @@ const CommunityReportsPage: FC = () => {
 
 
   return (
-    <main className="flex flex-col p-4 sm:p-6 md:p-8 bg-secondary min-h-screen">
+    <main className="flex flex-col p-2 sm:p-2 md:p-2 bg-secondary min-h-screen">
       <div className="w-full max-w-7xl mx-auto space-y-6">
         {selectedReport && (
           <VotesModal 
@@ -370,11 +370,7 @@ const CommunityReportsPage: FC = () => {
         )}  
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
            
-            <Button asChild size="lg" className="w-full sm:w-auto rounded-full shadow-md hover:shadow-lg transition-shadow">
-                <Link href="/reports/new">
-                    <Plus className="mr-2 h-5 w-5" />Reportar
-                </Link>
-            </Button>
+           
         </div>
         <div className="mb-8">
           <div className="md:hidden flex items-center gap-2">
@@ -409,6 +405,7 @@ const CommunityReportsPage: FC = () => {
                     onChange={handleSearchInputChange}
                 />
             </form>
+            
             <div className="flex items-center gap-2 bg-muted p-1 rounded-full">
               <span className="text-sm font-medium text-muted-foreground hidden md:inline pl-2">Filtrar por:</span>
               <Select value={currentFilterType} onValueChange={(value) => handleFilterChange(value as 'todos' | 'incidente' | 'funcionario')}>
@@ -450,6 +447,11 @@ const CommunityReportsPage: FC = () => {
                 </SelectContent>
               </Select>
             </div>
+            <Button asChild size="lg" className="w-full sm:w-auto rounded-full shadow-md hover:shadow-lg transition-shadow">
+                <Link href="/reports/new">
+                    <Plus className="mr-2 h-5 w-5" />Reportar
+                </Link>
+            </Button>
           </div>
           <Dialog open={filterModalOpen} onOpenChange={setFilterModalOpen}>
             <DialogContent className="p-0 max-w-sm w-full rounded-2xl">
@@ -502,6 +504,7 @@ const CommunityReportsPage: FC = () => {
                       <SelectItem value="populares">Más populares</SelectItem>
                     </SelectContent>
                   </Select>
+                  
                 </div>
               </div>
               <DialogFooter className="grid grid-cols-2 gap-2 px-4 pb-4 sm:flex sm:flex-row sm:justify-end sm:space-x-2">
@@ -515,6 +518,7 @@ const CommunityReportsPage: FC = () => {
             </DialogContent>
           </Dialog>
         </div>
+        
 
         {(isLoading && reports.length === 0) || isPaginating ? (
            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
