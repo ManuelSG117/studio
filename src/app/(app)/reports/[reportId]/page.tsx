@@ -339,10 +339,18 @@ const ReportDetailPage: FC = () => {
     const handleFacebookShare = () => {
         if (!report) return;
         const reportUrl = window.location.href;
+        // Construir el texto a compartir
+        const quote = `${report.title}\n\n${report.description}`;
+        const hashtag = "#ReporteCiudadano";
+        // Si hay imagen, usarla
+        const picture = report.mediaUrl || undefined;
         if (window.FB) {
           window.FB.ui({
             method: 'share',
             href: reportUrl,
+            quote,
+            hashtag,
+            ...(picture ? { picture } : {}),
           }, function(response: any){
             if (response && !response.error_message) {
               toast({ title: "Compartido", description: "El reporte se ha compartido en Facebook." });
