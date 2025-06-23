@@ -487,18 +487,23 @@ const WelcomePage: FC = () => {
                                   </Button>
                               </DropdownMenuTrigger>
                               <DropdownMenuContent align="end" className="w-48">
-                                  <DropdownMenuItem asChild>
-                                      <Link href={`/reports/${report.id}`} className="flex items-center gap-2">
-                                          <FileText className="h-4 w-4" />
-                                          Ver detalles
-                                      </Link>
-                                  </DropdownMenuItem>
-                                  <DropdownMenuItem onClick={() => handleFacebookShare(report.id)} className="flex items-center gap-2 cursor-pointer">
-                                     <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" className="bi bi-facebook h-4 w-4" viewBox="0 0 16 16">
-                                         <path d="M16 8.049c0-4.446-3.582-8.05-8-8.05C3.58 0 0 3.592 0 8.049 0 12.069 2.91 15.275 6.75 15.979V10.37H4.849V8.05h1.9V6.275c0-2.017 1.195-3.131 3.022-3.131.876 0 1.791.157 1.791.157v1.98h-1.009c-.993 0-1.303.621-1.303 1.258v1.51h2.218l-.354 2.32H9.25V15.97A8.025 8.025 0 0 0 16 8.049z"/>
-                                     </svg>
-                                     Compartir en Facebook
-                                  </DropdownMenuItem>
+                              <DropdownMenuItem asChild>
+                                    <Link href={`/reports/${report.id}`}>
+                                        Ver detalles
+                                    </Link>
+                                </DropdownMenuItem>
+                                <DropdownMenuItem onClick={() => {
+                                  const reportUrl = `https://masseguro.vercel.app/reports/${report.id}`;
+                                  navigator.clipboard.writeText(reportUrl)
+                                    .then(() => {
+                                      toast({ title: "Enlace copiado", description: "El enlace del reporte se ha copiado al portapapeles." });
+                                    })
+                                    .catch(() => {
+                                      toast({ variant: "destructive", title: "Error", description: "No se pudo copiar el enlace. Intenta de nuevo." });
+                                    });
+                                }}>
+                                    Compartir
+                                </DropdownMenuItem>
                               </DropdownMenuContent>
                           </DropdownMenu>
                       </div>
