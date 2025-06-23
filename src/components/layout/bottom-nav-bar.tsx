@@ -26,10 +26,10 @@ interface NavLinkItem {
 
 const navLinks: NavLinkItem[] = [
   { href: "/welcome", label: "Mis Reportes", icon: <FileText className="h-5 w-5" /> },
-  { href: "/community-reports", label: "Comunidad", icon: <Globe className="h-5 w-5" /> },
-  { href: "/danger-zones", label: "Zonas", icon: <ShieldAlert className="h-5 w-5" /> },
+  { href: "/community-reports", label: "Reportes en Uruapan", icon: <Globe className="h-5 w-5" /> },
+  { href: "/danger-zones", label: "Zonas de Riesgo", icon: <ShieldAlert className="h-5 w-5" /> },
   { href: "/statistics", label: "Estadísticas", icon: <BarChart3 className="h-5 w-5" /> },
-  { href: "/profile", label: "Perfil", icon: <User className="h-5 w-5" /> },
+  { href: "/profile", label: "Mi Perfil", icon: <User className="h-5 w-5" /> },
 ];
 
 const DesktopNavItem: FC<NavLinkItem & { isActive: boolean }> = ({ href, label, icon, isActive }) => {

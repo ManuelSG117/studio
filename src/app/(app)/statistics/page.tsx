@@ -402,13 +402,6 @@ const StatisticsPage: FC = () => {
          <div className="w-full max-w-7xl mx-auto space-y-8">
               <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-0 gap-4">
                   <div className="flex-1">
-                      <h1 className="text-2xl md:text-3xl font-semibold text-foreground flex items-center">
-                          <span className="text-primary font-bold md:mr-1.5">+SEGURO</span>
-                          <span className="hidden md:inline">Dashboard de Estadísticas</span>
-                      </h1>
-                       <CardDescription className="text-sm mt-1 text-muted-foreground md:hidden">
-                           Visualización de datos de reportes ciudadanos
-                       </CardDescription>
                   </div>
                   <div className="w-full sm:w-auto">
                         <div className="md:hidden flex items-center justify-end gap-2 w-full">

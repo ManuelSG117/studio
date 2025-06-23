@@ -1,4 +1,3 @@
-
 "use client";
 
 import type { FC } from 'react';
@@ -36,24 +35,21 @@ const AboutCreatorPage: FC = () => {
           <div
             className="flex items-center justify-start w-full"
           >
-            <Button
-              variant="ghost"
-              size="icon"
-              className="text-muted-foreground hover:text-primary rounded-full mr-auto"
-              onClick={() => router.back()}
-              aria-label="Volver"
-            >
-              <ArrowLeft className="h-5 w-5" />
-            </Button>
+          
           </div>
 
-          <Card className="w-full shadow-xl border-none rounded-2xl bg-card overflow-hidden">
-            <CardHeader className="bg-muted/30 p-4 text-center">
-              <h1
-                className="text-2xl font-bold text-primary"
+          <Card className="w-full shadow-xl border-none rounded-2xl bg-card overflow-hidden ">
+            <CardHeader className="bg-muted/30 p-4 flex items-center justify-center relative">
+              <Button
+                variant="ghost"
+                size="icon"
+                className="text-muted-foreground hover:text-primary absolute left-4 top-1/2 -translate-y-1/2"
+                onClick={() => router.back()}
+                aria-label="Volver"
               >
-                Sobre +Seguro
-              </h1>
+                <ArrowLeft className="h-5 w-5" />
+              </Button>
+              <h1 className="text-2xl font-bold text-primary mx-auto">+Seguro</h1>
             </CardHeader>
 
            

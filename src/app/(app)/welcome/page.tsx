@@ -407,10 +407,7 @@ const WelcomePage: FC = () => {
           />
         )}
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-            <div className="flex-1">
-                <h1 className="text-2xl font-semibold text-foreground">Mis Reportes</h1>
-                <p className="text-sm text-muted-foreground">Aquí puedes ver y gestionar los reportes que has creado.</p>
-            </div>
+          
             <Button onClick={handleCreateReport} className="w-full sm:w-auto rounded-full shadow hover:shadow-md transition-shadow">
               <Plus className="mr-2 h-4 w-4" />Reportar
             </Button>

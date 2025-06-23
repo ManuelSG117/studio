@@ -367,12 +367,9 @@ const CommunityReportsPage: FC = () => {
             upvotes={selectedReport.upvotes}
             downvotes={selectedReport.downvotes}
           />
-        )}
+        )}  
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
-            <div className="flex-1">
-                <h1 className="text-3xl font-semibold text-foreground mb-1">Reportes Comunitarios <span className="text-primary">+SEGURO</span></h1>
-                <p className="text-muted-foreground">Visualización de reportes y denuncias ciudadanas para promover la seguridad en nuestra comunidad</p>
-            </div>
+           
             <Button asChild size="lg" className="w-full sm:w-auto rounded-full shadow-md hover:shadow-lg transition-shadow">
                 <Link href="/reports/new">
                     <Plus className="mr-2 h-5 w-5" />Reportar

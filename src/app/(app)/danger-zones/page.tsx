@@ -232,10 +232,7 @@ const DangerZonesPage: FC = () => {
         <div className="w-full max-w-7xl mx-auto space-y-6">
 
              <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4">
-                 <h1 className="text-2xl md:text-3xl font-semibold text-foreground flex items-center">
-                     <AlertTriangle className="h-7 w-7 mr-2 text-destructive flex-shrink-0" />
-                     Zonas de Riesgo <span className="text-primary font-bold md:ml-1.5">+SEGURO</span>
-                 </h1>
+              
                 
                  <div className="md:hidden flex items-center justify-end w-full sm:w-auto">
                     <Button
