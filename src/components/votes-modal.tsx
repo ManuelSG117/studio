@@ -93,7 +93,7 @@ export function VotesModal({ open, onOpenChange, reportId, reportTitle, upvotes,
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-md">
+      <DialogContent className="sm:max-w-md px-4 sm:px-6">
         <DialogHeader>
           <DialogTitle className="text-center mb-2">Confiabilidad del Reporte</DialogTitle>
           <DialogDescription className="text-center text-sm">
