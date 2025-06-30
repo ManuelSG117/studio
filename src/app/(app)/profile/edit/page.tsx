@@ -20,7 +20,6 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { Calendar } from "@/components/ui/calendar";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
 import { cn } from "@/lib/utils";
@@ -29,6 +28,8 @@ import { useToast } from "@/hooks/use-toast";
 import { getUserProfileData, type UserProfile } from "@/app/(app)/profile/page";
 import { Skeleton } from "@/components/ui/skeleton";
 import { supabase } from "@/lib/supabase/client";
+import { Calendar } from 'primereact/calendar';
+import '@/lib/primereact-locale-es';
 
 // Schema remains the same
 const formSchema = z.object({
@@ -53,6 +54,7 @@ const EditProfilePage: FC = () => {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [selectedFile, setSelectedFile] = useState<File | null>(null); // Will hold the compressed file
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+  const [date, setDate] = useState<Date | null>(new Date()); // Valor inicial: fecha actual
 
   const form = useForm<FormData>({
     resolver: zodResolver(formSchema),
@@ -61,7 +63,7 @@ const EditProfilePage: FC = () => {
         address: "",
         phoneNumber: "",
         gender: undefined,
-        dob: undefined,
+        dob: new Date(),
         email: "",
     },
   });
@@ -547,40 +549,28 @@ const EditProfilePage: FC = () => {
                  render={({ field }) => (
                    <FormItem>
                      <FormLabel>Fecha de Nacimiento</FormLabel>
-                     <Popover>
-                       <PopoverTrigger asChild>
-                         <FormControl>
-                           <Button
-                             variant={"outline"}
-                             className={cn(
-                               "w-full pl-3 text-left font-normal h-11",
-                               !field.value && "text-muted-foreground"
-                             )}
-                             disabled={isLoading || isUploading || isCompressing} // Disable during compression
-                           >
-                             {field.value ? (
-                               format(field.value, "PPP", { locale: es })
-                             ) : (
-                               <span>Selecciona una fecha</span>
-                             )}
-                             <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
-                           </Button>
-                         </FormControl>
-                       </PopoverTrigger>
-                       <PopoverContent className="w-auto p-0" align="start">
+                     <FormControl>
+                       <div className="w-full">
                          <Calendar
-                           mode="single"
-                           selected={field.value}
-                           onSelect={field.onChange}
-                           disabled={(date) =>
-                             date > new Date() || date < new Date("1900-01-01") || isLoading || isUploading || isCompressing // Disable during compression
-                           }
-                           initialFocus
-                           locale={es}
-                           defaultMonth={new Date(new Date().setFullYear(new Date().getFullYear() - 18))}
+                           value={date}
+                           onChange={(e) => {
+                             setDate(e.value ?? null);
+                             field.onChange(e.value ?? null);
+                           }}
+                           dateFormat="dd/mm/yy"
+                           locale="es"
+                           disabled={isLoading || isUploading || isCompressing}
+                           placeholder="Selecciona una fecha"
+                           minDate={new Date('1960-01-01')}
+                           maxDate={new Date('2025-12-31')}
+                           readOnlyInput={false}
+                           showIcon={false}
+                           style={{ width: '100%' }}
+                           inputStyle={{ width: '100%', minWidth: 0, boxSizing: 'border-box' }}
+                           inputClassName="block w-full min-w-0 flex h-10 rounded-md border border-input bg-background px-3 py-2 text-base ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 md:text-sm"
                          />
-                       </PopoverContent>
-                     </Popover>
+                       </div>
+                     </FormControl>
                      <FormMessage />
                    </FormItem>
                  )}

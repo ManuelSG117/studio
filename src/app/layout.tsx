@@ -5,6 +5,10 @@ import { Toaster } from "@/components/ui/toaster"; // Import Toaster
 import { AuthProvider } from '@/context/AuthContext'; // Import AuthProvider
 import { ThemeProvider } from "next-themes"; // Import ThemeProvider
 import { Analytics } from "@vercel/analytics/next";
+import 'primereact/resources/themes/saga-blue/theme.css';
+import 'primereact/resources/primereact.min.css';
+import 'primeicons/primeicons.css';
+
 const geistSans = Geist({
   variable: '--font-geist-sans',
   subsets: ['latin'],
