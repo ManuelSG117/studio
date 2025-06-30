@@ -23,7 +23,8 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import { cn } from "@/lib/utils";
-import { Checkbox } from "@/components/ui/checkbox"; // Import Checkbox
+import { Checkbox } from "@/components/ui/checkbox"; 
+import ReCAPTCHA from "react-google-recaptcha";
 
 // --- Schemas ---
 const loginSchema = z.object({
@@ -109,6 +110,11 @@ const AuthScreen: FC = () => {
   const [metUppercase, setMetUppercase] = useState(false);
   const [metSpecialChar, setMetSpecialChar] = useState(false);
 
+  const [recaptchaToken, setRecaptchaToken] = useState<string | null>(null);
+  const [loginRecaptchaToken, setLoginRecaptchaToken] = useState<string | null>(null);
+
+  const siteKey = process.env.NEXT_PUBLIC_RECAPTCHA_SITE_KEY;
+
   useEffect(() => {
     if (registerPasswordValue) {
         setMetMinLength(registerPasswordValue.length >= MIN_LENGTH);
@@ -183,6 +189,17 @@ const AuthScreen: FC = () => {
        // Set persistence based on rememberMe checkbox
        const persistence = values.rememberMe ? browserLocalPersistence : browserSessionPersistence;
        await setPersistence(auth, persistence);
+       const captchaRes = await fetch('/api/validate-captcha', {
+         method: 'POST',
+         headers: { 'Content-Type': 'application/json' },
+         body: JSON.stringify({ token: loginRecaptchaToken }),
+       });
+       const captchaData = await captchaRes.json();
+       if (!captchaData.success) {
+         setAuthError("Por favor, verifica el captcha.");
+         setIsSubmitting(false);
+         return;
+       }
        await signInWithEmailAndPassword(auth, values.email, values.password);
       toast({
         title: "Inicio de Sesión Exitoso",
@@ -209,9 +226,23 @@ const AuthScreen: FC = () => {
   };
 
   const onRegisterSubmit = async (values: RegisterFormData) => {
-    setIsSubmitting(true); // Start submitting state (triggers overlay)
+    setIsSubmitting(true);
     setIsGoogleLoading(false);
     setAuthError(null);
+
+    // Validar el captcha
+    const captchaRes = await fetch('/api/validate-captcha', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ token: recaptchaToken }),
+    });
+    const captchaData = await captchaRes.json();
+    if (!captchaData.success) {
+      setAuthError("Por favor, verifica el captcha.");
+      setIsSubmitting(false);
+      return;
+    }
+
     try {
       const userCredential = await createUserWithEmailAndPassword(auth, values.registerEmail, values.registerPassword);
       const user = userCredential.user;
@@ -426,11 +457,17 @@ const AuthScreen: FC = () => {
                                </Link>
                            </div>
 
+                           <ReCAPTCHA
+                             sitekey={siteKey}
+                             onChange={setLoginRecaptchaToken}
+                             theme="light"
+                             size="normal"
+                           />
                            <Button
                              type="submit"
                              size="lg"
                              className="w-full bg-primary hover:bg-primary/90 h-12 rounded-md text-base font-medium"
-                             disabled={isSubmitting || isGoogleLoading} // Disable during submission
+                             disabled={isSubmitting || isGoogleLoading || !loginForm.formState.isValid || !loginRecaptchaToken}
                            >
                                {/* Use Mail icon as default, don't show loader here */}
                                <LogIn className="mr-2 h-4 w-4"/>
@@ -533,6 +570,12 @@ const AuthScreen: FC = () => {
                                </FormItem>
                              )}
                            />
+                           <ReCAPTCHA
+                             sitekey={siteKey}
+                             onChange={setRecaptchaToken}
+                             theme="light" // o "dark"
+                             size="normal"
+                           />
                            <FormDescription className="text-xs text-muted-foreground text-center pt-1">
                                Únete a +Seguro para contribuir a un Uruapan más seguro.
                            </FormDescription>
@@ -540,7 +583,7 @@ const AuthScreen: FC = () => {
                              type="submit"
                              size="lg"
                              className="w-full bg-primary hover:bg-primary/90 h-12 rounded-md text-base font-medium"
-                             disabled={isSubmitting || isGoogleLoading || !registerForm.formState.isValid} // Disable during submission
+                             disabled={isSubmitting || isGoogleLoading || !registerForm.formState.isValid || !recaptchaToken} // Disable during submission
                            >
                                {/* Use UserPlus icon as default, don't show loader here */}
                                <UserPlus className="mr-2 h-4 w-4"/>
@@ -567,7 +610,7 @@ const AuthScreen: FC = () => {
                    variant="outline"
                    className="w-full h-12 rounded-md text-base font-medium border-input hover:bg-accent/90"
                    size="lg"
-                   disabled={isSubmitting || isGoogleLoading} // Disable during submission
+                   disabled={isSubmitting || isGoogleLoading || !loginRecaptchaToken} // Disable during submission
                    type="button"
                  >
                    {isGoogleLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <GoogleIcon className="mr-2 h-5 w-5" />}
