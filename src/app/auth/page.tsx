@@ -23,8 +23,9 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import { cn } from "@/lib/utils";
-import { Checkbox } from "@/components/ui/checkbox"; 
+import { Checkbox } from "@/components/ui/checkbox"; // Import Checkbox
 import ReCAPTCHA from "react-google-recaptcha";
+import Script from "next/script";
 
 // --- Schemas ---
 const loginSchema = z.object({
@@ -111,9 +112,6 @@ const AuthScreen: FC = () => {
   const [metSpecialChar, setMetSpecialChar] = useState(false);
 
   const [recaptchaToken, setRecaptchaToken] = useState<string | null>(null);
-  const [loginRecaptchaToken, setLoginRecaptchaToken] = useState<string | null>(null);
-
-  const siteKey = process.env.NEXT_PUBLIC_RECAPTCHA_SITE_KEY;
 
   useEffect(() => {
     if (registerPasswordValue) {
@@ -189,17 +187,6 @@ const AuthScreen: FC = () => {
        // Set persistence based on rememberMe checkbox
        const persistence = values.rememberMe ? browserLocalPersistence : browserSessionPersistence;
        await setPersistence(auth, persistence);
-       const captchaRes = await fetch('/api/validate-captcha', {
-         method: 'POST',
-         headers: { 'Content-Type': 'application/json' },
-         body: JSON.stringify({ token: loginRecaptchaToken }),
-       });
-       const captchaData = await captchaRes.json();
-       if (!captchaData.success) {
-         setAuthError("Por favor, verifica el captcha.");
-         setIsSubmitting(false);
-         return;
-       }
        await signInWithEmailAndPassword(auth, values.email, values.password);
       toast({
         title: "Inicio de Sesión Exitoso",
@@ -230,15 +217,21 @@ const AuthScreen: FC = () => {
     setIsGoogleLoading(false);
     setAuthError(null);
 
-    // Validar el captcha
+    // Ejecuta reCAPTCHA v3
+    const token = await window.grecaptcha.execute(
+      process.env.NEXT_PUBLIC_RECAPTCHA_SITE_KEY!,
+      { action: "register" }
+    );
+
+    // Envía el token al backend junto con los datos del usuario
     const captchaRes = await fetch('/api/validate-captcha', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ token: recaptchaToken }),
+      body: JSON.stringify({ token }),
     });
     const captchaData = await captchaRes.json();
-    if (!captchaData.success) {
-      setAuthError("Por favor, verifica el captcha.");
+    if (!captchaData.success || captchaData.score < 0.5) {
+      setAuthError("Por favor, verifica que eres humano.");
       setIsSubmitting(false);
       return;
     }
@@ -457,17 +450,11 @@ const AuthScreen: FC = () => {
                                </Link>
                            </div>
 
-                           <ReCAPTCHA
-                             sitekey={siteKey}
-                             onChange={setLoginRecaptchaToken}
-                             theme="light"
-                             size="normal"
-                           />
                            <Button
                              type="submit"
                              size="lg"
                              className="w-full bg-primary hover:bg-primary/90 h-12 rounded-md text-base font-medium"
-                             disabled={isSubmitting || isGoogleLoading || !loginForm.formState.isValid || !loginRecaptchaToken}
+                             disabled={isSubmitting || isGoogleLoading} // Disable during submission
                            >
                                {/* Use Mail icon as default, don't show loader here */}
                                <LogIn className="mr-2 h-4 w-4"/>
@@ -571,9 +558,9 @@ const AuthScreen: FC = () => {
                              )}
                            />
                            <ReCAPTCHA
-                             sitekey={siteKey}
+                             sitekey="TU_SITE_KEY_AQUI"
                              onChange={setRecaptchaToken}
-                             theme="light" // o "dark"
+                             theme="light"
                              size="normal"
                            />
                            <FormDescription className="text-xs text-muted-foreground text-center pt-1">
@@ -610,7 +597,7 @@ const AuthScreen: FC = () => {
                    variant="outline"
                    className="w-full h-12 rounded-md text-base font-medium border-input hover:bg-accent/90"
                    size="lg"
-                   disabled={isSubmitting || isGoogleLoading || !loginRecaptchaToken} // Disable during submission
+                   disabled={isSubmitting || isGoogleLoading} // Disable during submission
                    type="button"
                  >
                    {isGoogleLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <GoogleIcon className="mr-2 h-5 w-5" />}
@@ -630,6 +617,10 @@ const AuthScreen: FC = () => {
         </Card>
       
       </main>
+      <Script
+        src={`https://www.google.com/recaptcha/api.js?render=${process.env.NEXT_PUBLIC_RECAPTCHA_SITE_KEY}`}
+        strategy="afterInteractive"
+      />
     </>
   );
 };
