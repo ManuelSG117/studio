@@ -681,11 +681,12 @@ const CommunityReportsPage: FC = () => {
                <CardDescription className="text-muted-foreground">
                  Aún no se han creado reportes por otros usuarios. ¡Sé el primero en crear uno!
                </CardDescription>
-                <Button asChild className="mt-4">
-                  <Link href="/reports/new">
-                    <Plus className="mr-2 h-4 w-4" /> Reportar Incidente
-                  </Link>
-                </Button>
+               
+               <Button asChild size="sm" className=" sm:w-auto rounded-full shadow-md hover:shadow-lg transition-shadow mt-4">
+                <Link href="/reports/new">
+                    <Plus className="mr-2 h-5 w-5" />Reportar
+                </Link>
+            </Button>
              </CardContent>
            </Card>
         )}
