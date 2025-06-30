@@ -551,24 +551,24 @@ const EditProfilePage: FC = () => {
                      <FormLabel>Fecha de Nacimiento</FormLabel>
                      <FormControl>
                        <div className="w-full">
-                         <Calendar
-                           value={date}
-                           onChange={(e) => {
-                             setDate(e.value ?? null);
-                             field.onChange(e.value ?? null);
-                           }}
-                           dateFormat="dd/mm/yy"
-                           locale="es"
-                           disabled={isLoading || isUploading || isCompressing}
-                           placeholder="Selecciona una fecha"
-                           minDate={new Date('1960-01-01')}
-                           maxDate={new Date('2025-12-31')}
-                           readOnlyInput={false}
-                           showIcon={false}
+                       <Calendar
+                         value={date}
+                         onChange={(e) => {
+                           setDate(e.value ?? null);
+                           field.onChange(e.value ?? null);
+                         }}
+                         dateFormat="dd/mm/yy"
+                         locale="es"
+                         disabled={isLoading || isUploading || isCompressing}
+                         placeholder="Selecciona una fecha"
+                         minDate={new Date('1960-01-01')}
+                         maxDate={new Date('2025-12-31')} 
+                         readOnlyInput={false}
+                         showIcon={false}
                            style={{ width: '100%' }}
                            inputStyle={{ width: '100%', minWidth: 0, boxSizing: 'border-box' }}
                            inputClassName="block w-full min-w-0 flex h-10 rounded-md border border-input bg-background px-3 py-2 text-base ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 md:text-sm"
-                         />
+                       />
                        </div>
                      </FormControl>
                      <FormMessage />

@@ -93,10 +93,10 @@ export function VotesModal({ open, onOpenChange, reportId, reportTitle, upvotes,
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-md px-4 sm:px-6">
+      <DialogContent className="w-full max-w-[95vw] sm:max-w-md px-2 sm:px-6 mx-auto rounded-xl">
         <DialogHeader>
           <DialogTitle className="text-center mb-2">Confiabilidad del Reporte</DialogTitle>
-          <DialogDescription className="text-center text-sm">
+          <DialogDescription className="text-center text-sm break-words">
             {reportTitle}
           </DialogDescription>
         </DialogHeader>
@@ -167,12 +167,12 @@ export function VotesModal({ open, onOpenChange, reportId, reportTitle, upvotes,
         </div>
 
         {/* Pestañas de votos */}
-        <div className="flex justify-center space-x-2 mb-4">
+        <div className="flex flex-col sm:flex-row justify-center space-y-2 sm:space-y-0 sm:space-x-2 mb-4 w-full">
           <Button 
             variant={activeTab === 'up' ? "default" : "outline"}
             size="sm"
             onClick={() => setActiveTab('up')}
-            className="flex items-center gap-1"
+            className="flex items-center gap-1 w-full sm:w-auto"
           >
             <ThumbsUp className="h-4 w-4" />
             <span>Votos positivos ({upvotes})</span>
@@ -181,7 +181,7 @@ export function VotesModal({ open, onOpenChange, reportId, reportTitle, upvotes,
             variant={activeTab === 'down' ? "default" : "outline"}
             size="sm"
             onClick={() => setActiveTab('down')}
-            className="flex items-center gap-1"
+            className="flex items-center gap-1 w-full sm:w-auto"
           >
             <ThumbsDown className="h-4 w-4" />
             <span>Votos negativos ({downvotes})</span>
