@@ -108,18 +108,7 @@ export function VotesModal({ open, onOpenChange, reportId, reportTitle, upvotes,
             <span className={cn("font-medium", getTemperatureColor())}>
               {getTemperatureMessage()}
             </span>
-            <TooltipProvider>
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <Button variant="ghost" size="icon" className="h-6 w-6 rounded-full">
-                    <Info className="h-3.5 w-3.5" />
-                  </Button>
-                </TooltipTrigger>
-                <TooltipContent>
-                  <p className="text-xs">La confiabilidad se calcula en base a los votos de la comunidad</p>
-                </TooltipContent>
-              </Tooltip>
-            </TooltipProvider>
+            
           </div>
           
           {/* Barra de temperatura */}
@@ -146,7 +135,7 @@ export function VotesModal({ open, onOpenChange, reportId, reportTitle, upvotes,
             </div>
             <div className="flex items-center gap-1">
               <span>{upvotes}</span>
-              <ArrowUp className="h-3.5 w-3.5 text-green-500" />
+              <ArrowUp className="h-3.5 w-3.5 text-blue-500" />
             </div>
           </div>
 
@@ -154,16 +143,26 @@ export function VotesModal({ open, onOpenChange, reportId, reportTitle, upvotes,
           <div className="mt-4 space-y-2 text-sm text-muted-foreground border-t pt-4">
             <div className="flex items-center gap-2">
               <ThumbsUp className="h-4 w-4" />
-              <p>Tu voto determina la confiabilidad del reporte</p>
+              <p>La confiabilidad se calcula en base a los votos de la comunidad</p>
             </div>
             <div className="flex items-center gap-2">
-              <ArrowUp className="h-4 w-4" />
+              <Info className="h-4 w-4" />
               <p>No hay límite para la cantidad de votos</p>
             </div>
             <div className="flex items-center gap-2">
               <User className="h-4 w-4" />
               <p>Puedes votar en cualquier reporte de la comunidad</p>
             </div>
+
+            <div className="flex items-center gap-2">
+              <ArrowUp className="h-4 w-4" />
+              <p>Los votos positivos aumentan la confiabilidad del reporte</p>
+            </div>
+            <div className="flex items-center gap-2">
+              <ArrowDown className="h-4 w-4" />
+              <p>Los votos negativos disminuyen la confiabilidad del reporte</p>
+            </div>
+            
           </div>
         </div>
 
