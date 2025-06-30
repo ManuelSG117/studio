@@ -24,7 +24,6 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import { cn } from "@/lib/utils";
 import { Checkbox } from "@/components/ui/checkbox"; // Import Checkbox
-import ReCAPTCHA from "react-google-recaptcha";
 import Script from "next/script";
 
 // --- Schemas ---
@@ -557,12 +556,7 @@ const AuthScreen: FC = () => {
                                </FormItem>
                              )}
                            />
-                           <ReCAPTCHA
-                             sitekey="TU_SITE_KEY_AQUI"
-                             onChange={setRecaptchaToken}
-                             theme="light"
-                             size="normal"
-                           />
+                   
                            <FormDescription className="text-xs text-muted-foreground text-center pt-1">
                                Únete a +Seguro para contribuir a un Uruapan más seguro.
                            </FormDescription>
